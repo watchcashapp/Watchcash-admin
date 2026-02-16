@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: watchcash_admin_dev
     ports:
-      - "4000:4000"
+      - "9000:3000"  # host:container (Next.js dev runs on 3000 in container)
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_ENV=development

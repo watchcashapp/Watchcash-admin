@@ -61,7 +61,7 @@ jobs:
             COMPOSE_FILE="docker-compose.${ENV_TYPE}.yml"
             CONTAINER_NAME="watchcash_admin_${ENV_TYPE}"
             
-            echo "Deploying $ENV_TYPE environment from branch: $BRANCH"
+            echo "Deploying ${ENV_TYPE} environment from branch: ${BRANCH}"
             
             # Pull latest code from the branch
             git fetch origin
@@ -70,7 +70,7 @@ jobs:
             
             # Stop and remove existing containers
             echo "Stopping existing containers..."
-            docker-compose -f $COMPOSE_FILE down || true
+            docker compose -f $COMPOSE_FILE down || true
             
             # Remove old images to free up space
             echo "Cleaning up old Docker images..."
@@ -78,11 +78,11 @@ jobs:
             
             # Build Next.js container
             echo "Building Next.js container for $ENV_TYPE environment..."
-            docker-compose -f $COMPOSE_FILE build --no-cache
+            docker compose -f $COMPOSE_FILE build --no-cache
             
             # Start containers
             echo "Starting containers..."
-            docker-compose -f $COMPOSE_FILE up -d
+            docker compose -f $COMPOSE_FILE up -d
             
             # Wait for container to be ready
             echo "Waiting for Next.js container to start..."
@@ -101,15 +101,16 @@ jobs:
               if [ "$ENV_TYPE" == "prod" ]; then
                 echo "Verifying Next.js server is responding..."
                 sleep 5
-                if curl -f http://localhost:3000 > /dev/null 2>&1; then
-                  echo "✓ Next.js server is responding on port 3000"
+                # Check via host port mapped in docker-compose.prod.yml
+                if curl -f http://localhost:5000 > /dev/null 2>&1; then
+                  echo "✓ Next.js server is responding on port 5000"
                 else
                   echo "⚠ Warning: Next.js server may not be responding yet"
                 fi
               fi
             else
               echo "✗ Error: Container $CONTAINER_NAME is not running"
-              docker-compose -f $COMPOSE_FILE logs
+              docker compose -f $COMPOSE_FILE logs
               exit 1
             fi
             
