@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: watchcash_admin_dev
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_ENV=development
+      - WATCHPACK_POLLING=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    restart: unless-stopped
+    networks:
+      - watchcash-network
+    stdin_open: true
+    tty: true
+
+networks:
+  watchcash-network:
+    driver: bridge
+

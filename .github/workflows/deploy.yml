@@ -1,0 +1,120 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - development
+      - dev
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - master
+          - development
+          - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
+
+      - name: Set environment variables
+        id: set-env
+        run: |
+          # Determine branch name (use input for manual dispatch, otherwise use ref_name)
+          BRANCH="${{ github.ref_name }}"
+          
+          # Set environment based on branch
+          if [[ "$BRANCH" == "main" ]] || [[ "$BRANCH" == "master" ]]; then
+            echo "ENV_TYPE=prod" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          else
+            echo "ENV_TYPE=dev" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to EC2 Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script: |
+            cd ${{ secrets.EC2_APP_PATH || '/home/ubuntu/Watchcash-admin' }}
+            
+            # Determine branch and environment
+            BRANCH="${{ github.ref_name }}"
+            ENV_TYPE="${{ env.ENV_TYPE }}"
+            COMPOSE_FILE="docker-compose.${ENV_TYPE}.yml"
+            CONTAINER_NAME="watchcash_admin_${ENV_TYPE}"
+            
+            echo "Deploying $ENV_TYPE environment from branch: $BRANCH"
+            
+            # Pull latest code from the branch
+            git fetch origin
+            git checkout $BRANCH
+            git pull origin $BRANCH
+            
+            # Stop and remove existing containers
+            echo "Stopping existing containers..."
+            docker-compose -f $COMPOSE_FILE down || true
+            
+            # Remove old images to free up space
+            echo "Cleaning up old Docker images..."
+            docker image prune -f
+            
+            # Build Next.js container
+            echo "Building Next.js container for $ENV_TYPE environment..."
+            docker-compose -f $COMPOSE_FILE build --no-cache
+            
+            # Start containers
+            echo "Starting containers..."
+            docker-compose -f $COMPOSE_FILE up -d
+            
+            # Wait for container to be ready
+            echo "Waiting for Next.js container to start..."
+            sleep 10
+            
+            # Verify container is running
+            echo "Checking container status..."
+            if docker ps | grep -q $CONTAINER_NAME; then
+              echo "✓ Container $CONTAINER_NAME is running"
+              
+              # Check container logs for Next.js startup
+              echo "Container logs:"
+              docker logs $CONTAINER_NAME --tail 20
+              
+              # For production, verify Next.js server is responding
+              if [ "$ENV_TYPE" == "prod" ]; then
+                echo "Verifying Next.js server is responding..."
+                sleep 5
+                if curl -f http://localhost:3000 > /dev/null 2>&1; then
+                  echo "✓ Next.js server is responding on port 3000"
+                else
+                  echo "⚠ Warning: Next.js server may not be responding yet"
+                fi
+              fi
+            else
+              echo "✗ Error: Container $CONTAINER_NAME is not running"
+              docker-compose -f $COMPOSE_FILE logs
+              exit 1
+            fi
+            
+            # Clean up unused Docker resources
+            docker system prune -f
+            
+            echo "✓ Deployment to $ENV_TYPE environment completed successfully!"
+
