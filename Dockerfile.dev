@@ -8,6 +8,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy application code
+
 COPY . .
 
 # Expose Next.js dev server port
