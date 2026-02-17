@@ -1,10 +1,4 @@
-import Image from "next/image";
-
-export default function Home() {
-  return (
-
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-    <h1>WatchCash - Admin Portal </h1>
-    </div>
-  );
+// This page will be handled by middleware and will redirect to appropriate route
+export default function RootPage() {
+  return null;
 }
