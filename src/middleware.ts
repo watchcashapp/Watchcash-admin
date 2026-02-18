@@ -20,6 +20,7 @@ export function middleware(req: NextRequest) {
     '/dashboard',
     '/dashboard/profile',
     '/dashboard/app-rules',
+    '/dashboard/users',
   ];
   
   // Check if the pathname exactly matches a valid route or is a dynamic route under reset-password

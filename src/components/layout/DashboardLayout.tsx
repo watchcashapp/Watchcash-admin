@@ -29,6 +29,7 @@ import {
   Logout,
   AccountCircle,
   Rule,
+  People,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared';
@@ -45,6 +46,7 @@ interface DashboardLayoutProps {
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+  { text: 'User Management', icon: <People />, path: '/dashboard/users' },
   { text: 'App Rules', icon: <Rule />, path: '/dashboard/app-rules' },
   { text: 'Transactions', icon: <AccountBalance />, path: '/dashboard/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/dashboard/profile' },
