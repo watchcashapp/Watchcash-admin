@@ -19,7 +19,7 @@ import {
 import { Add } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { useToast } from "@/components/shared";
+import { useToast, ConfirmDialog } from "@/components/shared";
 import {
   useGetAppRulesQuery,
   useCreateAppRuleMutation,
@@ -56,6 +56,12 @@ export default function AppRulesPage() {
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    ruleToDelete: null as AppRule | null,
+  });
 
   const columns: Column<AppRule>[] = [
     { id: 'appName', label: 'App Name', minWidth: 150 },
@@ -214,15 +220,27 @@ export default function AppRulesPage() {
   };
 
   const handleDelete = async (rule: AppRule) => {
-    if (!confirm(`Are you sure you want to delete "${rule.appName}"?`)) return;
+    setConfirmDialog({
+      open: true,
+      ruleToDelete: rule,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDialog.ruleToDelete) return;
 
     try {
-      await deleteAppRule(rule.id).unwrap();
+      await deleteAppRule(confirmDialog.ruleToDelete.id).unwrap();
       showSuccess('App rule deleted successfully!');
+      setConfirmDialog({ open: false, ruleToDelete: null });
     } catch (error: any) {
       const errorMessage = error?.data?.message || error?.message || 'Delete failed';
       showError(errorMessage);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDialog({ open: false, ruleToDelete: null });
   };
 
   const handleToggle = async (rule: AppRule) => {
@@ -469,6 +487,18 @@ export default function AppRulesPage() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Confirmation Dialog */}
+        <ConfirmDialog
+          open={confirmDialog.open}
+          title="Delete App Rule"
+          message={`Are you sure you want to delete "${confirmDialog.ruleToDelete?.appName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          severity="error"
+        />
       </Box>
     </DashboardLayout>
   );

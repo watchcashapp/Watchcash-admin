@@ -8,3 +8,6 @@ export type { ToastMessage } from './Toaster';
 
 export { default as DataTable } from './DataTable';
 export type { Column, DataTableProps } from './DataTable';
+
+export { default as ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
