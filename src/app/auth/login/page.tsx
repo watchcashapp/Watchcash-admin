@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, Link, TextField, Button } from "@mui/material";
+import React, { useState, Suspense } from "react";
+import { Box, Paper, Typography, Grid, Link, TextField, Button, CircularProgress } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { useLoginMutation } from "@/store/api/authApi";
@@ -26,7 +26,7 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
   const dispatch = useDispatch();
@@ -52,24 +52,38 @@ export default function LoginPage() {
     try {
       const result = await login({ email, password }).unwrap();
       
+      console.log('Login response:', result);
+      
       // Decode the access token to get user data
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
+      console.log('Decoded token in login:', decodedToken);
       
-      // Set both tokens in cookies
-      document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
-      document.cookie = `refreshToken=${result.data.refreshToken}; path=/; max-age=604800; secure; samesite=strict`;
+      const userData = {
+        id: decodedToken.profile.id,
+        name: decodedToken.profile.name,
+        email: decodedToken.profile.email,
+        userType: decodedToken.profile.userType,
+      };
+      
+      console.log('User data to store:', userData);
+      
+      // Set both tokens in cookies (without secure flag for localhost)
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const cookieOptions = isLocalhost 
+        ? 'path=/; samesite=strict'
+        : 'path=/; secure; samesite=strict';
+      
+      document.cookie = `accessToken=${result.data.accessToken}; ${cookieOptions}; max-age=3600`;
+      document.cookie = `refreshToken=${result.data.refreshToken}; ${cookieOptions}; max-age=604800`;
       
       // Store tokens and user data in Redux
       dispatch(setUser({ 
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
-        user: {
-          id: decodedToken.profile.id,
-          name: decodedToken.profile.name,
-          email: decodedToken.profile.email,
-          userType: decodedToken.profile.userType,
-        }
+        user: userData
       }));
+      
+      console.log('User set in Redux, redirecting to:', returnTo);
       
       showSuccess('Login successful!');
       
@@ -291,3 +305,23 @@ export default function LoginPage() {
   );
 }
 
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        }}
+      >
+        <CircularProgress sx={{ color: 'white' }} />
+      </Box>
+    }>
+      <LoginForm />
+    </Suspense>
+  );
+}

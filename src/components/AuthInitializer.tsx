@@ -13,9 +13,14 @@ export default function AuthInitializer() {
     const accessToken = getTokenFromCookie('accessToken');
     const refreshToken = getTokenFromCookie('refreshToken');
     
+    console.log('AuthInitializer - accessToken:', accessToken ? 'exists' : 'missing');
+    console.log('AuthInitializer - refreshToken:', refreshToken ? 'exists' : 'missing');
+    
     if (accessToken && refreshToken) {
       // Decode token to get user data
       const user = getUserFromToken();
+      
+      console.log('AuthInitializer - decoded user:', user);
       
       if (user) {
         dispatch(setUser({
@@ -23,6 +28,7 @@ export default function AuthInitializer() {
           refreshToken,
           user,
         }));
+        console.log('AuthInitializer - user set in Redux');
       }
     }
   }, [dispatch]);

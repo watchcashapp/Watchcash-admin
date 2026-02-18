@@ -65,6 +65,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [logout] = useLogoutMutation();
   const { refreshToken, user } = useSelector((state: RootState) => state.auth);
 
+  console.log('DashboardLayout - user from Redux:', user);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 

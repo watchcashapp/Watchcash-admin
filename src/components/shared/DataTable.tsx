@@ -172,7 +172,7 @@ export default function DataTable<T extends Record<string, any>>({
                         borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
                       }}
                     >
-                      {column.format ? column.format(value, row) : value}
+                      {column.format ? column.format(value, row) : (value as React.ReactNode)}
                     </TableCell>
                   );
                 })}

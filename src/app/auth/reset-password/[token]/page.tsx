@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, TextField, Button } from "@mui/material";
+import { Box, Paper, Typography, Grid, TextField, Button, Container } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import { useToast } from "@/components/shared";
+import { useToast, Input } from "@/components/shared";
 import { useResetPasswordMutation } from "@/store/api/authApi";
 
 export default function ResetPassword() {
@@ -120,10 +120,10 @@ export default function ResetPassword() {
                     type="submit" 
                     variant="contained" 
                     fullWidth 
-                    loading={loading}
+                    disabled={isLoading}
                     size="large"
                   >
-                    {loading ? "Saving..." : "Save New Password"}
+                    {isLoading ? "Saving..." : "Save New Password"}
                   </Button>
                 </Grid>
               </Grid>

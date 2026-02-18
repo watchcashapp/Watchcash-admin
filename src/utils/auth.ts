@@ -27,12 +27,30 @@ export const getTokenFromCookie = (name: string): string | null => {
 export const decodeAccessToken = (token: string) => {
   try {
     const decoded = jwtDecode<DecodedToken>(token);
-    return {
-      id: decoded.profile.id,
-      name: decoded.profile.name,
-      email: decoded.profile.email,
-      userType: decoded.profile.userType,
-    };
+    console.log('Decoded token:', decoded);
+    
+    // Check if the token structure matches our expected format
+    if (decoded.profile) {
+      return {
+        id: decoded.profile.id,
+        name: decoded.profile.name,
+        email: decoded.profile.email,
+        userType: decoded.profile.userType,
+      };
+    }
+    
+    // Fallback: check if data is directly on the token
+    if (decoded.sub && decoded.email) {
+      return {
+        id: decoded.sub,
+        name: (decoded as any).name || decoded.email.split('@')[0],
+        email: decoded.email,
+        userType: (decoded as any).userType || 'ADMIN',
+      };
+    }
+    
+    console.error('Token structure does not match expected format:', decoded);
+    return null;
   } catch (error) {
     console.error('Failed to decode token:', error);
     return null;
