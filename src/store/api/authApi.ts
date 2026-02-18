@@ -1,5 +1,104 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { config } from '@/config/env';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { Mutex } from 'async-mutex';
+
+// Create a mutex to prevent multiple refresh requests
+const mutex = new Mutex();
+
+// Custom base query with error handling
+const baseQuery = fetchBaseQuery({
+  baseUrl: config.apiUrl,
+  prepareHeaders: (headers, { endpoint }) => {
+    // Public endpoints that don't need authentication
+    const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword'];
+    
+    // Only add Authorization header for private/protected endpoints
+    if (!publicEndpoints.includes(endpoint)) {
+      const accessToken = typeof window !== 'undefined' 
+        ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+        : '';
+      
+      if (accessToken) {
+        headers.set('Authorization', `Bearer ${accessToken}`);
+      }
+    }
+    
+    headers.set('Content-Type', 'application/json');
+    return headers;
+  },
+});
+
+// Base query with automatic token refresh on 401
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  // Wait until the mutex is available without locking it
+  await mutex.waitForUnlock();
+  
+  let result = await baseQuery(args, api, extraOptions);
+  
+  if (result.error && result.error.status === 401) {
+    // Check if the mutex is locked
+    if (!mutex.isLocked()) {
+      const release = await mutex.acquire();
+      
+      try {
+        const refreshToken = typeof window !== 'undefined'
+          ? document.cookie.replace(/(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+          : '';
+        
+        if (refreshToken) {
+          // Try to get a new token
+          const refreshResult = await baseQuery(
+            {
+              url: '/auth/refresh',
+              method: 'POST',
+              body: { refreshToken },
+            },
+            api,
+            extraOptions
+          );
+          
+          if (refreshResult.data) {
+            const data = refreshResult.data as { status: string; data: { accessToken: string; refreshToken: string } };
+            
+            // Store the new tokens
+            if (typeof window !== 'undefined') {
+              document.cookie = `accessToken=${data.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
+              document.cookie = `refreshToken=${data.data.refreshToken}; path=/; max-age=604800; secure; samesite=strict`;
+            }
+            
+            // Retry the initial query with new token
+            result = await baseQuery(args, api, extraOptions);
+          } else {
+            // Refresh failed - clear tokens and redirect to login
+            if (typeof window !== 'undefined') {
+              document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+              document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+              window.location.href = '/auth/login';
+            }
+          }
+        } else {
+          // No refresh token - redirect to login
+          if (typeof window !== 'undefined') {
+            window.location.href = '/auth/login';
+          }
+        }
+      } finally {
+        release();
+      }
+    } else {
+      // Wait for the mutex to be available
+      await mutex.waitForUnlock();
+      result = await baseQuery(args, api, extraOptions);
+    }
+  }
+  
+  return result;
+};
 
 export interface LoginRequest {
   email: string;
@@ -12,6 +111,21 @@ export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
   };
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  userType: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProfileResponse {
+  status: string;
+  data: User;
 }
 
 export interface RegisterRequest {
@@ -33,25 +147,9 @@ export interface ApiError {
   data: string | { message: string; errors?: Record<string, string[]> };
 }
 
-// Custom base query with error handling
-const baseQuery = fetchBaseQuery({
-  baseUrl: config.apiUrl,
-  prepareHeaders: (headers) => {
-    const token = typeof window !== 'undefined' 
-    
-      ? document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1')
-      : '';
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
-    }
-    headers.set('Content-Type', 'application/json');
-    return headers;
-  },
-});
-
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery,
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['User'],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
@@ -61,9 +159,10 @@ export const authApi = createApi({
         body: credentials,
       }),
       transformResponse: (response: LoginResponse) => {
-        // Set token in cookie on successful login
-        if (typeof document !== 'undefined' && response.token) {
-          document.cookie = `token=${response.token}; path=/; max-age=3600; secure; samesite=strict`;
+        // Store both tokens in cookies
+        if (typeof window !== 'undefined' && response.data) {
+          document.cookie = `accessToken=${response.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
+          document.cookie = `refreshToken=${response.data.refreshToken}; path=/; max-age=604800; secure; samesite=strict`;
         }
         return response;
       },
@@ -75,263 +174,86 @@ export const authApi = createApi({
         method: 'POST',
         body: userData,
       }),
-      transformResponse: (response: RegisterResponse) => {
-        // Set token in cookie on successful registration
-        if (typeof document !== 'undefined' && response.token) {
+    }),
+
+    forgotPassword: builder.mutation<{ message: string }, { email: string }>({
+      query: (body) => ({
+        url: '/admin/forgot-password',
+        method: 'POST',
+        body,
+      }),
+    }),
+    
+
+
+
+
+    logout: builder.mutation<{ message: string }, { refreshToken: string }>({
+      query: (body) => ({
+        url: '/auth/logout',
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response: { message: string }) => {
+        // Clear all auth data after successful logout
+        if (typeof window !== 'undefined') {
+          // Clear accessToken cookie
+          document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          
+          // Clear all auth-related cookies
+          const cookies = document.cookie.split(';');
+          cookies.forEach(cookie => {
+            const eqPos = cookie.indexOf('=');
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            if (name.includes('token') || name.includes('auth') || name.includes('session') || name.includes('refresh')) {
+              document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+            }
+          });
+          
+          // Clear localStorage
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('auth');
+          
+          // Clear sessionStorage
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('user');
+          sessionStorage.removeItem('auth');
         }
         return response;
       },
     }),
 
-    forgotPassword: builder.mutation<{ email: string }, { message: string }>({
-      queryFn: async ({ email }) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/admin/forgot-password`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email }),
-          });
+    resetPassword: builder.mutation<{ message: string }, { token: string; newPassword: string }>({
+      query: (body) => ({
+        url: '/admin/reset-password',
+        method: 'POST',
+        body,
+      }),
+    }),
 
-          if (!response.ok) {
-            throw new Error('Failed to send reset link');
-          }
+    getProfile: builder.query<User, void>({
+      query: () => '/auth/profile',
+      providesTags: ['User'],
+      transformResponse: (response: ProfileResponse) => response.data,
+    }),
 
-          const data = await response.json();
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Failed to send reset link'
-            }
-          };
-        }
-      },
+    updateProfile: builder.mutation<User, { name: string; email: string }>({
+      query: (body) => ({
+        url: '/auth/profile',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['User'],
+      transformResponse: (response: ProfileResponse) => response.data,
     }),
     
-    forgotPasswlogin: builder.mutation<LoginResponse, LoginRequest>({
-      queryFn: async ({ email, password }) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/admin/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Login failed');
-          }
-
-          const data = await response.json();
-          
-          // Set token in cookie
-          if (typeof window !== 'undefined') {
-            document.cookie = `accessToken=${data.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
-            console.log('Cookie set:', document.cookie); // Debug log
-          }
-          
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Login failed'
-            }
-          };
-        }
-      },
-    }),
-
-    forgotPasswlogout: builder.mutation<{ refreshToken: string }, { message: string }>({
-      queryFn: async ({ refreshToken }) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${typeof window !== 'undefined' 
-                ? document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1')
-                : ''}`,
-            },
-            body: JSON.stringify({ refreshToken }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Logout failed');
-          }
-
-          // Clear all auth data
-          if (typeof window !== 'undefined') {
-            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            localStorage.removeItem('token');
-            sessionStorage.removeItem('token');
-          }
-
-          const data = await response.json();
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Logout failed'
-            }
-          };
-        }
-      },
-    }),
-
-    logout: builder.mutation<{ refreshToken: string }, { message: string }>({
-      queryFn: async ({ refreshToken }) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/auth/logout`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to logout');
-          }
-
-          const data = await response.json();
-          
-          // Manual logout - clear session and cookies after API call
-          if (typeof window !== 'undefined') {
-            // Clear token cookie
-            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-            
-            // Clear all auth-related cookies
-            const cookies = document.cookie.split(';');
-            cookies.forEach(cookie => {
-              const eqPos = cookie.indexOf('=');
-              const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-              if (name.includes('token') || name.includes('auth') || name.includes('session') || name.includes('refresh')) {
-                document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-              }
-            });
-            
-            // Clear localStorage
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('auth');
-            
-            // Clear sessionStorage
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('refreshToken');
-            sessionStorage.removeItem('user');
-            sessionStorage.removeItem('auth');
-          }
-          
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Logout failed'
-            }
-          };
-        }
-      },
-    }),
-
-    resetPassword: builder.mutation<{ token: string; newPassword: string }, { message: string }>({
-      queryFn: async ({ token, newPassword }) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/admin/reset-password`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ token, newPassword }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to reset password');
-          }
-
-          const data = await response.json();
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Failed to reset password'
-            }
-          };
-        }
-      },
-    }),
-
-    getProfile: builder.query<LoginResponse['user'], void>({
-      queryFn: async () => {
-        try {
-          const response = await fetch(`${config.apiUrl}/admin/profile`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${typeof window !== 'undefined' 
-                ? document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1')
-                : ''}`,
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch profile');
-          }
-
-          const data = await response.json();
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Failed to fetch profile'
-            }
-          };
-        }
-      },
-    }),
-
-    updateProfile: builder.mutation<Partial<LoginResponse['user']>, Partial<LoginResponse['user']>>({
-      queryFn: async (profileData) => {
-        try {
-          const response = await fetch(`${config.apiUrl}/admin/profile`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${typeof window !== 'undefined' 
-                ? document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1')
-                : ''}`,
-            },
-            body: JSON.stringify(profileData),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to update profile');
-          }
-
-          const data = await response.json();
-          return { data };
-        } catch (error) {
-          return { 
-            error: {
-              status: 400,
-              data: error instanceof Error ? error.message : 'Failed to update profile'
-            }
-          };
-        }
-      },
-    }),
-    
-    getCurrentUser: builder.query<LoginResponse['user'], void>({
+    getCurrentUser: builder.query<User, void>({
       query: () => '/admin/me',
+      providesTags: ['User'],
+      transformResponse: (response: ProfileResponse) => response.data,
     }),
   }),
 });

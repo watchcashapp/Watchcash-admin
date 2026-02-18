@@ -24,16 +24,11 @@ import {
   Menu as MenuIcon,
   Dashboard,
   AccountBalance,
-  TrendingUp,
-  AccountBalanceWallet,
-  ArrowUpward,
-  ArrowDownward,
-  Timeline,
   BarChart,
   Settings,
   Logout,
   AccountCircle,
-  ChevronLeft as ChevronLeftIcon,
+  Rule,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared';
@@ -50,6 +45,7 @@ interface DashboardLayoutProps {
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+  { text: 'App Rules', icon: <Rule />, path: '/dashboard/app-rules' },
   { text: 'Transactions', icon: <AccountBalance />, path: '/dashboard/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/dashboard/profile' },
   { text: 'Reports', icon: <BarChart />, path: '/dashboard/reports' },
@@ -64,7 +60,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dispatch = useDispatch();
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
-  const { isAuthenticated, accessToken, refreshToken } = useSelector((state: RootState) => state.auth);
+  const { refreshToken } = useSelector((state: RootState) => state.auth);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -83,13 +79,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      const { refreshToken } = useSelector((state: RootState) => state.auth);
       if (refreshToken) {
         await logout({ refreshToken }).unwrap();
       }
       dispatch(clearAuth());
+      
+      // Clear both cookies
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      
       showSuccess('Logged out successfully!');
-      router.push('/auth/login');
+      
+      // Use window.location for hard redirect to ensure middleware picks up cleared cookie
+      window.location.href = '/auth/login';
     } catch (error: any) {
       const errorMessage = error?.data?.message || error?.message || 'Logout failed';
       showError(errorMessage);

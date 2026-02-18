@@ -38,8 +38,9 @@ export default function LoginPage() {
     try {
       const result = await login({ email, password }).unwrap();
       
-      // Set cookie immediately
+      // Set both tokens in cookies
       document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
+      document.cookie = `refreshToken=${result.data.refreshToken}; path=/; max-age=604800; secure; samesite=strict`;
       
       dispatch(setUser({ 
         accessToken: result.data.accessToken,

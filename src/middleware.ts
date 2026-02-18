@@ -11,19 +11,30 @@ export function middleware(req: NextRequest) {
   // Special routes that should be accessible regardless of auth status
   const specialRoutes = ['/auth/reset-password'];
   
-  // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/admin', '/profile'];
-
-  // Check if path matches any route type
+  // All valid routes that actually exist in your app
+  const validRoutes = [
+    '/',
+    '/auth/login',
+    '/auth/signup',
+    '/auth/forgot-password',
+    '/dashboard',
+    '/dashboard/profile',
+    '/dashboard/app-rules',
+  ];
+  
+  // Check if the pathname exactly matches a valid route or is a dynamic route under reset-password
+  const isValidRoute = validRoutes.includes(pathname) || pathname.startsWith('/auth/reset-password/');
+  
+  // Check if it's a public route
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+  
+  // Check if it's a special route
   const isSpecialRoute = specialRoutes.some(route => pathname.startsWith(route));
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
-  // If user is not authenticated and trying to access protected routes
-  if (!accessToken && isProtectedRoute) {
+  // Redirect root to appropriate page based on authentication
+  if (pathname === '/') {
     const url = req.nextUrl.clone();
-    url.pathname = '/auth/login';
-    url.search = `returnTo=${encodeURIComponent(pathname)}`;
+    url.pathname = accessToken ? '/dashboard' : '/auth/login';
     return NextResponse.redirect(url);
   }
 
@@ -39,10 +50,19 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Redirect root to appropriate page based on authentication
-  if (pathname === '/') {
+  // Handle invalid/unknown routes
+  if (!isValidRoute) {
     const url = req.nextUrl.clone();
+    // If authenticated, redirect to dashboard; otherwise to login
     url.pathname = accessToken ? '/dashboard' : '/auth/login';
+    return NextResponse.redirect(url);
+  }
+
+  // If user is not authenticated and trying to access protected routes (dashboard)
+  if (!accessToken && pathname.startsWith('/dashboard')) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/auth/login';
+    url.search = `returnTo=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
 
