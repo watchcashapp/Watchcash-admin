@@ -235,14 +235,14 @@ export const authApi = createApi({
     }),
 
     getProfile: builder.query<User, void>({
-      query: () => '/auth/profile',
+      query: () => '/admin/profile',
       providesTags: ['User'],
       transformResponse: (response: ProfileResponse) => response.data,
     }),
 
     updateProfile: builder.mutation<User, { name: string; email: string }>({
       query: (body) => ({
-        url: '/auth/profile',
+        url: '/admin/profile',
         method: 'PUT',
         body,
       }),

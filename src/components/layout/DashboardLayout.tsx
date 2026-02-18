@@ -49,6 +49,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'User Management', icon: <People />, path: '/users' },
   { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
+  { text: 'Global Rules', icon: <Settings />, path: '/global-rules' },
   { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   { text: 'Reports', icon: <BarChart />, path: '/reports' },
