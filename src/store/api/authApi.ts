@@ -54,7 +54,7 @@ const baseQueryWithReauth: BaseQueryFn<
           // Try to get a new token
           const refreshResult = await baseQuery(
             {
-              url: '/auth/refresh',
+              url: '/admin/refresh',
               method: 'POST',
               body: { refreshToken },
             },

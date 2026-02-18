@@ -34,7 +34,6 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared';
 import { useLogoutMutation } from '@/store/api/authApi';
-import { useGetProfileQuery } from '@/store/api/authApi';
 import { clearAuth } from '@/store/slices/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -64,10 +63,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dispatch = useDispatch();
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
-  const { refreshToken } = useSelector((state: RootState) => state.auth);
-  
-  // Fetch user profile
-  const { data: userProfile, isLoading: isLoadingProfile } = useGetProfileQuery();
+  const { refreshToken, user } = useSelector((state: RootState) => state.auth);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -206,7 +202,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {!isLoadingProfile && userProfile && (
+            {user && (
               <>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
                   <Typography 
@@ -220,7 +216,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       lineHeight: 1.2,
                     }}
                   >
-                    {userProfile.name}
+                    {user.name}
                   </Typography>
                  
                 </Box>
@@ -242,7 +238,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
             >
               <Avatar sx={{ width: 32, height: 32 }}>
-                {userProfile?.name?.[0]?.toUpperCase() || 'A'}
+                {user?.name?.[0]?.toUpperCase() || 'A'}
               </Avatar>
             </IconButton>
             
@@ -270,13 +266,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }
               }}
             >
-              {userProfile && (
+              {user && (
                 <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
                   <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                    {userProfile.name}
+                    {user.name}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {userProfile.email}
+                    {user.email}
                   </Typography>
                 </Box>
               )}

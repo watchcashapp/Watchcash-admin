@@ -7,6 +7,20 @@ import { useToast } from "@/components/shared";
 import { useLoginMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+  sub: string;
+  email: string;
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    userType: string;
+  };
+  iat: number;
+  exp: number;
+}
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -38,13 +52,23 @@ export default function LoginPage() {
     try {
       const result = await login({ email, password }).unwrap();
       
+      // Decode the access token to get user data
+      const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
+      
       // Set both tokens in cookies
       document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
       document.cookie = `refreshToken=${result.data.refreshToken}; path=/; max-age=604800; secure; samesite=strict`;
       
+      // Store tokens and user data in Redux
       dispatch(setUser({ 
         accessToken: result.data.accessToken,
-        refreshToken: result.data.refreshToken 
+        refreshToken: result.data.refreshToken,
+        user: {
+          id: decodedToken.profile.id,
+          name: decodedToken.profile.name,
+          email: decodedToken.profile.email,
+          userType: decodedToken.profile.userType,
+        }
       }));
       
       showSuccess('Login successful!');

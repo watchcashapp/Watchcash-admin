@@ -3,20 +3,27 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/store/slices/authSlice';
+import { getTokenFromCookie, getUserFromToken } from '@/utils/auth';
 
 export default function AuthInitializer() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1');
+    // Check if user is already logged in by checking cookies
+    const accessToken = getTokenFromCookie('accessToken');
+    const refreshToken = getTokenFromCookie('refreshToken');
     
-    if (token) {
-      // In a real app, you'd decode the token or fetch user data
-      dispatch(setUser({
-        id: '1',
-        email: 'user@example.com',
-        name: 'John Doe',
-      }));
+    if (accessToken && refreshToken) {
+      // Decode token to get user data
+      const user = getUserFromToken();
+      
+      if (user) {
+        dispatch(setUser({
+          accessToken,
+          refreshToken,
+          user,
+        }));
+      }
     }
   }, [dispatch]);
 
