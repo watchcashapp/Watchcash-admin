@@ -34,6 +34,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared';
 import { useLogoutMutation } from '@/store/api/authApi';
+import { useGetProfileQuery } from '@/store/api/authApi';
 import { clearAuth } from '@/store/slices/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -46,12 +47,12 @@ interface DashboardLayoutProps {
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'User Management', icon: <People />, path: '/dashboard/users' },
-  { text: 'App Rules', icon: <Rule />, path: '/dashboard/app-rules' },
-  { text: 'Transactions', icon: <AccountBalance />, path: '/dashboard/transactions' },
-  { text: 'Profile Settings', icon: <AccountCircle />, path: '/dashboard/profile' },
-  { text: 'Reports', icon: <BarChart />, path: '/dashboard/reports' },
-  { text: 'Settings', icon: <Settings />, path: '/dashboard/settings' },
+  { text: 'User Management', icon: <People />, path: '/users' },
+  { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
+  { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
+  { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
+  { text: 'Reports', icon: <BarChart />, path: '/reports' },
+  { text: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -63,6 +64,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
   const { refreshToken } = useSelector((state: RootState) => state.auth);
+  
+  // Fetch user profile
+  const { data: userProfile, isLoading: isLoadingProfile } = useGetProfileQuery();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -201,19 +205,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                display: { xs: 'none', sm: 'block' },
-                fontWeight: 600,
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              Admin User
-            </Typography>
+            {!isLoadingProfile && userProfile && (
+              <>
+                <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 600,
+                      background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {userProfile.name}
+                  </Typography>
+                 
+                </Box>
+              </>
+            )}
             
             <IconButton
               size="large"
@@ -230,7 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
             >
               <Avatar sx={{ width: 32, height: 32 }}>
-                A
+                {userProfile?.name?.[0]?.toUpperCase() || 'A'}
               </Avatar>
             </IconButton>
             
@@ -254,11 +265,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   backdropFilter: 'blur(20px)',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
+                  minWidth: 200,
                 }
               }}
             >
+              {userProfile && (
+                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {userProfile.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {userProfile.email}
+                  </Typography>
+                </Box>
+              )}
               <MenuItem 
-                onClick={handleMenuClose}
+                onClick={() => {
+                  handleMenuClose();
+                  router.push('/profile');
+                }}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'rgba(102, 126, 234, 0.08)',

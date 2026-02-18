@@ -18,9 +18,9 @@ export function middleware(req: NextRequest) {
     '/auth/signup',
     '/auth/forgot-password',
     '/dashboard',
-    '/dashboard/profile',
-    '/dashboard/app-rules',
-    '/dashboard/users',
+    '/profile',
+    '/app-rules',
+    '/users',
   ];
   
   // Check if the pathname exactly matches a valid route or is a dynamic route under reset-password
@@ -59,11 +59,11 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is not authenticated and trying to access protected routes (dashboard)
-  if (!accessToken && pathname.startsWith('/dashboard')) {
+  // If user is not authenticated and trying to access protected routes
+  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/users')) {
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
-    url.search = `returnTo=${encodeURIComponent(pathname)}`;
+    url.search = ''; // Remove query parameters
     return NextResponse.redirect(url);
   }
 
