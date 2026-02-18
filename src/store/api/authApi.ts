@@ -255,6 +255,14 @@ export const authApi = createApi({
       providesTags: ['User'],
       transformResponse: (response: ProfileResponse) => response.data,
     }),
+    
+    changePassword: builder.mutation<{ message: string }, { currentPassword: string; newPassword: string }>({
+      query: (body) => ({
+        url: '/admin/change-password',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
@@ -267,4 +275,5 @@ export const {
   useGetProfileQuery,
   useUpdateProfileMutation,
   useGetCurrentUserQuery,
+  useChangePasswordMutation,
 } = authApi;

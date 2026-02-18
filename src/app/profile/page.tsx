@@ -14,9 +14,9 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { Edit, Save } from "@mui/icons-material";
+import { Edit, Save, Lock } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { useGetProfileQuery, useUpdateProfileMutation } from "@/store/api/authApi";
+import { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } from "@/store/api/authApi";
 import { useToast } from "@/components/shared";
 
 function validateEmail(email: string) {
@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const { showSuccess, showError } = useToast();
   const { data: profileData, isLoading, error, refetch } = useGetProfileQuery();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +35,18 @@ export default function ProfilePage() {
     email: "",
   });
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordErrors, setPasswordErrors] = useState<{ 
+    currentPassword?: string; 
+    newPassword?: string; 
+    confirmPassword?: string;
+  }>({});
 
   useEffect(() => {
     if (profileData) {
@@ -108,6 +121,81 @@ export default function ProfilePage() {
     }
     setErrors({});
     setIsEditing(false);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    
+    if (passwordErrors[name as keyof typeof passwordErrors]) {
+      setPasswordErrors(prev => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+  };
+
+  const validatePasswordForm = () => {
+    const newErrors: typeof passwordErrors = {};
+    
+    if (!passwordData.currentPassword) {
+      newErrors.currentPassword = "Current password is required";
+    }
+    
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = "New password is required";
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = "Password must be at least 6 characters";
+    }
+    
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+    
+    setPasswordErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChangePassword = async () => {
+    if (!validatePasswordForm()) {
+      return;
+    }
+
+    try {
+      await changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      }).unwrap();
+      
+      showSuccess('Password changed successfully! Please login with your new password.');
+      
+      // Clear password fields
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setPasswordErrors({});
+      
+      // Clear auth tokens
+      if (typeof window !== 'undefined') {
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      }
+      
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        window.location.href = '/auth/login';
+      }, 1500);
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || error?.message || 'Failed to change password';
+      showError(errorMessage);
+    }
   };
 
   if (isLoading) {
@@ -349,6 +437,151 @@ export default function ProfilePage() {
                       </Box>
                     </Grid>
                   )}
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Change Password Card */}
+            <Card
+              sx={{
+                mt: 3,
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: 3,
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box display="flex" alignItems="center" gap={1.5} mb={3}>
+                  <Lock sx={{ color: '#667eea' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Change Password
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      label="Current Password"
+                      name="currentPassword"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      error={!!passwordErrors.currentPassword}
+                      helperText={passwordErrors.currentPassword}
+                      required
+                      fullWidth
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          color: 'text.secondary',
+                          fontSize: '0.875rem',
+                          transform: 'translate(20px, -8px) scale(0.8)',
+                          fontWeight: 500,
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          padding: '0 4px',
+                          borderRadius: '4px',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                        },
+                        '& .MuiFormLabel-asterisk': {
+                          color: 'error.main',
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      label="New Password"
+                      name="newPassword"
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      error={!!passwordErrors.newPassword}
+                      helperText={passwordErrors.newPassword}
+                      required
+                      fullWidth
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          color: 'text.secondary',
+                          fontSize: '0.875rem',
+                          transform: 'translate(20px, -8px) scale(0.8)',
+                          fontWeight: 500,
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          padding: '0 4px',
+                          borderRadius: '4px',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                        },
+                        '& .MuiFormLabel-asterisk': {
+                          color: 'error.main',
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      label="Confirm New Password"
+                      name="confirmPassword"
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      error={!!passwordErrors.confirmPassword}
+                      helperText={passwordErrors.confirmPassword}
+                      required
+                      fullWidth
+                      sx={{
+                        '& .MuiInputLabel-root': {
+                          color: 'text.secondary',
+                          fontSize: '0.875rem',
+                          transform: 'translate(20px, -8px) scale(0.8)',
+                          fontWeight: 500,
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          padding: '0 4px',
+                          borderRadius: '4px',
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: '0.875rem',
+                        },
+                        '& .MuiFormLabel-asterisk': {
+                          color: 'error.main',
+                        },
+                      }}
+                    />
+                  </Grid>
+                  
+                  <Grid size={{ xs: 12 }}>
+                    <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
+                      <Button
+                        variant="contained"
+                        startIcon={isChangingPassword ? null : <Lock />}
+                        onClick={handleChangePassword}
+                        disabled={isChangingPassword}
+                        sx={{
+                          minWidth: 150,
+                          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                          '&:hover': {
+                            background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                            boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                          },
+                          '&:disabled': {
+                            background: 'rgba(102, 126, 234, 0.5)',
+                          },
+                        }}
+                      >
+                        {isChangingPassword ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          'Change Password'
+                        )}
+                      </Button>
+                    </Box>
+                  </Grid>
                 </Grid>
               </CardContent>
             </Card>
