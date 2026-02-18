@@ -25,6 +25,11 @@ import {
   Dashboard,
   AccountBalance,
   TrendingUp,
+  AccountBalanceWallet,
+  ArrowUpward,
+  ArrowDownward,
+  Timeline,
+  BarChart,
   Settings,
   Logout,
   AccountCircle,
@@ -35,6 +40,7 @@ import { useToast } from '@/components/shared';
 import { useLogoutMutation } from '@/store/api/authApi';
 import { clearAuth } from '@/store/slices/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 const drawerWidth = 280;
 
@@ -45,7 +51,8 @@ interface DashboardLayoutProps {
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Transactions', icon: <AccountBalance />, path: '/dashboard/transactions' },
-  { text: 'Analytics', icon: <TrendingUp />, path: '/dashboard/analytics' },
+  { text: 'Profile Settings', icon: <AccountCircle />, path: '/dashboard/profile' },
+  { text: 'Reports', icon: <BarChart />, path: '/dashboard/reports' },
   { text: 'Settings', icon: <Settings />, path: '/dashboard/settings' },
 ];
 
@@ -57,7 +64,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const dispatch = useDispatch();
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
-  const { user } = useSelector((state: any) => state.auth);
+  const { isAuthenticated, accessToken, refreshToken } = useSelector((state: RootState) => state.auth);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -76,12 +83,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     try {
-      await logout().unwrap();
+      const { refreshToken } = useSelector((state: RootState) => state.auth);
+      if (refreshToken) {
+        await logout({ refreshToken }).unwrap();
+      }
       dispatch(clearAuth());
-      showSuccess('Logged out successfully');
+      showSuccess('Logged out successfully!');
       router.push('/auth/login');
-    } catch (error) {
-      showError('Logout failed');
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || error?.message || 'Logout failed';
+      showError(errorMessage);
     }
     handleMenuClose();
   };
@@ -96,8 +107,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
-          WatchCash
+        <Typography 
+          variant="h6" 
+          noWrap 
+          component="div" 
+          sx={{ 
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          WatchCash Admin
         </Typography>
       </Toolbar>
       <Divider />
@@ -109,19 +132,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={() => handleNavigation(item.path)}
               sx={{
                 '&.Mui-selected': {
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  color: 'white',
                   '&:hover': {
-                    backgroundColor: 'primary.dark',
+                    background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
                   },
                   '& .MuiListItemIcon-root': {
-                    color: 'primary.contrastText',
+                    color: 'white',
                   },
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(102, 126, 234, 0.08)',
                 },
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemIcon 
+                sx={{ 
+                  color: pathname === item.path ? 'white' : 'text.secondary',
+                  transition: 'color 0.2s ease',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                sx={{ 
+                  '& .MuiListItemText-primary': {
+                    color: pathname === item.path ? 'white' : 'text.primary',
+                    fontWeight: pathname === item.path ? 600 : 400,
+                    transition: 'all 0.2s ease',
+                  }
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -155,8 +197,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {user?.name || 'User'}
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                display: { xs: 'none', sm: 'block' },
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Admin User
             </Typography>
             
             <IconButton
@@ -166,9 +218,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               aria-haspopup="true"
               onClick={handleMenuOpen}
               color="inherit"
+              sx={{
+                '& .MuiAvatar-root': {
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                }
+              }}
             >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                {user?.name?.[0]?.toUpperCase() || 'U'}
+              <Avatar sx={{ width: 32, height: 32 }}>
+                A
               </Avatar>
             </IconButton>
             
@@ -186,25 +244,72 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
+              PaperProps={{
+                sx: {
+                  background: 'rgba(255, 255, 255, 0.98)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }
+              }}
             >
-              <MenuItem onClick={handleMenuClose}>
-                <ListItemIcon>
+              <MenuItem 
+                onClick={handleMenuClose}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                  }
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    color: 'text.secondary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    }
+                  }}
+                >
                   <AccountCircle fontSize="small" />
                 </ListItemIcon>
-                Profile
+                <Typography sx={{ fontWeight: 500 }}>Profile</Typography>
               </MenuItem>
-              <MenuItem onClick={handleMenuClose}>
-                <ListItemIcon>
+              <MenuItem 
+                onClick={handleMenuClose}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                  }
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    color: 'text.secondary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    }
+                  }}
+                >
                   <Settings fontSize="small" />
                 </ListItemIcon>
-                Settings
+                <Typography sx={{ fontWeight: 500 }}>Settings</Typography>
               </MenuItem>
               <Divider />
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
+              <MenuItem 
+                onClick={handleLogout}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  }
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    color: 'error.main',
+                  }}
+                >
                   <Logout fontSize="small" />
                 </ListItemIcon>
-                Logout
+                <Typography sx={{ fontWeight: 500, color: 'error.main' }}>Logout</Typography>
               </MenuItem>
             </Menu>
           </Box>

@@ -66,7 +66,19 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <Box>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 700, 
+            mb: 4,
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          }}
+        >
           Dashboard Overview
         </Typography>
 
@@ -76,11 +88,14 @@ export default function DashboardPage() {
               <Card
                 sx={{
                   height: '100%',
-                  boxShadow: 2,
+                  background: 'rgba(255, 255, 255, 0.98)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   '&:hover': {
-                    boxShadow: 4,
-                    transform: 'translateY(-2px)',
-                    transition: 'all 0.2s ease-in-out',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                    transform: 'translateY(-4px)',
+                    transition: 'all 0.3s ease-in-out',
                   },
                 }}
               >

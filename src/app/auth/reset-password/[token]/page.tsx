@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, Container } from "@mui/material";
+import { Box, Paper, Typography, Grid, TextField, Button } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
-import { Input, Button } from "@/components/shared";
 import { useToast } from "@/components/shared";
+import { useResetPasswordMutation } from "@/store/api/authApi";
 
 export default function ResetPassword() {
   const params = useParams() as { token?: string };
   const token = params?.token;
   const router = useRouter();
   const { showSuccess, showError } = useToast();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,16 +25,17 @@ export default function ResetPassword() {
     setErrors(next);
     if (Object.keys(next).length) return;
 
-    setLoading(true);
+    if (!token) {
+      showError('Invalid reset token');
+      return;
+    }
+
     try {
-      // TODO: call API to reset using token
-      await new Promise((r) => setTimeout(r, 700));
+      await resetPassword({ token, newPassword: password }).unwrap();
       showSuccess('Password reset successfully!');
-      router.push("/auth/login");
-    } catch (error) {
-      showError('Failed to reset password. Please try again.');
-    } finally {
-      setLoading(false);
+      router.push('/auth/login');
+    } catch (error: any) {
+      showError(error.data || 'Failed to reset password. Please try again.');
     }
   };
 

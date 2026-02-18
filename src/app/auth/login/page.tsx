@@ -5,7 +5,7 @@ import { Box, Paper, Typography, Grid, Link, TextField, Button } from "@mui/mate
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { useLoginMutation } from "@/store/api/authApi";
-import { setUser, clearAuth } from "@/store/slices/authSlice";
+import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 
 function validateEmail(email: string) {
@@ -37,11 +37,22 @@ export default function LoginPage() {
 
     try {
       const result = await login({ email, password }).unwrap();
-      dispatch(setUser(result.user));
+      
+      // Set cookie immediately
+      document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=3600; secure; samesite=strict`;
+      
+      dispatch(setUser({ 
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken 
+      }));
+      
       showSuccess('Login successful!');
-      router.push(returnTo);
+      
+      // Force a hard navigation to ensure middleware picks up the cookie
+      window.location.href = returnTo;
     } catch (error: any) {
-      showError(error.data || 'Login failed. Please try again.');
+      const errorMessage = error?.data?.message || error?.message || 'Login failed. Please try again.';
+      showError(errorMessage);
     }
   };
 
