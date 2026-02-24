@@ -1,23 +1,16 @@
-# Development Dockerfile for Next.js with hot reload
+# Development Dockerfile
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci
-
-# Copy application code
+RUN npm install
 
 COPY . .
 
-# Expose Next.js dev server port
-EXPOSE 3000
-
-# Set environment variables
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Start Next.js development server
-CMD ["npm", "run", "dev"]
+EXPOSE 3000
 
+CMD ["npm", "run", "dev"]

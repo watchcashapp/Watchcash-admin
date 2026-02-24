@@ -1,28 +1,11 @@
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: watchcash_admin_prod
+    image: ${IMAGE_NAME}
+    container_name: watchcash_frontend
     ports:
-      - "5000:4000"  # host:container (Next.js prod runs on 4000 in container)
+      - "9000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
     restart: always
-    networks:
-      - watchcash-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-networks:
-  watchcash-network:
-    driver: bridge
-
