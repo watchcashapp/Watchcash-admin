@@ -5,6 +5,7 @@ on:
     branches:
       - development
       - dev
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -34,19 +35,19 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
+          script: |
+            IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
 
-          echo "Pulling latest image...."
-          docker pull $IMAGE
+            echo "Pulling latest image..."
+            docker pull $IMAGE
 
-          echo "Stopping existing container..."
-          docker compose -f docker-compose.yml down || true
+            echo "Stopping existing container..."
+            docker compose -f docker-compose.yml down || true
 
-          echo "Starting updated container..."
-          docker compose -f docker-compose.yml up -d
+            echo "Starting updated container..."
+            docker compose -f docker-compose.yml up -d
 
-          echo "Cleaning unused images..."
-          docker image prune -af || true
+            echo "Cleaning unused images..."
+            docker image prune -af || true
 
-          echo "Deployment completed successfully!"
+            echo "Deployment completed successfully!"
