@@ -1,121 +1,45 @@
-name: Deploy to EC2
+name: Build Push and Deploy
 
 on:
   push:
     branches:
-      - main
-      - master
-      - development
+      - development   # change if using development
       - dev
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy'
-        required: true
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - master
-          - development
-          - dev
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set environment variables
-        id: set-env
+      - name: Build Docker Image
         run: |
-          # Determine branch name (use input for manual dispatch, otherwise use ref_name)
-          BRANCH="${{ github.ref_name }}"
-          
-          # Set environment based on branch
-          if [[ "$BRANCH" == "main" ]] || [[ "$BRANCH" == "master" ]]; then
-            echo "ENV_TYPE=prod" >> $GITHUB_ENV
-            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
-          else
-            echo "ENV_TYPE=dev" >> $GITHUB_ENV
-            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
-          fi
+          docker build -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:latest .
 
-      - name: Deploy to EC2 Server
+      - name: Push to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_USER }}/watchcashfront_repo:latest
+
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT || 22 }}
           script: |
-            cd ${{ secrets.EC2_APP_PATH || '/home/ubuntu/Watchcash-admin' }}
-            
-            # Determine branch and environment
-            BRANCH="${{ github.ref_name }}"
-            ENV_TYPE="${{ env.ENV_TYPE }}"
-            COMPOSE_FILE="docker-compose.${ENV_TYPE}.yml"
-            CONTAINER_NAME="watchcash_admin_${ENV_TYPE}"
-            
-            echo "Deploying ${ENV_TYPE} environment from branch: ${BRANCH}"
-            
-            # Pull latest code from the branch
-            git fetch origin
-            git checkout $BRANCH
-            git pull origin $BRANCH
-            
-            # Stop and remove existing containers
-            echo "Stopping existing containers..."
-            docker compose -f $COMPOSE_FILE down || true
-            
-            # Remove old images to free up space
-            echo "Cleaning up old Docker images..."
-            docker image prune -f
-            
-            # Build Next.js container
-            echo "Building Next.js container for $ENV_TYPE environment..."
-            docker compose -f $COMPOSE_FILE build
-            
-            # Start containers
-            echo "Starting containers..."
-            docker compose -f $COMPOSE_FILE up -d
-            
-            # Wait for container to be ready
-            echo "Waiting for Next.js container to start..."
-            sleep 10
-            
-            # Verify container is running
-            echo "Checking container status..."
-            if docker ps | grep -q $CONTAINER_NAME; then
-              echo "✓ Container $CONTAINER_NAME is running"
-              
-              # Check container logs for Next.js startup
-              echo "Container logs:"
-              docker logs $CONTAINER_NAME --tail 20
-              
-              # For production, verify Next.js server is responding
-              if [ "$ENV_TYPE" == "prod" ]; then
-                echo "Verifying Next.js server is responding..."
-                sleep 5
-                # Check via host port mapped in docker-compose.prod.yml
-                if curl -f http://localhost:5000 > /dev/null 2>&1; then
-                  echo "✓ Next.js server is responding on port 5000"
-                else
-                  echo "⚠ Warning: Next.js server may not be responding yet"
-                fi
-              fi
-            else
-              echo "✗ Error: Container $CONTAINER_NAME is not running"
-              docker compose -f $COMPOSE_FILE logs
-              exit 1
-            fi
-            
-            # Clean up unused Docker resources
-            docker system prune -f
-            
-            echo "✓ Deployment to $ENV_TYPE environment completed successfully!"
-
+            docker pull ${{ secrets.DOCKER_USER }}/watchcashfront_repo:latest
+            docker stop watchcashfront_repo || true
+            docker rm watchcashfront_repo || true
+            docker run -d \
+              --name watchcashfront_repo \
+              -p 9000:3000 \
+              --restart=always \
+              ${{ secrets.DOCKER_USER }}/watchcashfront_repo:latest
