@@ -78,7 +78,7 @@ jobs:
             
             # Build Next.js container
             echo "Building Next.js container for $ENV_TYPE environment..."
-            docker compose -f $COMPOSE_FILE build --no-cache
+            docker compose -f $COMPOSE_FILE build
             
             # Start containers
             echo "Starting containers..."
