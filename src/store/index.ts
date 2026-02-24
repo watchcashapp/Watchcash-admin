@@ -1,0 +1,25 @@
+import { configureStore } from '@reduxjs/toolkit';
+import { authApi } from './api/authApi';
+import { appRulesApi } from './api/appRulesApi';
+import { usersApi } from './api/usersApi';
+import { globalRulesApi } from './api/globalRulesApi';
+import authSlice from './slices/authSlice';
+
+export const store = configureStore({
+  reducer: {
+    auth: authSlice,
+    [authApi.reducerPath]: authApi.reducer,
+    [appRulesApi.reducerPath]: appRulesApi.reducer,
+    [usersApi.reducerPath]: usersApi.reducer,
+    [globalRulesApi.reducerPath]: globalRulesApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware()
+      .concat(authApi.middleware)
+      .concat(appRulesApi.middleware)
+      .concat(usersApi.middleware)
+      .concat(globalRulesApi.middleware),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
