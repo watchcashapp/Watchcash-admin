@@ -1,20 +1,20 @@
-name: Deploy to EC2 (Dev - Zero downtime)
+name: Deploy to EC2 (Prod - Zero downtime)
 
 on:
   push:
     branches:
-      - development
-      - dev
+      - main
+      - master
   workflow_dispatch:
     inputs:
       branch:
         description: 'Branch to deploy'
         required: true
-        default: 'development'
+        default: 'main'
         type: choice
         options:
-          - development
-          - dev
+          - main
+          - master
 
 jobs:
   deploy:
@@ -29,8 +29,7 @@ jobs:
       - name: Set environment variables
         id: set-env
         run: |
-          echo "ENV_TYPE=dev" >> $GITHUB_ENV
-          echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          echo "EC2_HOST=${{ secrets.EC2_HOST_PROD }}" >> $GITHUB_ENV
 
       - name: Deploy to EC2 Server (zero downtime)
         uses: appleboy/ssh-action@v1.0.3
@@ -44,63 +43,61 @@ jobs:
             cd ${{ secrets.EC2_APP_PATH || '/home/ubuntu/Watchcash-admin' }}
 
             BRANCH="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}"
-            COMPOSE_FILE="docker-compose.dev.yml"
-            COMPOSE_STAGING="docker-compose.dev.staging.yml"
-            PROJECT_MAIN="watchcash_dev"
-            PROJECT_STAGING="watchcash_dev_staging"
-            CONTAINER_MAIN="watchcash_admin_dev"
-            CONTAINER_STAGING="watchcash_admin_dev_staging"
-            MAIN_PORT=9000
-            STAGING_PORT=9001
+            COMPOSE_FILE="docker-compose.prod.yml"
+            COMPOSE_STAGING="docker-compose.prod.staging.yml"
+            PROJECT_MAIN="watchcash_prod"
+            PROJECT_STAGING="watchcash_prod_staging"
+            MAIN_PORT=5000
+            STAGING_PORT=5001
 
-            echo "Deploying dev (zero downtime) from branch: ${BRANCH}"
+            echo "Deploying production (zero downtime) from branch: ${BRANCH}"
 
             git fetch origin
             git checkout "$BRANCH"
             git pull origin "$BRANCH"
 
             # 1) Build new image (no stop yet)
-            echo "Building new image..."
+            echo "Building new production image..."
             docker compose -f $COMPOSE_FILE build --no-cache
 
-            # 2) Start new container on staging port (9001)
+            # 2) Start new container on staging port (5001)
             echo "Starting new container on port ${STAGING_PORT}..."
             docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING up -d --force-recreate
 
             # 3) Wait for staging to be healthy
             echo "Waiting for new container to be ready..."
-            for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+            for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
               if curl -sf "http://127.0.0.1:${STAGING_PORT}" > /dev/null 2>&1; then
                 echo "✓ New container is responding on port ${STAGING_PORT}"
                 break
               fi
-              if [ "$i" -eq 15 ]; then
+              if [ "$i" -eq 20 ]; then
                 echo "✗ New container did not become ready in time"
                 docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING logs
                 exit 1
               fi
-              sleep 2
+              sleep 3
             done
 
-            # 4) Switch: stop main (9000), start main with new image
+            # 4) Switch: stop main (5000), start main with new image
             echo "Switching to new container on port ${MAIN_PORT}..."
             docker compose -f $COMPOSE_FILE -p $PROJECT_MAIN down || true
             docker compose -f $COMPOSE_FILE -p $PROJECT_MAIN up -d
 
             # 5) Wait for main to be up
-            for i in 1 2 3 4 5 6 7 8 9 10; do
+            for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
               if curl -sf "http://127.0.0.1:${MAIN_PORT}" > /dev/null 2>&1; then
-                echo "✓ Main container is responding on port ${MAIN_PORT}"
+                echo "✓ Production container is responding on port ${MAIN_PORT}"
                 break
               fi
-              if [ "$i" -eq 10 ]; then
-                echo "⚠ Main container may still be starting"
+              if [ "$i" -eq 12 ]; then
+                echo "⚠ Production container may still be starting"
               fi
-              sleep 2
+              sleep 3
             done
 
             # 6) Remove staging container
             docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING down || true
 
             docker image prune -f
-            echo "✓ Dev deployment completed (zero downtime)."
+            echo "✓ Production deployment completed (zero downtime)."
