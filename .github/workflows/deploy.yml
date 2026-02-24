@@ -1,8 +1,10 @@
-name: Deploy to EC2 (Dev - Zero downtime)
+name: Deploy to EC2
 
 on:
   push:
     branches:
+      - main
+      - master
       - development
       - dev
   workflow_dispatch:
@@ -10,16 +12,18 @@ on:
       branch:
         description: 'Branch to deploy'
         required: true
-        default: 'development'
+        default: 'main'
         type: choice
         options:
+          - main
+          - master
           - development
           - dev
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,10 +33,19 @@ jobs:
       - name: Set environment variables
         id: set-env
         run: |
-          echo "ENV_TYPE=dev" >> $GITHUB_ENV
-          echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          # Determine branch name (use input for manual dispatch, otherwise use ref_name)
+          BRANCH="${{ github.ref_name }}"
+          
+          # Set environment based on branch
+          if [[ "$BRANCH" == "main" ]] || [[ "$BRANCH" == "master" ]]; then
+            echo "ENV_TYPE=prod" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          else
+            echo "ENV_TYPE=dev" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.EC2_HOST }}" >> $GITHUB_ENV
+          fi
 
-      - name: Deploy to EC2 Server (zero downtime)
+      - name: Deploy to EC2 Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.EC2_HOST }}
@@ -40,67 +53,69 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
           script: |
-            set -e
             cd ${{ secrets.EC2_APP_PATH || '/home/ubuntu/Watchcash-admin' }}
-
-            BRANCH="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref_name }}"
-            COMPOSE_FILE="docker-compose.dev.yml"
-            COMPOSE_STAGING="docker-compose.dev.staging.yml"
-            PROJECT_MAIN="watchcash_dev"
-            PROJECT_STAGING="watchcash_dev_staging"
-            CONTAINER_MAIN="watchcash_admin_dev"
-            CONTAINER_STAGING="watchcash_admin_dev_staging"
-            MAIN_PORT=9000
-            STAGING_PORT=9001
-
-            echo "Deploying dev (zero downtime) from branch: ${BRANCH}"
-
+            
+            # Determine branch and environment
+            BRANCH="${{ github.ref_name }}"
+            ENV_TYPE="${{ env.ENV_TYPE }}"
+            COMPOSE_FILE="docker-compose.${ENV_TYPE}.yml"
+            CONTAINER_NAME="watchcash_admin_${ENV_TYPE}"
+            
+            echo "Deploying ${ENV_TYPE} environment from branch: ${BRANCH}"
+            
+            # Pull latest code from the branch
             git fetch origin
-            git checkout "$BRANCH"
-            git pull origin "$BRANCH"
-
-            # 1) Build new image (no stop yet)
-            echo "Building new image..."
-            docker compose -f $COMPOSE_FILE build --no-cache
-
-            # 2) Start new container on staging port (9001)
-            echo "Starting new container on port ${STAGING_PORT}..."
-            docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING up -d --force-recreate
-
-            # 3) Wait for staging to be healthy
-            echo "Waiting for new container to be ready..."
-            for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-              if curl -sf "http://127.0.0.1:${STAGING_PORT}" > /dev/null 2>&1; then
-                echo "✓ New container is responding on port ${STAGING_PORT}"
-                break
-              fi
-              if [ "$i" -eq 15 ]; then
-                echo "✗ New container did not become ready in time"
-                docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING logs
-                exit 1
-              fi
-              sleep 2
-            done
-
-            # 4) Switch: stop main (9000), start main with new image
-            echo "Switching to new container on port ${MAIN_PORT}..."
-            docker compose -f $COMPOSE_FILE -p $PROJECT_MAIN down || true
-            docker compose -f $COMPOSE_FILE -p $PROJECT_MAIN up -d
-
-            # 5) Wait for main to be up
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              if curl -sf "http://127.0.0.1:${MAIN_PORT}" > /dev/null 2>&1; then
-                echo "✓ Main container is responding on port ${MAIN_PORT}"
-                break
-              fi
-              if [ "$i" -eq 10 ]; then
-                echo "⚠ Main container may still be starting"
-              fi
-              sleep 2
-            done
-
-            # 6) Remove staging container
-            docker compose -f $COMPOSE_FILE -f $COMPOSE_STAGING -p $PROJECT_STAGING down || true
-
+            git checkout $BRANCH
+            git pull origin $BRANCH
+            
+            # Stop and remove existing containers
+            echo "Stopping existing containers..."
+            docker compose -f $COMPOSE_FILE down || true
+            
+            # Remove old images to free up space
+            echo "Cleaning up old Docker images..."
             docker image prune -f
-            echo "✓ Dev deployment completed (zero downtime)."
+            
+            # Build Next.js container
+            echo "Building Next.js container for $ENV_TYPE environment..."
+            docker compose -f $COMPOSE_FILE build --no-cache
+            
+            # Start containers
+            echo "Starting containers..."
+            docker compose -f $COMPOSE_FILE up -d
+            
+            # Wait for container to be ready
+            echo "Waiting for Next.js container to start..."
+            sleep 10
+            
+            # Verify container is running
+            echo "Checking container status..."
+            if docker ps | grep -q $CONTAINER_NAME; then
+              echo "✓ Container $CONTAINER_NAME is running"
+              
+              # Check container logs for Next.js startup
+              echo "Container logs:"
+              docker logs $CONTAINER_NAME --tail 20
+              
+              # For production, verify Next.js server is responding
+              if [ "$ENV_TYPE" == "prod" ]; then
+                echo "Verifying Next.js server is responding..."
+                sleep 5
+                # Check via host port mapped in docker-compose.prod.yml
+                if curl -f http://localhost:5000 > /dev/null 2>&1; then
+                  echo "✓ Next.js server is responding on port 5000"
+                else
+                  echo "⚠ Warning: Next.js server may not be responding yet"
+                fi
+              fi
+            else
+              echo "✗ Error: Container $CONTAINER_NAME is not running"
+              docker compose -f $COMPOSE_FILE logs
+              exit 1
+            fi
+            
+            # Clean up unused Docker resources
+            docker system prune -f
+            
+            echo "✓ Deployment to $ENV_TYPE environment completed successfully!"
+

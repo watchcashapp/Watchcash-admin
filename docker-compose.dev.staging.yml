@@ -1,7 +1,0 @@
-# Override for zero-downtime dev deploy (staging slot on 9001)
-version: '3.8'
-services:
-  frontend:
-    container_name: watchcash_admin_dev_staging
-    ports:
-      - "9001:3000"
