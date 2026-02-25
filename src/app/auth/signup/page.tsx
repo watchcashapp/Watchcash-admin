@@ -17,6 +17,7 @@ interface DecodedToken {
     name: string;
     email: string;
     userType: string;
+    ownerId?: string; // For agency owners
   };
   iat: number;
   exp: number;
@@ -64,8 +65,11 @@ function SignupForm() {
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
       console.log('Decoded token in signup:', decodedToken);
       
+      // For agency owners, use ownerId as the user ID
+      const userId = decodedToken.profile.ownerId || decodedToken.profile.id;
+      
       const userData = {
-        id: decodedToken.profile.id,
+        id: userId,
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
@@ -79,6 +83,12 @@ function SignupForm() {
       
       document.cookie = `accessToken=${result.data.accessToken}; ${cookieOptions}; max-age=3600`;
       document.cookie = `refreshToken=${result.data.refreshToken}; ${cookieOptions}; max-age=604800`;
+      
+      // If agency owner token exists, store it separately
+      if (result.data.agency_owner_gs_authtoken) {
+        console.log('Agency owner token detected');
+        document.cookie = `agency_owner_gs_authtoken=${result.data.agency_owner_gs_authtoken}; ${cookieOptions}; max-age=604800`;
+      }
       
       // Store tokens and user data in Redux
       dispatch(setUser({ 

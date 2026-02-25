@@ -57,7 +57,7 @@ export default function DataTable<T extends Record<string, any>>({
     setPage(0);
   };
 
-  if (isLoading) {
+  if (isLoading && (!data || data.length === 0)) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
         <CircularProgress sx={{ color: '#667eea' }} />
@@ -71,10 +71,14 @@ export default function DataTable<T extends Record<string, any>>({
         sx={{
           p: 4,
           textAlign: 'center',
-          background: 'rgba(255, 255, 255, 0.98)',
+          bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+            : '0 8px 32px rgba(0, 0, 0, 0.1)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(0, 0, 0, 0.05)',
           borderRadius: 3,
         }}
       >
@@ -92,10 +96,14 @@ export default function DataTable<T extends Record<string, any>>({
       sx={{
         width: '100%',
         overflow: 'hidden',
-        background: 'rgba(255, 255, 255, 0.98)',
+        bgcolor: 'background.paper',
         backdropFilter: 'blur(20px)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: (theme) => theme.palette.mode === 'dark'
+          ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+          : '0 8px 32px rgba(0, 0, 0, 0.1)',
+        border: (theme) => theme.palette.mode === 'dark'
+          ? '1px solid rgba(255, 255, 255, 0.1)'
+          : '1px solid rgba(0, 0, 0, 0.05)',
         borderRadius: 3,
       }}
     >
@@ -110,10 +118,14 @@ export default function DataTable<T extends Record<string, any>>({
                   style={{ minWidth: column.minWidth }}
                   sx={{
                     fontWeight: 600,
-                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
-                    color: '#4a5568',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+                    color: 'text.primary',
                     fontSize: '0.75rem',
-                    borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
+                    borderBottom: (theme) => theme.palette.mode === 'dark'
+                      ? '2px solid rgba(102, 126, 234, 0.3)'
+                      : '2px solid rgba(102, 126, 234, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     py: 1.5,
@@ -127,10 +139,14 @@ export default function DataTable<T extends Record<string, any>>({
                   align="center"
                   sx={{
                     fontWeight: 600,
-                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
-                    color: '#4a5568',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+                    color: 'text.primary',
                     fontSize: '0.75rem',
-                    borderBottom: '2px solid rgba(102, 126, 234, 0.2)',
+                    borderBottom: (theme) => theme.palette.mode === 'dark'
+                      ? '2px solid rgba(102, 126, 234, 0.3)'
+                      : '2px solid rgba(102, 126, 234, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     py: 1.5,
@@ -148,11 +164,15 @@ export default function DataTable<T extends Record<string, any>>({
                 key={getRowId(row)} 
                 sx={{ 
                   '&:hover': { 
-                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(102, 126, 234, 0.08)'
+                      : 'rgba(102, 126, 234, 0.04)',
                     transition: 'background-color 0.2s ease',
                   },
                   '&:nth-of-type(even)': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.01)',
+                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.02)'
+                      : 'rgba(0, 0, 0, 0.01)',
                   },
                 }}
               >
@@ -167,9 +187,11 @@ export default function DataTable<T extends Record<string, any>>({
                       align={column.align || 'left'}
                       sx={{
                         fontSize: '0.8125rem',
-                        color: '#2d3748',
+                        color: 'text.primary',
                         py: 1.5,
-                        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+                        borderBottom: (theme) => theme.palette.mode === 'dark'
+                          ? '1px solid rgba(255, 255, 255, 0.08)'
+                          : '1px solid rgba(0, 0, 0, 0.06)',
                       }}
                     >
                       {column.format ? column.format(value, row) : (value as React.ReactNode)}
@@ -180,7 +202,9 @@ export default function DataTable<T extends Record<string, any>>({
                   <TableCell 
                     align="center"
                     sx={{
-                      borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+                      borderBottom: (theme) => theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255, 255, 255, 0.08)'
+                        : '1px solid rgba(0, 0, 0, 0.06)',
                       py: 1.5,
                     }}
                   >
@@ -250,10 +274,12 @@ export default function DataTable<T extends Record<string, any>>({
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         sx={{
-          borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+          borderTop: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.08)'
+            : '1px solid rgba(0, 0, 0, 0.06)',
           '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
             fontSize: '0.875rem',
-            color: '#4a5568',
+            color: 'text.secondary',
           },
           '.MuiTablePagination-select': {
             fontSize: '0.875rem',

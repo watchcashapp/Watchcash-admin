@@ -182,10 +182,11 @@ export default function ProfilePage() {
       });
       setPasswordErrors({});
       
-      // Clear auth tokens
+      // Clear auth tokens including agency owner token
       if (typeof window !== 'undefined') {
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        document.cookie = 'agency_owner_gs_authtoken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       }
       
       // Redirect to login after a short delay
@@ -250,10 +251,14 @@ export default function ProfilePage() {
           <Grid size={{ xs: 12, md: 4 }}>
             <Card
               sx={{
-                background: 'rgba(255, 255, 255, 0.98)',
+                bgcolor: 'background.paper',
                 backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                border: (theme) => theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(0, 0, 0, 0.05)',
                 borderRadius: 3,
               }}
             >
@@ -301,10 +306,14 @@ export default function ProfilePage() {
           <Grid size={{ xs: 12, md: 8 }}>
             <Card
               sx={{
-                background: 'rgba(255, 255, 255, 0.98)',
+                bgcolor: 'background.paper',
                 backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                border: (theme) => theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(0, 0, 0, 0.05)',
                 borderRadius: 3,
               }}
             >
@@ -352,7 +361,7 @@ export default function ProfilePage() {
                           fontSize: '0.875rem',
                           transform: 'translate(20px, -8px) scale(0.8)',
                           fontWeight: 500,
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'background.paper',
                           padding: '0 4px',
                           borderRadius: '4px',
                         },
@@ -383,7 +392,7 @@ export default function ProfilePage() {
                           fontSize: '0.875rem',
                           transform: 'translate(20px, -8px) scale(0.8)',
                           fontWeight: 500,
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'background.paper',
                           padding: '0 4px',
                           borderRadius: '4px',
                         },
@@ -445,10 +454,14 @@ export default function ProfilePage() {
             <Card
               sx={{
                 mt: 3,
-                background: 'rgba(255, 255, 255, 0.98)',
+                bgcolor: 'background.paper',
                 backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                border: (theme) => theme.palette.mode === 'dark'
+                  ? '1px solid rgba(255, 255, 255, 0.1)'
+                  : '1px solid rgba(0, 0, 0, 0.05)',
                 borderRadius: 3,
               }}
             >
@@ -480,7 +493,7 @@ export default function ProfilePage() {
                           fontSize: '0.875rem',
                           transform: 'translate(20px, -8px) scale(0.8)',
                           fontWeight: 500,
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'background.paper',
                           padding: '0 4px',
                           borderRadius: '4px',
                         },
@@ -510,7 +523,7 @@ export default function ProfilePage() {
                           fontSize: '0.875rem',
                           transform: 'translate(20px, -8px) scale(0.8)',
                           fontWeight: 500,
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'background.paper',
                           padding: '0 4px',
                           borderRadius: '4px',
                         },
@@ -540,7 +553,7 @@ export default function ProfilePage() {
                           fontSize: '0.875rem',
                           transform: 'translate(20px, -8px) scale(0.8)',
                           fontWeight: 500,
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'background.paper',
                           padding: '0 4px',
                           borderRadius: '4px',
                         },

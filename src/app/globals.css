@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Dark mode support */
+.dark {
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
+}

@@ -7,228 +7,125 @@ import {
   Card,
   CardContent,
   Typography,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
 } from '@mui/material';
 import {
-  AccountBalance,
-  TrendingUp,
-  AccountBalanceWallet,
-  ArrowUpward,
-  ArrowDownward,
-  Timeline,
+  People,
+  BarChart,
 } from '@mui/icons-material';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function DashboardPage() {
+  const { user } = useSelector((state: RootState) => state.auth);
+
   const stats = [
     {
-      title: 'Total Balance',
-      value: '$12,450.00',
-      change: '+12.5%',
-      icon: <AccountBalanceWallet />,
-      color: 'primary.main',
+      title: 'Total Users',
+      value: '30',
+      icon: <People />,
+      color: '#667eea',
+      bgColor: 'rgba(102, 126, 234, 0.1)',
     },
     {
-      title: 'Monthly Income',
-      value: '$3,250.00',
-      change: '+8.2%',
-      icon: <TrendingUp />,
-      color: 'success.main',
+      title: 'Total Sessions',
+      value: '20',
+      icon: <BarChart />,
+      color: '#764ba2',
+      bgColor: 'rgba(118, 75, 162, 0.1)',
     },
-    {
-      title: 'Monthly Expenses',
-      value: '$1,850.00',
-      change: '-3.1%',
-      icon: <AccountBalance />,
-      color: 'error.main',
-    },
-    {
-      title: 'Investments',
-      value: '$8,750.00',
-      change: '+15.3%',
-      icon: <Timeline />,
-      color: 'info.main',
-    },
-  ];
-
-  const recentTransactions = [
-    { id: 1, name: 'Salary Deposit', amount: '+$3,250.00', date: '2024-01-15', type: 'income' },
-    { id: 2, name: 'Grocery Store', amount: '-$125.50', date: '2024-01-14', type: 'expense' },
-    { id: 3, name: 'Electric Bill', amount: '-$85.00', date: '2024-01-13', type: 'expense' },
-    { id: 4, name: 'Freelance Project', amount: '+$500.00', date: '2024-01-12', type: 'income' },
-    { id: 5, name: 'Restaurant', amount: '-$45.00', date: '2024-01-11', type: 'expense' },
   ];
 
   return (
     <DashboardLayout>
       <Box>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
-          sx={{ 
-            fontWeight: 700, 
-            mb: 4,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          Dashboard Overview
-        </Typography>
+        {/* Welcome Message */}
+        <Box mb={4}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              mb: 1,
+              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Welcome back{user?.name ? `, ${user.name}` : ''}!
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color="text.secondary"
+            sx={{ fontWeight: 400 }}
+          >
+            Here's what's happening with your platform today.
+          </Typography>
+        </Box>
 
+        {/* Stats Cards */}
         <Grid container spacing={3}>
           {stats.map((stat, index) => (
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
+            <Grid size={{ xs: 12, sm: 6, md: 6 }} key={index}>
               <Card
                 sx={{
                   height: '100%',
-                  background: 'rgba(255, 255, 255, 0.98)',
+                  bgcolor: 'background.paper',
                   backdropFilter: 'blur(20px)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: (theme) => theme.palette.mode === 'dark'
+                    ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+                    : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  border: (theme) => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.05)',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease-in-out',
                   '&:hover': {
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                      ? '0 12px 40px rgba(0, 0, 0, 0.8)'
+                      : '0 12px 40px rgba(0, 0, 0, 0.15)',
                     transform: 'translateY(-4px)',
-                    transition: 'all 0.3s ease-in-out',
                   },
                 }}
               >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box
-                      sx={{
-                        p: 1,
-                        borderRadius: 2,
-                        backgroundColor: `${stat.color}15`,
-                        color: stat.color,
-                      }}
-                    >
-                      {stat.icon}
-                    </Box>
-                    <Box sx={{ ml: 'auto' }}>
-                      <Typography
-                        variant="body2"
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography 
+                        variant="body2" 
                         color="text.secondary"
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontWeight: 500,
+                        sx={{ mb: 1, fontWeight: 500 }}
+                      >
+                        {stat.title}
+                      </Typography>
+                      <Typography 
+                        variant="h3" 
+                        sx={{ 
+                          fontWeight: 700,
+                          color: stat.color,
                         }}
                       >
-                        {stat.change.startsWith('+') ? (
-                          <ArrowUpward sx={{ fontSize: 16, mr: 0.5 }} />
-                        ) : (
-                          <ArrowDownward sx={{ fontSize: 16, mr: 0.5 }} />
-                        )}
-                        {stat.change}
+                        {stat.value}
                       </Typography>
                     </Box>
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        backgroundColor: stat.bgColor,
+                        color: stat.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {React.cloneElement(stat.icon as React.ReactElement, { sx: { fontSize: 32 } })}
+                    </Box>
                   </Box>
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {stat.title}
-                  </Typography>
                 </CardContent>
               </Card>
             </Grid>
           ))}
-
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Financial Overview
-              </Typography>
-              <Box
-                sx={{
-                  height: 300,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'grey.50',
-                  borderRadius: 2,
-                  border: '2px dashed',
-                  borderColor: 'grey.300',
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  Chart Component Placeholder
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid size={{ xs: 12, lg: 4 }}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Recent Transactions
-              </Typography>
-              <List sx={{ p: 0 }}>
-                {recentTransactions.map((transaction) => (
-                  <ListItem
-                    key={transaction.id}
-                    sx={{
-                      px: 0,
-                      py: 1,
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                      '&:last-child': { borderBottom: 'none' },
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Box
-                        sx={{
-                          p: 1,
-                          borderRadius: 1,
-                          backgroundColor:
-                            transaction.type === 'income'
-                              ? 'success.light'
-                              : 'error.light',
-                          color:
-                            transaction.type === 'income'
-                              ? 'success.dark'
-                              : 'error.dark',
-                        }}
-                      >
-                        {transaction.type === 'income' ? (
-                          <ArrowUpward sx={{ fontSize: 16 }} />
-                        ) : (
-                          <ArrowDownward sx={{ fontSize: 16 }} />
-                        )}
-                      </Box>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={transaction.name}
-                      secondary={transaction.date}
-                      primaryTypographyProps={{
-                        variant: 'body2',
-                        fontWeight: 500,
-                      }}
-                      secondaryTypographyProps={{
-                        variant: 'caption',
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      color={
-                        transaction.type === 'income' ? 'success.main' : 'error.main'
-                      }
-                    >
-                      {transaction.amount}
-                    </Typography>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          </Grid>
         </Grid>
       </Box>
     </DashboardLayout>

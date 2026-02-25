@@ -19,7 +19,7 @@ import {
 import { Add } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { useToast, ConfirmDialog } from "@/components/shared";
+import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
 import {
   useGetAppRulesQuery,
   useCreateAppRuleMutation,
@@ -29,6 +29,7 @@ import {
   AppRule,
   CreateAppRuleRequest,
 } from "@/store/api/appRulesApi";
+import { useGetPermissionsQuery } from "@/store/api/rbacApi";
 
 interface FormData extends CreateAppRuleRequest {}
 
@@ -42,6 +43,7 @@ const initialFormData: FormData = {
   minSessionDuration: 1,
   maxDailySessions: 1,
   enabled: true,
+  permissions: [],
 };
 
 export default function AppRulesPage() {
@@ -121,6 +123,7 @@ export default function AppRulesPage() {
         minSessionDuration: rule.minSessionDuration,
         maxDailySessions: rule.maxDailySessions,
         enabled: rule.enabled,
+        permissions: rule.permissions || [],
       });
     } else {
       setEditingRule(null);
@@ -308,11 +311,13 @@ export default function AppRulesPage() {
           onClose={handleCloseDialog} 
           maxWidth="md" 
           fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.98)',
-              backdropFilter: 'blur(20px)',
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 3,
+                bgcolor: 'background.paper',
+                backdropFilter: 'blur(20px)',
+              }
             }
           }}
         >
@@ -445,6 +450,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
+              
               
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel

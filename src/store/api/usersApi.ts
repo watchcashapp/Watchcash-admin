@@ -1,6 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { config } from '@/config/env';
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './authApi';
 
 export interface User {
   id: string;
@@ -10,6 +9,11 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  permissions?: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
 }
 
 export interface UsersResponse {
@@ -33,26 +37,38 @@ export interface GetUsersParams {
   userType?: 'APP' | 'ADMIN';
 }
 
-// Custom base query with error handling
-const baseQuery = fetchBaseQuery({
-  baseUrl: config.apiUrl,
-  prepareHeaders: (headers) => {
-    const accessToken = typeof window !== 'undefined' 
-      ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
-      : '';
-    
-    if (accessToken) {
-      headers.set('Authorization', `Bearer ${accessToken}`);
-    }
-    
-    headers.set('Content-Type', 'application/json');
-    return headers;
-  },
-});
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+  userType: 'APP' | 'ADMIN';
+  permissions?: string[];
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+  userType?: 'APP' | 'ADMIN';
+  permissions?: string[];
+  isActive?: boolean;
+}
+
+export interface UserDetailResponse {
+  status: string;
+  data: {
+    user: User;
+    totalPointsFromSessions: number;
+    totalPointsFromAdjustments: number;
+    totalPoints: number;
+    sessionsCount: number;
+    devicesCount: number;
+  };
+}
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
-  baseQuery,
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Users'],
   endpoints: (builder) => ({
     getUsers: builder.query<UsersResponse['data'], GetUsersParams>({
@@ -70,9 +86,43 @@ export const usersApi = createApi({
       providesTags: ['Users'],
       transformResponse: (response: UsersResponse) => response.data,
     }),
+    getUserById: builder.query<User, string>({
+      query: (id) => `/admin/users/${id}`,
+      providesTags: ['Users'],
+      transformResponse: (response: UserDetailResponse) => response.data.user,
+    }),
+    createUser: builder.mutation<User, CreateUserRequest>({
+      query: (body) => ({
+        url: '/admin/users',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Users'],
+      transformResponse: (response: { status: string; data: User }) => response.data,
+    }),
+    updateUser: builder.mutation<User, { id: string; data: UpdateUserRequest }>({
+      query: ({ id, data }) => ({
+        url: `/admin/users/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Users'],
+      transformResponse: (response: { status: string; data: User }) => response.data,
+    }),
+    deleteUser: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/admin/users/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Users'],
+    }),
   }),
 });
 
 export const {
   useGetUsersQuery,
+  useGetUserByIdQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
 } = usersApi;

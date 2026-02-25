@@ -21,11 +21,20 @@ export function middleware(req: NextRequest) {
     '/profile',
     '/app-rules',
     '/global-rules',
+    '/rbac-rules',
     '/users',
+    '/staff',
+    '/staff/users',
+    '/staff/roles',
+    '/sessions',
   ];
   
-  // Check if the pathname exactly matches a valid route or is a dynamic route under reset-password
-  const isValidRoute = validRoutes.includes(pathname) || pathname.startsWith('/auth/reset-password/');
+  // Check if the pathname exactly matches a valid route or is a dynamic route
+  const isValidRoute = validRoutes.includes(pathname) || 
+    pathname.startsWith('/auth/reset-password/') || 
+    pathname.startsWith('/sessions/') ||
+    pathname.startsWith('/staff/roles/') ||
+    pathname.startsWith('/staff/users/');
   
   // Check if it's a public route
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
@@ -61,7 +70,7 @@ export function middleware(req: NextRequest) {
   }
 
   // If user is not authenticated and trying to access protected routes
-  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/global-rules' || pathname === '/users')) {
+  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/global-rules' || pathname === '/rbac-rules' || pathname === '/users' || pathname.startsWith('/staff') || pathname.startsWith('/sessions'))) {
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
     url.search = ''; // Remove query parameters

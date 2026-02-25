@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { config } from '@/config/env';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './authApi';
 
 export interface GlobalRules {
   defaultPointsPerMinute: number;
@@ -18,26 +18,9 @@ export interface GlobalRulesResponse {
 
 export interface UpdateGlobalRulesRequest extends GlobalRules {}
 
-// Custom base query with error handling
-const baseQuery = fetchBaseQuery({
-  baseUrl: config.apiUrl,
-  prepareHeaders: (headers) => {
-    const accessToken = typeof window !== 'undefined' 
-      ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
-      : '';
-    
-    if (accessToken) {
-      headers.set('Authorization', `Bearer ${accessToken}`);
-    }
-    
-    headers.set('Content-Type', 'application/json');
-    return headers;
-  },
-});
-
 export const globalRulesApi = createApi({
   reducerPath: 'globalRulesApi',
-  baseQuery,
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['GlobalRules'],
   endpoints: (builder) => ({
     getGlobalRules: builder.query<GlobalRules, void>({

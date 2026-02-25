@@ -8,6 +8,7 @@ interface DecodedToken {
     name: string;
     email: string;
     userType: string;
+    ownerId?: string; // For agency owners
   };
   iat: number;
   exp: number;
@@ -31,8 +32,11 @@ export const decodeAccessToken = (token: string) => {
     
     // Check if the token structure matches our expected format
     if (decoded.profile) {
+      // For agency owners, use ownerId as the user ID
+      const userId = decoded.profile.ownerId || decoded.profile.id;
+      
       return {
-        id: decoded.profile.id,
+        id: userId,
         name: decoded.profile.name,
         email: decoded.profile.email,
         userType: decoded.profile.userType,
@@ -43,7 +47,7 @@ export const decodeAccessToken = (token: string) => {
     if (decoded.sub && decoded.email) {
       return {
         id: decoded.sub,
-        name: (decoded as any).name || decoded.email.split('@')[0],
+        name: (decoded as any).name || decoded.email,
         email: decoded.email,
         userType: (decoded as any).userType || 'ADMIN',
       };

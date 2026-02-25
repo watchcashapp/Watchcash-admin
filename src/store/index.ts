@@ -3,6 +3,10 @@ import { authApi } from './api/authApi';
 import { appRulesApi } from './api/appRulesApi';
 import { usersApi } from './api/usersApi';
 import { globalRulesApi } from './api/globalRulesApi';
+import { rbacApi } from './api/rbacApi';
+import { staffApi } from './api/staffApi';
+import { sessionsApi } from './api/sessionsApi';
+import { rolesApi } from './api/rolesApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -12,13 +16,21 @@ export const store = configureStore({
     [appRulesApi.reducerPath]: appRulesApi.reducer,
     [usersApi.reducerPath]: usersApi.reducer,
     [globalRulesApi.reducerPath]: globalRulesApi.reducer,
+    [rbacApi.reducerPath]: rbacApi.reducer,
+    [staffApi.reducerPath]: staffApi.reducer,
+    [sessionsApi.reducerPath]: sessionsApi.reducer,
+    [rolesApi.reducerPath]: rolesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(appRulesApi.middleware)
       .concat(usersApi.middleware)
-      .concat(globalRulesApi.middleware),
+      .concat(globalRulesApi.middleware)
+      .concat(rbacApi.middleware)
+      .concat(staffApi.middleware)
+      .concat(sessionsApi.middleware)
+      .concat(rolesApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -17,6 +17,7 @@ interface DecodedToken {
     name: string;
     email: string;
     userType: string;
+    ownerId?: string; // For agency owners
   };
   iat: number;
   exp: number;
@@ -58,8 +59,11 @@ function LoginForm() {
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
       console.log('Decoded token in login:', decodedToken);
       
+      // For agency owners, use ownerId as the user ID
+      const userId = decodedToken.profile.ownerId || decodedToken.profile.id;
+      
       const userData = {
-        id: decodedToken.profile.id,
+        id: userId,
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
@@ -75,6 +79,12 @@ function LoginForm() {
       
       document.cookie = `accessToken=${result.data.accessToken}; ${cookieOptions}; max-age=3600`;
       document.cookie = `refreshToken=${result.data.refreshToken}; ${cookieOptions}; max-age=604800`;
+      
+      // If agency owner token exists, store it separately
+      if (result.data.agency_owner_gs_authtoken) {
+        console.log('Agency owner token detected');
+        document.cookie = `agency_owner_gs_authtoken=${result.data.agency_owner_gs_authtoken}; ${cookieOptions}; max-age=604800`;
+      }
       
       // Store tokens and user data in Redux
       dispatch(setUser({ 
@@ -130,10 +140,14 @@ function LoginForm() {
           maxWidth: 420,
           p: { xs: 3, sm: 4 }, 
           borderRadius: 4,
-          background: 'rgba(255, 255, 255, 0.98)',
+          bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0, 0, 0, 0.6)'
+            : '0 20px 40px rgba(0, 0, 0, 0.15)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
           position: 'relative',
           zIndex: 1,
         }}
@@ -186,7 +200,7 @@ function LoginForm() {
                     fontSize: '0.875rem',
                     transform: 'translate(20px, -8px) scale(0.8)',
                     fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    bgcolor: 'background.paper',
                     padding: '0 4px',
                     borderRadius: '4px',
                   },
@@ -220,7 +234,7 @@ function LoginForm() {
                     fontSize: '0.875rem',
                     transform: 'translate(20px, -8px) scale(0.8)',
                     fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    bgcolor: 'background.paper',
                     padding: '0 4px',
                     borderRadius: '4px',
                   },

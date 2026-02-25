@@ -1,0 +1,127 @@
+"use client";
+
+import { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  TextField,
+  CircularProgress,
+} from '@mui/material';
+import { Add } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+import { DataTable } from '@/components/shared';
+import {
+  useGetRolesQuery,
+  Role,
+} from '@/store/api/rbacApi';
+
+export default function RolesPage() {
+  const router = useRouter();
+  const [search, setSearch] = useState('');
+
+  const { data: rolesData, isLoading } = useGetRolesQuery(undefined);
+
+  const columns = [
+    { id: 'name', label: 'Role Name', minWidth: 200 },
+    { id: 'code', label: 'Code', minWidth: 150 },
+    { 
+      id: 'description', 
+      label: 'Description', 
+      minWidth: 300,
+      format: (value: string) => {
+        if (!value) return 'N/A';
+        return value.length > 30 ? `${value.substring(0, 30)}...` : value;
+      },
+    },
+    {
+      id: 'permissions',
+      label: 'Permissions',
+      minWidth: 120,
+      format: (value: string[]) => `${value?.length || 0} permissions`,
+    },
+    {
+      id: 'createdAt',
+      label: 'Created At',
+      minWidth: 150,
+      format: (value: string) => new Date(value).toLocaleDateString(),
+    },
+  ];
+
+  // Filter roles based on search
+  const filteredRoles = rolesData?.data?.filter((role: Role) => 
+    role.name.toLowerCase().includes(search.toLowerCase()) ||
+    role.code.toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
+  return (
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Roles Management
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => router.push('/staff/roles/add')}
+          sx={{
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+            },
+          }}
+        >
+          Add Role
+        </Button>
+      </Box>
+
+      {/* Search Filter */}
+      <Paper
+        sx={{
+          p: 2.5,
+          mb: 3,
+          bgcolor: 'background.paper',
+          boxShadow: (theme) => theme.palette.mode === 'dark' 
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+            : '0 4px 12px rgba(0, 0, 0, 0.05)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(0, 0, 0, 0.08)',
+        }}
+      >
+        <TextField
+          label="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          size="small"
+          sx={{ minWidth: 300 }}
+          placeholder="Search by role name or code"
+        />
+      </Paper>
+
+      {/* Roles Table */}
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredRoles}
+          getRowId={(row) => row.id}
+          onEdit={(row) => router.push(`/staff/roles/${row.id}`)}
+        />
+      )}
+    </Box>
+  );
+}

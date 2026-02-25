@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { config } from '@/config/env';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './authApi';
 
 export interface AppRule {
   id: string;
@@ -12,6 +12,7 @@ export interface AppRule {
   minSessionDuration: number;
   maxDailySessions: number;
   enabled: boolean;
+  permissions?: string[]; // Array of permission IDs
   createdAt: string;
   updatedAt: string;
 }
@@ -36,30 +37,14 @@ export interface CreateAppRuleRequest {
   minSessionDuration: number;
   maxDailySessions: number;
   enabled: boolean;
+  permissions?: string[]; // Array of permission IDs
 }
 
 export interface UpdateAppRuleRequest extends CreateAppRuleRequest {}
 
-// Custom base query with error handling
-const baseQuery = fetchBaseQuery({
-  baseUrl: config.apiUrl,
-  prepareHeaders: (headers) => {
-    const accessToken = typeof window !== 'undefined' 
-      ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
-      : '';
-    
-    if (accessToken) {
-      headers.set('Authorization', `Bearer ${accessToken}`);
-    }
-    
-    headers.set('Content-Type', 'application/json');
-    return headers;
-  },
-});
-
 export const appRulesApi = createApi({
   reducerPath: 'appRulesApi',
-  baseQuery,
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['AppRules'],
   endpoints: (builder) => ({
     getAppRules: builder.query<AppRule[], void>({

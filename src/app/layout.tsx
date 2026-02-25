@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { ToastProvider } from '@/components/shared';
 import AuthInitializer from '@/components/AuthInitializer';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export default function RootLayout({
   children,
@@ -12,14 +13,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <Provider store={store}>
-          <AuthInitializer />
-          <ToastProvider>
-            <ThemeRegistry>{children}</ThemeRegistry>
-          </ToastProvider>
-        </Provider>
+        <ThemeProvider>
+          <Provider store={store}>
+            <AuthInitializer />
+            <ToastProvider>
+              <ThemeRegistry>{children}</ThemeRegistry>
+            </ToastProvider>
+          </Provider>
+        </ThemeProvider>
       </body>
     </html>
   );
