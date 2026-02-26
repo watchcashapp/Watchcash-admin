@@ -220,7 +220,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               Session Information
             </Typography>
             <Grid container spacing={3} mb={4}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Session ID
@@ -241,7 +241,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Device ID
@@ -262,7 +262,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Duration
@@ -273,7 +273,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Created At
@@ -285,7 +285,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               </Grid>
 
               {session.metadata?.start_time && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box mb={2}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Start Time
@@ -298,7 +298,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {session.metadata?.end_time && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box mb={2}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       End Time
@@ -311,7 +311,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {session.metadata?.app_name && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box mb={2}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       App Name
@@ -334,7 +334,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {session.metadata?.risk_rating && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box mb={2}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Risk Rating
@@ -351,7 +351,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {session.metadata?.lat && session.metadata?.lng && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Box mb={2}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Location
@@ -378,7 +378,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               User Information
             </Typography>
             <Grid container spacing={3} mb={4}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     User ID
@@ -399,7 +399,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Name
@@ -419,7 +419,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Email
@@ -446,7 +446,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               Reward Information
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Reward ID
@@ -467,7 +467,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Points Earned
@@ -485,7 +485,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box mb={2}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                     Calculated At

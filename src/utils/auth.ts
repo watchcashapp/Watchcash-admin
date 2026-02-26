@@ -45,9 +45,12 @@ export const decodeAccessToken = (token: string) => {
     
     // Fallback: check if data is directly on the token
     if (decoded.sub && decoded.email) {
+      // Try to get name from token, but DON'T fallback to email
+      const name = (decoded as any).name || (decoded as any).username || 'User';
+      
       return {
         id: decoded.sub,
-        name: (decoded as any).name || decoded.email,
+        name: name,
         email: decoded.email,
         userType: (decoded as any).userType || 'ADMIN',
       };

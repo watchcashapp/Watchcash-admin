@@ -117,9 +117,12 @@ export default function DashboardPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        '& svg': {
+                          fontSize: 32,
+                        },
                       }}
                     >
-                      {React.cloneElement(stat.icon as React.ReactElement, { sx: { fontSize: 32 } })}
+                      {stat.icon}
                     </Box>
                   </Box>
                 </CardContent>

@@ -73,6 +73,12 @@ export interface UserDetailResponse {
       code: string;
       description: string;
     }>;
+    roles: Array<{
+      id: string;
+      name: string;
+      code: string;
+      description: string;
+    }>;
   };
 }
 
@@ -100,13 +106,18 @@ export const usersApi = createApi({
       query: (id) => `/admin/users/${id}`,
       providesTags: ['Users'],
       transformResponse: (response: UserDetailResponse) => {
-        // Merge permissions from the data level into the user object
+        // Merge permissions and roles from the data level into the user object
         return {
           ...response.data.user,
           permissions: response.data.permissions.map(p => ({
             id: p.id,
             code: p.code,
             name: p.description, // Use description as name
+          })),
+          roles: response.data.roles.map(r => ({
+            id: r.id,
+            name: r.name,
+            code: r.code,
           })),
         };
       },
