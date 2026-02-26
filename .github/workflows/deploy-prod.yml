@@ -36,16 +36,21 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            export IMAGE = "${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest"
+            IMAGE="${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest"
 
             echo "Pulling latest image..."
-            docker pull "$IMAGE"
+            docker pull $IMAGE
 
-            echo "Stopping existing container..."
-            docker compose -f docker-compose.prod.yml down || true
+            echo "Stopping old container..."
+            docker stop watchcash_admin_prod || true
+            docker rm watchcash_admin_prod || true
 
-            echo "Starting updated container..."
-            docker compose -f docker-compose.prod.yml up -d
+            echo "Running new container..."
+            docker run -d \
+              --name watchcash_admin_prod \
+              -p 9000:3000 \
+              --restart always \
+              $IMAGE
 
             echo "Cleaning unused images..."
             docker image prune -af || true
