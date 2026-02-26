@@ -45,7 +45,14 @@ export default function RolesPage() {
       id: 'createdAt',
       label: 'Created At',
       minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleDateString(),
+      format: (value: string) => {
+        if (!value) return 'N/A';
+        return new Date(value).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+      },
     },
   ];
 

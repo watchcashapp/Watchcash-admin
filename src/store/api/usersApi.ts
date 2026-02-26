@@ -14,6 +14,11 @@ export interface User {
     name: string;
     code: string;
   }>;
+  roles?: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
 }
 
 export interface UsersResponse {
@@ -40,17 +45,17 @@ export interface GetUsersParams {
 export interface CreateUserRequest {
   name: string;
   email: string;
-  password: string;
   userType: 'APP' | 'ADMIN';
   permissions?: string[];
+  roles?: string[];
 }
 
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  password?: string;
   userType?: 'APP' | 'ADMIN';
   permissions?: string[];
+  roles?: string[];
   isActive?: boolean;
 }
 
@@ -63,6 +68,11 @@ export interface UserDetailResponse {
     totalPoints: number;
     sessionsCount: number;
     devicesCount: number;
+    permissions: Array<{
+      id: string;
+      code: string;
+      description: string;
+    }>;
   };
 }
 
@@ -89,7 +99,17 @@ export const usersApi = createApi({
     getUserById: builder.query<User, string>({
       query: (id) => `/admin/users/${id}`,
       providesTags: ['Users'],
-      transformResponse: (response: UserDetailResponse) => response.data.user,
+      transformResponse: (response: UserDetailResponse) => {
+        // Merge permissions from the data level into the user object
+        return {
+          ...response.data.user,
+          permissions: response.data.permissions.map(p => ({
+            id: p.id,
+            code: p.code,
+            name: p.description, // Use description as name
+          })),
+        };
+      },
     }),
     createUser: builder.mutation<User, CreateUserRequest>({
       query: (body) => ({

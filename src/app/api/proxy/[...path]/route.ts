@@ -49,9 +49,20 @@ async function proxyRequest(
 ) {
   try {
     const path = pathSegments.join('/');
-    const url = `${API_BASE_URL}/${path}`;
     
-    console.log(`[Proxy] ${method} ${url}`);
+    // Build the full URL with query parameters
+    const baseUrl = `${API_BASE_URL}/${path}`;
+    const url = new URL(baseUrl);
+    
+    // Copy all query parameters from the request
+    request.nextUrl.searchParams.forEach((value, key) => {
+      url.searchParams.append(key, value);
+    });
+    
+    const finalUrl = url.toString();
+    
+    console.log(`[Proxy] ${method} ${finalUrl}`);
+    console.log(`[Proxy] Query params:`, Object.fromEntries(request.nextUrl.searchParams.entries()));
     
     // Get the request body if it exists
     let body = undefined;
@@ -70,6 +81,7 @@ async function proxyRequest(
     // Forward headers
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true', // Skip ngrok warning page
     };
     
     // Copy authorization header if present
@@ -81,7 +93,7 @@ async function proxyRequest(
     console.log(`[Proxy] Request headers:`, headers);
 
     // Make the request to the backend
-    const response = await fetch(url, {
+    const response = await fetch(finalUrl, {
       method,
       headers,
       body,
@@ -89,7 +101,6 @@ async function proxyRequest(
     });
 
     console.log(`[Proxy] Response status:`, response.status);
-    console.log(`[Proxy] Response headers:`, Object.fromEntries(response.headers.entries()));
 
     // Get response data
     let data;
@@ -97,7 +108,7 @@ async function proxyRequest(
     
     if (contentType?.includes('application/json')) {
       data = await response.json();
-      console.log(`[Proxy] Response data:`, data);
+      console.log(`[Proxy] Response data (first 500 chars):`, JSON.stringify(data).substring(0, 500));
       
       return NextResponse.json(data, {
         status: response.status,

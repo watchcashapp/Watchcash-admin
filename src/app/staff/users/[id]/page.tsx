@@ -9,12 +9,17 @@ import {
   CircularProgress,
   MenuItem,
   TextField,
+  FormControl,
+  FormLabel,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
 import { Input, GroupedPermissionsSelect, useToast } from '@/components/shared';
 import { useGetUserByIdQuery, useUpdateUserMutation } from '@/store/api/usersApi';
-import { useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { useGetPermissionsQuery, useGetRolesQuery } from '@/store/api/rbacApi';
 
 export default function EditUserPage() {
   const router = useRouter();
@@ -25,38 +30,38 @@ export default function EditUserPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
     userType: 'ADMIN' as 'APP' | 'ADMIN',
     permissions: [] as string[],
+    roles: [] as string[],
   });
 
   const { data: user, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(userId, {
-    skip: !userId, // Skip query if userId is not available
+    skip: !userId,
   });
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
+  const { data: rolesResponse, isLoading: loadingRoles } = useGetRolesQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-
-  console.log('[EditUserPage] State:', {
-    userId,
-    loadingUser,
-    hasUser: !!user,
-    user,
-    userError,
-    formData,
-  });
 
   useEffect(() => {
     if (user) {
-      console.log('[EditUserPage] Setting form data from user:', user);
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        password: '',
         userType: user.userType || 'ADMIN',
         permissions: user.permissions?.map((p) => p.id) || [],
+        roles: user.roles?.map((r) => r.id) || [],
       });
     }
   }, [user]);
+
+  const handleRoleToggle = (roleId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      roles: prev.roles.includes(roleId)
+        ? prev.roles.filter(id => id !== roleId)
+        : [...prev.roles, roleId]
+    }));
+  };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
@@ -69,19 +74,16 @@ export default function EditUserPage() {
     }
 
     try {
-      const updateData: any = {
-        name: formData.name,
-        email: formData.email,
-        userType: formData.userType,
-        permissions: formData.permissions,
-      };
-      
-      // Only include password if it's been changed
-      if (formData.password.trim()) {
-        updateData.password = formData.password;
-      }
-
-      await updateUser({ id: userId, data: updateData }).unwrap();
+      await updateUser({ 
+        id: userId, 
+        data: {
+          name: formData.name,
+          email: formData.email,
+          userType: formData.userType,
+          permissions: formData.permissions,
+          roles: formData.roles,
+        }
+      }).unwrap();
       showSuccess('User updated successfully!');
       router.push('/staff/users');
     } catch (error: any) {
@@ -89,7 +91,7 @@ export default function EditUserPage() {
     }
   };
 
-  if (loadingUser || loadingPermissions) {
+  if (loadingUser || loadingPermissions || loadingRoles) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <CircularProgress />
@@ -170,7 +172,7 @@ export default function EditUserPage() {
             : '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Box display="flex" flexDirection="column" gap={3}>
+        <Box display="flex" flexDirection="column" gap={2.5}>
           <Input
             label="Name"
             value={formData.name}
@@ -188,15 +190,6 @@ export default function EditUserPage() {
             placeholder="user@example.com"
           />
 
-          <Input
-            label="Password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            placeholder="Leave blank to keep current password"
-            helperText="Leave blank to keep current password"
-          />
-
           <TextField
             select
             label="User Type"
@@ -204,6 +197,7 @@ export default function EditUserPage() {
             onChange={(e) => setFormData({ ...formData, userType: e.target.value as 'APP' | 'ADMIN' })}
             required
             fullWidth
+            size="small"
             sx={{
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
@@ -219,14 +213,75 @@ export default function EditUserPage() {
             <MenuItem value="APP">APP</MenuItem>
           </TextField>
 
-          <GroupedPermissionsSelect
-            label="Permissions"
-            groupedPermissions={permissionsResponse?.data || {}}
-            value={formData.permissions}
-            onChange={(value) => setFormData({ ...formData, permissions: value })}
-          />
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.1)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+              Roles
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: 1,
+              }}
+            >
+              {rolesResponse?.data?.map((role) => (
+                <FormControlLabel
+                  key={role.id}
+                  control={
+                    <Checkbox
+                      checked={formData.roles.includes(role.id)}
+                      onChange={() => handleRoleToggle(role.id)}
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                        py: 0.5,
+                      }}
+                    />
+                  }
+                  label={role.name}
+                  sx={{
+                    m: 0,
+                    '& .MuiFormControlLabel-label': {
+                      fontSize: '0.9rem',
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
 
-          <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.1)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+              Permissions
+            </Typography>
+            <GroupedPermissionsSelect
+              groupedPermissions={permissionsResponse?.data || {}}
+              value={formData.permissions}
+              onChange={(value) => setFormData({ ...formData, permissions: value })}
+            />
+          </Box>
+
+          <Box display="flex" gap={2} justifyContent="flex-end" mt={1}>
             <Button
               variant="outlined"
               onClick={() => router.push('/staff/users')}

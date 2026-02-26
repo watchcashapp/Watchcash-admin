@@ -23,6 +23,8 @@ interface UserManagementTableProps {
   showAddButton?: boolean;
   addRoute?: string;
   editRoute?: string;
+  defaultUserType?: string;
+  hideUserTypeFilter?: boolean;
 }
 
 export default function UserManagementTable({ 
@@ -30,6 +32,8 @@ export default function UserManagementTable({
   showAddButton = false,
   addRoute = "/staff/users/add",
   editRoute = "/staff/users",
+  defaultUserType = "",
+  hideUserTypeFilter = false,
 }: UserManagementTableProps) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -37,7 +41,7 @@ export default function UserManagementTable({
   const [limit] = useState(20);
   const [search, setSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("");
-  const [userType, setUserType] = useState<string>("");
+  const [userType, setUserType] = useState<string>(defaultUserType);
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; user: User | null }>({
     open: false,
     user: null,
@@ -47,7 +51,17 @@ export default function UserManagementTable({
   const queryParams: any = { page, limit };
   if (search) queryParams.search = search;
   if (isActive !== "") queryParams.isActive = isActive === "true";
-  if (userType) queryParams.userType = userType;
+  // Always use defaultUserType if hideUserTypeFilter is true, otherwise use userType state
+  const effectiveUserType = hideUserTypeFilter ? defaultUserType : userType;
+  if (effectiveUserType) queryParams.userType = effectiveUserType;
+
+  console.log('[UserManagementTable] Query params:', {
+    queryParams,
+    hideUserTypeFilter,
+    defaultUserType,
+    userType,
+    effectiveUserType,
+  });
 
   const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
@@ -57,7 +71,8 @@ export default function UserManagementTable({
     isFetching,
     hasData: !!data, 
     dataLength: data?.users?.length,
-    error 
+    error,
+    users: data?.users,
   });
 
   const handleEdit = (user: User) => {
@@ -191,7 +206,7 @@ export default function UserManagementTable({
         }}
       >
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+          <Grid size={{ xs: 12, sm: 6, md: hideUserTypeFilter ? 6 : 6 }}>
             <TextField
               fullWidth
               size="small"
@@ -220,35 +235,37 @@ export default function UserManagementTable({
             />
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="User Type"
-              value={userType}
-              onChange={(e) => {
-                setUserType(e.target.value);
-                setPage(1);
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
+          {!hideUserTypeFilter && (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="User Type"
+                value={userType}
+                onChange={(e) => {
+                  setUserType(e.target.value);
+                  setPage(1);
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">All Types</MenuItem>
-              <MenuItem value="APP">APP</MenuItem>
-              <MenuItem value="ADMIN">ADMIN</MenuItem>
-            </TextField>
-          </Grid>
+                }}
+              >
+                <MenuItem value="">All Types</MenuItem>
+                <MenuItem value="APP">APP</MenuItem>
+                <MenuItem value="ADMIN">ADMIN</MenuItem>
+              </TextField>
+            </Grid>
+          )}
 
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: hideUserTypeFilter ? 6 : 3 }}>
             <TextField
               select
               fullWidth

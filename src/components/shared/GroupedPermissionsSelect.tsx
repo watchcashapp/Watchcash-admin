@@ -22,7 +22,7 @@ interface Permission {
 }
 
 interface GroupedPermissionsSelectProps {
-  label: string;
+  label?: string;
   groupedPermissions: { [category: string]: Permission[] };
   value: string[];
   onChange: (selectedIds: string[]) => void;
@@ -88,18 +88,20 @@ export default function GroupedPermissionsSelect({
 
   return (
     <FormControl fullWidth>
-      <FormLabel
-        sx={{
-          mb: 1,
-          fontWeight: 600,
-          color: 'text.primary',
-          '&.Mui-focused': {
+      {label && (
+        <FormLabel
+          sx={{
+            mb: 1,
+            fontWeight: 600,
             color: 'text.primary',
-          },
-        }}
-      >
-        {label}
-      </FormLabel>
+            '&.Mui-focused': {
+              color: 'text.primary',
+            },
+          }}
+        >
+          {label}
+        </FormLabel>
+      )}
       <Paper
         sx={{
           border: '1px solid',

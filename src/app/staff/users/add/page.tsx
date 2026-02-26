@@ -9,12 +9,18 @@ import {
   CircularProgress,
   MenuItem,
   TextField,
+  FormControl,
+  FormLabel,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { Input, GroupedPermissionsSelect, useToast } from '@/components/shared';
 import { useCreateUserMutation } from '@/store/api/usersApi';
 import { useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { useGetRolesQuery } from '@/store/api/rbacApi';
 
 export default function AddUserPage() {
   const router = useRouter();
@@ -22,13 +28,23 @@ export default function AddUserPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
     userType: 'ADMIN' as 'APP' | 'ADMIN',
     permissions: [] as string[],
+    roles: [] as string[],
   });
 
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
+  const { data: rolesResponse, isLoading: loadingRoles } = useGetRolesQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
+
+  const handleRoleToggle = (roleId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      roles: prev.roles.includes(roleId)
+        ? prev.roles.filter(id => id !== roleId)
+        : [...prev.roles, roleId]
+    }));
+  };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
@@ -39,13 +55,15 @@ export default function AddUserPage() {
       showError('Email is required');
       return;
     }
-    if (!formData.password.trim()) {
-      showError('Password is required');
-      return;
-    }
 
     try {
-      await createUser(formData).unwrap();
+      await createUser({
+        name: formData.name,
+        email: formData.email,
+        userType: formData.userType,
+        permissions: formData.permissions,
+        roles: formData.roles,
+      }).unwrap();
       showSuccess('User created successfully!');
       router.push('/staff/users');
     } catch (error: any) {
@@ -53,7 +71,7 @@ export default function AddUserPage() {
     }
   };
 
-  if (loadingPermissions) {
+  if (loadingPermissions || loadingRoles) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <CircularProgress />
@@ -102,7 +120,7 @@ export default function AddUserPage() {
             : '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Box display="flex" flexDirection="column" gap={3}>
+        <Box display="flex" flexDirection="column" gap={2.5}>
           <Input
             label="Name"
             value={formData.name}
@@ -120,15 +138,6 @@ export default function AddUserPage() {
             placeholder="user@example.com"
           />
 
-          <Input
-            label="Password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-            placeholder="Enter password"
-          />
-
           <TextField
             select
             label="User Type"
@@ -136,6 +145,7 @@ export default function AddUserPage() {
             onChange={(e) => setFormData({ ...formData, userType: e.target.value as 'APP' | 'ADMIN' })}
             required
             fullWidth
+            size="small"
             sx={{
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
@@ -151,14 +161,75 @@ export default function AddUserPage() {
             <MenuItem value="APP">APP</MenuItem>
           </TextField>
 
-          <GroupedPermissionsSelect
-            label="Permissions"
-            groupedPermissions={permissionsResponse?.data || {}}
-            value={formData.permissions}
-            onChange={(value) => setFormData({ ...formData, permissions: value })}
-          />
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.1)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+              Roles
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: 1,
+              }}
+            >
+              {rolesResponse?.data?.map((role) => (
+                <FormControlLabel
+                  key={role.id}
+                  control={
+                    <Checkbox
+                      checked={formData.roles.includes(role.id)}
+                      onChange={() => handleRoleToggle(role.id)}
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                        py: 0.5,
+                      }}
+                    />
+                  }
+                  label={role.name}
+                  sx={{
+                    m: 0,
+                    '& .MuiFormControlLabel-label': {
+                      fontSize: '0.9rem',
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
 
-          <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.1)'
+                : '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+              Permissions
+            </Typography>
+            <GroupedPermissionsSelect
+              groupedPermissions={permissionsResponse?.data || {}}
+              value={formData.permissions}
+              onChange={(value) => setFormData({ ...formData, permissions: value })}
+            />
+          </Box>
+
+          <Box display="flex" gap={2} justifyContent="flex-end" mt={1}>
             <Button
               variant="outlined"
               onClick={() => router.push('/staff/users')}

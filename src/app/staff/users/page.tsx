@@ -9,6 +9,8 @@ export default function StaffUsersPage() {
       showAddButton={true}
       addRoute="/staff/users/add"
       editRoute="/staff/users"
+      defaultUserType=""
+      hideUserTypeFilter={false}
     />
   );
 }

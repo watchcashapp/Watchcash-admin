@@ -25,6 +25,10 @@ const baseQuery = fetchBaseQuery({
     }
     
     headers.set('Content-Type', 'application/json');
+    
+    // Add ngrok-skip-browser-warning header to bypass ngrok warning page
+    headers.set('ngrok-skip-browser-warning', 'true');
+    
     return headers;
   },
 });

@@ -6,7 +6,11 @@ import UserManagementTable from "@/components/features/UserManagementTable";
 export default function UsersPage() {
   return (
     <DashboardLayout>
-      <UserManagementTable title="User Management" />
+      <UserManagementTable 
+        title="User Management" 
+        defaultUserType="APP"
+        hideUserTypeFilter={true}
+      />
     </DashboardLayout>
   );
 }
