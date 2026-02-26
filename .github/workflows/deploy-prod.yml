@@ -36,10 +36,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest
+            export IMAGE = "${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest"
 
             echo "Pulling latest image..."
-            docker pull $IMAGE
+            docker pull "$IMAGE"
 
             echo "Stopping existing container..."
             docker compose -f docker-compose.prod.yml down || true
