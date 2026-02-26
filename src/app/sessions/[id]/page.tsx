@@ -16,7 +16,7 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useGetSessionByIdQuery } from '@/store/api/sessionsApi';
-import { DataTable } from '@/components/shared';
+import { DataTable, LocationMap } from '@/components/shared';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -351,21 +351,16 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               )}
 
               {session.metadata?.lat && session.metadata?.lng && (
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12 }}>
                   <Box mb={2}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
                       Location
                     </Typography>
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        mt: 0.5,
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {session.metadata.lat.toFixed(6)}, {session.metadata.lng.toFixed(6)}
-                    </Typography>
+                    <LocationMap 
+                      lat={session.metadata.lat} 
+                      lng={session.metadata.lng}
+                      height={250}
+                    />
                   </Box>
                 </Grid>
               )}

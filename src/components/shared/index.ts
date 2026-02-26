@@ -16,3 +16,5 @@ export { default as MultiSelect } from './MultiSelect';
 export type { MultiSelectOption } from './MultiSelect';
 
 export { default as GroupedPermissionsSelect } from './GroupedPermissionsSelect';
+
+export { default as LocationMap } from './LocationMap';
