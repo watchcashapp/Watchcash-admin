@@ -396,7 +396,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
             >
               <Avatar sx={{ width: 32, height: 32 }}>
-                {user?.name?.[0]?.toUpperCase() || 'A'}
+                {user?.name?.[0]?.toUpperCase() || ''}
               </Avatar>
             </IconButton>
             
