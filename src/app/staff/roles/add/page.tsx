@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Box,
   Paper,
   Typography,
   Button,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -17,12 +18,22 @@ import { useGetPermissionsQuery } from '@/store/api/rbacApi';
 export default function AddRolePage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
+  
+  // Refs for form fields
+  const nameRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     description: '',
     permissions: [] as string[],
   });
+
+  const [errors, setErrors] = useState<{
+    name?: string;
+    description?: string;
+  }>({});
 
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
@@ -43,15 +54,51 @@ export default function AddRolePage() {
       name: newName,
       code: generateCode(newName),
     });
+    // Clear error when user starts typing
+    if (errors.name) {
+      setErrors(prev => ({ ...prev, name: undefined }));
+    }
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData({ ...formData, description: e.target.value });
+    // Clear error when user starts typing
+    if (errors.description) {
+      setErrors(prev => ({ ...prev, description: undefined }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Role name is required';
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+    
+    setErrors(newErrors);
+    return { isValid: Object.keys(newErrors).length === 0, errors: newErrors };
   };
 
   const handleSubmit = async () => {
-    if (!formData.name.trim()) {
-      showError('Role name is required');
-      return;
-    }
-    if (!formData.description.trim()) {
-      showError('Description is required');
+    const validation = validateForm();
+    
+    if (!validation.isValid) {
+      // Scroll to first error field
+      if (validation.errors.name && nameRef.current) {
+        setTimeout(() => {
+          nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          nameRef.current?.focus();
+        }, 100);
+      } else if (validation.errors.description && descriptionRef.current) {
+        setTimeout(() => {
+          descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          descriptionRef.current?.focus();
+        }, 100);
+      }
       return;
     }
 
@@ -113,64 +160,81 @@ export default function AddRolePage() {
             : '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Box display="flex" flexDirection="column" gap={3}>
-          <Input
-            label="Role Name"
-            value={formData.name}
-            onChange={handleNameChange}
-            required
-            placeholder="e.g., Content Manager"
-          />
+        <Grid container spacing={2.5}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Input
+              ref={nameRef}
+              label="Role Name"
+              value={formData.name}
+              onChange={handleNameChange}
+              error={!!errors.name}
+              helperText={errors.name}
+              required
+              placeholder="e.g., Content Manager"
+            />
+          </Grid>
 
-          <Input
-            label="Code"
-            value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            required
-            disabled
-            helperText="Auto-generated from name"
-          />
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Input
+              label="Code"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+              required
+              disabled
+              helperText="Auto-generated from name"
+            />
+          </Grid>
 
-          <Textarea
-            label="Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
-            required
-            placeholder="Describe the role and its responsibilities"
-          />
+          <Grid size={{ xs: 12 }}>
+            <Textarea
+              ref={descriptionRef}
+              label="Description"
+              value={formData.description}
+              onChange={handleDescriptionChange}
+              error={!!errors.description}
+              helperText={errors.description}
+              rows={3}
+              required
+              fullWidth
+              placeholder="Describe the role and its responsibilities"
+            />
+          </Grid>
 
-          <GroupedPermissionsSelect
-            label="Permissions"
-            groupedPermissions={permissionsResponse?.data || {}}
-            value={formData.permissions}
-            onChange={(value) => setFormData({ ...formData, permissions: value })}
-          />
+          <Grid size={{ xs: 12 }}>
+            <GroupedPermissionsSelect
+              label="Permissions"
+              groupedPermissions={permissionsResponse?.data || {}}
+              value={formData.permissions}
+              onChange={(value) => setFormData({ ...formData, permissions: value })}
+            />
+          </Grid>
 
-          <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
-            <Button
-              variant="outlined"
-              onClick={() => router.push('/staff/roles')}
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Save />}
-              onClick={handleSubmit}
-              disabled={isCreating}
-              sx={{
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
-                },
-              }}
-            >
-              {isCreating ? 'Creating...' : 'Create Role'}
-            </Button>
-          </Box>
-        </Box>
+          <Grid size={{ xs: 12 }}>
+            <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
+              <Button
+                variant="outlined"
+                onClick={() => router.push('/staff/roles')}
+                disabled={isCreating}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Save />}
+                onClick={handleSubmit}
+                disabled={isCreating}
+                sx={{
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+                  },
+                }}
+              >
+                {isCreating ? 'Creating...' : 'Create Role'}
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
       </Paper>
     </Box>
   );

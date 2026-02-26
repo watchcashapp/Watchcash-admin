@@ -5,10 +5,12 @@ import { TextField, TextFieldProps } from '@mui/material';
 
 export interface TextareaProps extends Omit<TextFieldProps, 'variant' | 'multiline'> {
   rows?: number;
+  error?: boolean;
+  helperText?: string;
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ rows = 4, ...props }, ref) => {
+  ({ rows = 4, error = false, helperText, ...props }, ref) => {
     return (
       <TextField
         {...props}
@@ -16,6 +18,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         multiline
         rows={rows}
         variant="outlined"
+        error={error}
+        helperText={helperText}
         sx={{
           '& .MuiInputLabel-root': {
             color: 'text.secondary',

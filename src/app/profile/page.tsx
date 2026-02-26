@@ -17,7 +17,7 @@ import {
 import { Edit, Save, Lock } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } from "@/store/api/authApi";
-import { useToast } from "@/components/shared";
+import { useToast, Input } from "@/components/shared";
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -477,7 +477,7 @@ export default function ProfilePage() {
 
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Current Password"
                       name="currentPassword"
                       type="password"
@@ -487,6 +487,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.currentPassword}
                       required
                       fullWidth
+                      size="medium"
                       sx={{
                         '& .MuiInputLabel-root': {
                           color: 'text.secondary',
@@ -507,7 +508,7 @@ export default function ProfilePage() {
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="New Password"
                       name="newPassword"
                       type="password"
@@ -517,6 +518,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.newPassword}
                       required
                       fullWidth
+                      size="medium"
                       sx={{
                         '& .MuiInputLabel-root': {
                           color: 'text.secondary',
@@ -537,7 +539,7 @@ export default function ProfilePage() {
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Confirm New Password"
                       name="confirmPassword"
                       type="password"
@@ -547,6 +549,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.confirmPassword}
                       required
                       fullWidth
+                      size="medium"
                       sx={{
                         '& .MuiInputLabel-root': {
                           color: 'text.secondary',

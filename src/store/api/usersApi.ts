@@ -5,7 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  userType: 'APP' | 'ADMIN';
+  userType: 'APP' | 'ADMIN' | 'STAFF';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -39,13 +39,13 @@ export interface GetUsersParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
-  userType?: 'APP' | 'ADMIN';
+  userType?: 'APP' | 'ADMIN' | 'STAFF' | '';
 }
 
 export interface CreateUserRequest {
   name: string;
   email: string;
-  userType: 'APP' | 'ADMIN';
+  userType: 'APP' | 'ADMIN' | 'STAFF';
   permissions?: string[];
   roles?: string[];
 }
@@ -53,7 +53,7 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  userType?: 'APP' | 'ADMIN';
+  userType?: 'APP' | 'ADMIN' | 'STAFF';
   permissions?: string[];
   roles?: string[];
   isActive?: boolean;
