@@ -1,10 +1,10 @@
-name: Build Push and Deploy Dev
+name: Build Push and Deploy Prod
 
 on:
   push:
     branches:
-      - development
-      - dev
+      - master
+      - main
   workflow_dispatch:
 
 jobs:
@@ -23,11 +23,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build --pull -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest .
+          docker build --pull -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest .
 
       - name: Push to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
+          docker push ${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -36,16 +36,16 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
+            IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest
 
             echo "Pulling latest image..."
             docker pull $IMAGE
 
             echo "Stopping existing container..."
-            docker compose -f docker-compose.yml down || true
+            docker compose -f docker-compose.prod.yml down || true
 
             echo "Starting updated container..."
-            docker compose -f docker-compose.yml up -d
+            docker compose -f docker-compose.prod.yml up -d
 
             echo "Cleaning unused images..."
             docker image prune -af || true
