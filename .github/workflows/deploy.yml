@@ -38,7 +38,7 @@ jobs:
           script: |
             IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
 
-            echo "Pulling latest image...."
+            echo "Pulling latest image..."
             docker pull $IMAGE
 
             echo "Stopping existing container..."
