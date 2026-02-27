@@ -325,9 +325,11 @@ export default function ProfilePage() {
                   {!isEditing && (
                     <Button
                       variant="outlined"
-                      startIcon={<Edit />}
+                      startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Edit /></Box>}
                       onClick={() => setIsEditing(true)}
                       sx={{
+                        minWidth: { xs: 'auto', sm: 120 },
+                        px: { xs: 2, sm: 3 },
                         borderColor: '#667eea',
                         color: '#667eea',
                         '&:hover': {
@@ -336,7 +338,11 @@ export default function ProfilePage() {
                         },
                       }}
                     >
-                      Edit Profile
+                      <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
+                        <Edit />
+                        Edit Profile
+                      </Box>
+                      <Edit sx={{ display: { xs: 'block', sm: 'none' } }} />
                     </Button>
                   )}
                 </Box>
@@ -414,18 +420,20 @@ export default function ProfilePage() {
                           onClick={handleCancel}
                           disabled={isUpdating}
                           sx={{
-                            minWidth: 120,
+                            minWidth: { xs: 'auto', sm: 120 },
+                            px: { xs: 2, sm: 3 },
                           }}
                         >
                           Cancel
                         </Button>
                         <Button
                           variant="contained"
-                          startIcon={isUpdating ? null : <Save />}
+                          startIcon={isUpdating ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Save /></Box>}
                           onClick={handleSave}
                           disabled={isUpdating}
                           sx={{
-                            minWidth: 120,
+                            minWidth: { xs: 'auto', sm: 120 },
+                            px: { xs: 2, sm: 3 },
                             background: 'linear-gradient(45deg, #667eea, #764ba2)',
                             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                             '&:hover': {
@@ -440,7 +448,13 @@ export default function ProfilePage() {
                           {isUpdating ? (
                             <CircularProgress size={20} color="inherit" />
                           ) : (
-                            'Save Changes'
+                            <>
+                              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Save Changes</Box>
+                              <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+                                <Save fontSize="small" />
+                                Save
+                              </Box>
+                            </>
                           )}
                         </Button>
                       </Box>
@@ -574,11 +588,12 @@ export default function ProfilePage() {
                     <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
                       <Button
                         variant="contained"
-                        startIcon={isChangingPassword ? null : <Lock />}
+                        startIcon={isChangingPassword ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Lock /></Box>}
                         onClick={handleChangePassword}
                         disabled={isChangingPassword}
                         sx={{
-                          minWidth: 150,
+                          minWidth: { xs: 'auto', sm: 150 },
+                          px: { xs: 2, sm: 3 },
                           background: 'linear-gradient(45deg, #667eea, #764ba2)',
                           boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                           '&:hover': {
@@ -593,7 +608,13 @@ export default function ProfilePage() {
                         {isChangingPassword ? (
                           <CircularProgress size={20} color="inherit" />
                         ) : (
-                          'Change Password'
+                          <>
+                            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Change Password</Box>
+                            <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+                              <Lock fontSize="small" />
+                              Change
+                            </Box>
+                          </>
                         )}
                       </Button>
                     </Box>

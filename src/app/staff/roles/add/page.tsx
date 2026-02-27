@@ -120,12 +120,12 @@ export default function AddRolePage() {
   }
 
   return (
-    <Box>
+    <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
       <Button
         startIcon={<ArrowBack />}
         onClick={() => router.push('/staff/roles')}
         sx={{ 
-          mb: 1.5,
+          mb: { xs: 2, sm: 3 },
           '&:hover': {
             backgroundColor: 'rgba(102, 126, 234, 0.08)',
           },
@@ -137,7 +137,8 @@ export default function AddRolePage() {
       <Typography 
         variant="h4" 
         sx={{ 
-          mb: 2,
+          mb: { xs: 2, sm: 3 },
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
           fontWeight: 700,
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
           WebkitBackgroundClip: 'text',
@@ -150,7 +151,7 @@ export default function AddRolePage() {
 
       <Paper
         sx={{
-          p: 4,
+          p: { xs: 2, sm: 3, md: 4 },
           bgcolor: 'background.paper',
           boxShadow: (theme) => theme.palette.mode === 'dark' 
             ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
@@ -160,7 +161,7 @@ export default function AddRolePage() {
             : '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Grid container spacing={2.5}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Input
               ref={nameRef}
@@ -210,11 +211,18 @@ export default function AddRolePage() {
           </Grid>
 
           <Grid size={{ xs: 12 }}>
-            <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
+            <Box 
+              display="flex" 
+              gap={2} 
+              justifyContent="flex-end" 
+              mt={2}
+              flexDirection={{ xs: 'column', sm: 'row' }}
+            >
               <Button
                 variant="outlined"
                 onClick={() => router.push('/staff/roles')}
                 disabled={isCreating}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Cancel
               </Button>
@@ -224,6 +232,7 @@ export default function AddRolePage() {
                 onClick={handleSubmit}
                 disabled={isCreating}
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
                   background: 'linear-gradient(45deg, #667eea, #764ba2)',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',

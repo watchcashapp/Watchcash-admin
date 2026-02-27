@@ -79,16 +79,22 @@ export default function RolesPage() {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<Add />}
+          startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Add /></Box>}
           onClick={() => router.push('/staff/roles/add')}
           sx={{
+            minWidth: { xs: 'auto', sm: 120 },
+            px: { xs: 2, sm: 3 },
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             '&:hover': {
               background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
             },
           }}
         >
-          Add Role
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add Role</Box>
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+            <Add fontSize="small" />
+            Add
+          </Box>
         </Button>
       </Box>
 

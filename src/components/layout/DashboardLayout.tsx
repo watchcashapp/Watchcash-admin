@@ -564,8 +564,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
+          maxWidth: '100%',
+          overflow: 'hidden',
           backgroundColor: 'background.default',
           minHeight: '100vh',
         }}

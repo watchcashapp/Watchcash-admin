@@ -274,9 +274,11 @@ export default function AppRulesPage() {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<Add />}
+            startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Add /></Box>}
             onClick={() => handleOpenDialog()}
             sx={{
+              minWidth: { xs: 'auto', sm: 140 },
+              px: { xs: 2, sm: 3 },
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
               '&:hover': {
@@ -285,7 +287,11 @@ export default function AppRulesPage() {
               },
             }}
           >
-            Add New Rule
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add New Rule</Box>
+            <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+              <Add fontSize="small" />
+              Add
+            </Box>
           </Button>
         </Box>
 

@@ -107,7 +107,7 @@ export default function DataTable<T extends Record<string, any>>({
         borderRadius: 3,
       }}
     >
-      <TableContainer sx={{ maxHeight: 600 }}>
+      <TableContainer sx={{ maxHeight: 600, overflowX: 'auto' }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>

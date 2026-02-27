@@ -51,29 +51,12 @@ export default function UserManagementTable({
   const queryParams: any = { page, limit };
   if (search) queryParams.search = search;
   if (isActive !== "") queryParams.isActive = isActive === "true";
-  // Always use defaultUserType if hideUserTypeFilter is true, otherwise use userType state
+  // Use userType state if not hidden, otherwise use defaultUserType if provided
   const effectiveUserType = hideUserTypeFilter ? defaultUserType : userType;
   if (effectiveUserType) queryParams.userType = effectiveUserType;
 
-  console.log('[UserManagementTable] Query params:', {
-    queryParams,
-    hideUserTypeFilter,
-    defaultUserType,
-    userType,
-    effectiveUserType,
-  });
-
   const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
-
-  console.log('[UserManagementTable] Query state:', { 
-    isLoading, 
-    isFetching,
-    hasData: !!data, 
-    dataLength: data?.users?.length,
-    error,
-    users: data?.users,
-  });
 
   const handleEdit = (user: User) => {
     router.push(`${editRoute}/${user.id}`);
@@ -158,7 +141,7 @@ export default function UserManagementTable({
   };
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', overflow: 'hidden' }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Typography
           variant="h4"
@@ -175,16 +158,22 @@ export default function UserManagementTable({
         {showAddButton && (
           <Button
             variant="contained"
-            startIcon={<Add />}
+            startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Add /></Box>}
             onClick={() => router.push(addRoute)}
             sx={{
+              minWidth: { xs: 'auto', sm: 120 },
+              px: { xs: 2, sm: 3 },
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               '&:hover': {
                 background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
               },
             }}
           >
-            Add User
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add User</Box>
+            <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+              <Add fontSize="small" />
+              Add
+            </Box>
           </Button>
         )}
       </Box>
@@ -193,7 +182,7 @@ export default function UserManagementTable({
       <Box
         sx={{
           mb: 3,
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
           boxShadow: (theme) => theme.palette.mode === 'dark'
