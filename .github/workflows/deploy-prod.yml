@@ -41,7 +41,7 @@ jobs:
             echo "Pulling latest image..."
             docker pull $IMAGE
 
-            echo "Stopping old container..."
+            echo "Stopping old container...."
             docker stop watchcash_admin_prod || true
             docker rm watchcash_admin_prod || true
 

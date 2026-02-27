@@ -34,9 +34,11 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
+          echo "Pulling latest image..."
           IMAGE="${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
+            echo "Pulling latest image..."
             docker pull $IMAGE
 
             docker stop watchcash_admin_dev || true
