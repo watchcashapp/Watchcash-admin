@@ -7,10 +7,10 @@ export function middleware(req: NextRequest) {
 
   // Public routes that don't require authentication
   const publicRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
-  
+
   // Special routes that should be accessible regardless of auth status
   const specialRoutes = ['/auth/reset-password'];
-  
+
   // All valid routes that actually exist in your app
   const validRoutes = [
     '/',
@@ -28,17 +28,18 @@ export function middleware(req: NextRequest) {
     '/staff/roles',
     '/sessions',
   ];
-  
+
   // Check if the pathname exactly matches a valid route or is a dynamic route
-  const isValidRoute = validRoutes.includes(pathname) || 
-    pathname.startsWith('/auth/reset-password/') || 
+  const isValidRoute = validRoutes.includes(pathname) ||
+    pathname.startsWith('/auth/reset-password/') ||
     pathname.startsWith('/sessions/') ||
     pathname.startsWith('/staff/roles/') ||
-    pathname.startsWith('/staff/users/');
-  
+    pathname.startsWith('/staff/users/') ||
+    pathname.startsWith('/users/');
+
   // Check if it's a public route
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
-  
+
   // Check if it's a special route
   const isSpecialRoute = specialRoutes.some(route => pathname.startsWith(route));
 
@@ -70,7 +71,7 @@ export function middleware(req: NextRequest) {
   }
 
   // If user is not authenticated and trying to access protected routes
-  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/global-rules' || pathname === '/rbac-rules' || pathname === '/users' || pathname.startsWith('/staff') || pathname.startsWith('/sessions'))) {
+  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/global-rules' || pathname === '/rbac-rules' || pathname.startsWith('/users') || pathname.startsWith('/staff') || pathname.startsWith('/sessions'))) {
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
     url.search = ''; // Remove query parameters
