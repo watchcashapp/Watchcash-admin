@@ -360,8 +360,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     data={walletData.transactions}
                     getRowId={(row) => row.id}
                     emptyMessage="No transactions found"
+                    onView={(row: WalletTransaction) =>
+                      router.push(`/users/${resolvedParams.id}/transactions/${row.id}`)
+                    }
                   />
-                  
+
                   {/* Pagination */}
                   {walletData.totalPages > 1 && (
                     <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>

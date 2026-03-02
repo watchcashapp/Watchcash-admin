@@ -106,6 +106,41 @@ export interface UserWalletResponse {
   };
 }
 
+export interface TransactionDetailSession {
+  id: string;
+  session_id?: string;
+  device_id?: string;
+  user_id?: string;
+  created_at: string;
+  duration_seconds: number;
+  status: string;
+  // camelCase variants (in case API transforms)
+  startTime?: string;
+  endTime?: string;
+  durationMinutes?: number;
+  pointsEarned?: number;
+}
+
+export interface TransactionDetailAdjustment {
+  id: string;
+  adjustmentType: string;
+  amount: number;
+  note: string;
+  createdAt: string;
+  madeByAdmin: boolean;
+}
+
+export interface TransactionDetail extends WalletTransaction {
+  balanceAfter?: number;
+  session?: TransactionDetailSession | null;
+  adjustment?: TransactionDetailAdjustment | null;
+}
+
+export interface TransactionDetailResponse {
+  status: string;
+  data: TransactionDetail;
+}
+
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: baseQueryWithReauth,
@@ -114,13 +149,13 @@ export const usersApi = createApi({
     getUsers: builder.query<UsersResponse['data'], GetUsersParams>({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
-        
+
         if (params.page) queryParams.append('page', params.page.toString());
         if (params.limit) queryParams.append('limit', params.limit.toString());
         if (params.search) queryParams.append('search', params.search);
         if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
         if (params.userType) queryParams.append('userType', params.userType);
-        
+
         return `/admin/users?${queryParams.toString()}`;
       },
       providesTags: ['Users'],
@@ -180,6 +215,11 @@ export const usersApi = createApi({
       },
       transformResponse: (response: UserWalletResponse) => response.data,
     }),
+    getTransactionDetail: builder.query<TransactionDetail, { userId: string; transactionId: string }>({
+      query: ({ userId, transactionId }) =>
+        `/admin/users/${userId}/transactions/${transactionId}`,
+      transformResponse: (response: TransactionDetailResponse) => response.data,
+    }),
   }),
 });
 
@@ -190,4 +230,5 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useGetUserWalletQuery,
+  useGetTransactionDetailQuery,
 } = usersApi;

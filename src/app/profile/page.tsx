@@ -35,16 +35,16 @@ export default function ProfilePage() {
     email: "",
   });
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
-  
+
   // Password change state
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [passwordErrors, setPasswordErrors] = useState<{ 
-    currentPassword?: string; 
-    newPassword?: string; 
+  const [passwordErrors, setPasswordErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
     confirmPassword?: string;
   }>({});
 
@@ -63,7 +63,7 @@ export default function ProfilePage() {
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear error for this field when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
@@ -75,19 +75,19 @@ export default function ProfilePage() {
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     } else if (formData.name.trim().length < 2) {
       newErrors.name = "Name must be at least 2 characters";
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Enter a valid email address";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -102,7 +102,7 @@ export default function ProfilePage() {
         name: formData.name.trim(),
         email: formData.email.trim(),
       }).unwrap();
-      
+
       showSuccess('Profile updated successfully!');
       setIsEditing(false);
       refetch();
@@ -129,7 +129,7 @@ export default function ProfilePage() {
       ...prev,
       [name]: value,
     }));
-    
+
     if (passwordErrors[name as keyof typeof passwordErrors]) {
       setPasswordErrors(prev => ({
         ...prev,
@@ -140,23 +140,23 @@ export default function ProfilePage() {
 
   const validatePasswordForm = () => {
     const newErrors: typeof passwordErrors = {};
-    
+
     if (!passwordData.currentPassword) {
       newErrors.currentPassword = "Current password is required";
     }
-    
+
     if (!passwordData.newPassword) {
       newErrors.newPassword = "New password is required";
     } else if (passwordData.newPassword.length < 6) {
       newErrors.newPassword = "Password must be at least 6 characters";
     }
-    
+
     if (!passwordData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-    
+
     setPasswordErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -171,9 +171,9 @@ export default function ProfilePage() {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       }).unwrap();
-      
+
       showSuccess('Password changed successfully! Please login with your new password.');
-      
+
       // Clear password fields
       setPasswordData({
         currentPassword: "",
@@ -181,14 +181,14 @@ export default function ProfilePage() {
         confirmPassword: "",
       });
       setPasswordErrors({});
-      
+
       // Clear auth tokens including agency owner token
       if (typeof window !== 'undefined') {
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'agency_owner_gs_authtoken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       }
-      
+
       // Redirect to login after a short delay
       setTimeout(() => {
         window.location.href = '/auth/login';
@@ -203,7 +203,7 @@ export default function ProfilePage() {
     return (
       <DashboardLayout>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <CircularProgress 
+          <CircularProgress
             sx={{
               color: '#667eea',
             }}
@@ -216,9 +216,9 @@ export default function ProfilePage() {
   if (error) {
     return (
       <DashboardLayout>
-        <Alert 
-          severity="error" 
-          sx={{ 
+        <Alert
+          severity="error"
+          sx={{
             mb: 3,
             borderRadius: 2,
           }}
@@ -232,11 +232,11 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <Box>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
-          sx={{ 
-            fontWeight: 700, 
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 700,
             mb: 4,
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
@@ -283,9 +283,9 @@ export default function ProfilePage() {
                   {formData.email}
                 </Typography>
                 {profileData?.userType && (
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
+                  <Typography
+                    variant="caption"
+                    sx={{
                       display: 'inline-block',
                       px: 2,
                       py: 0.5,
@@ -339,7 +339,6 @@ export default function ProfilePage() {
                       }}
                     >
                       <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
-                        <Edit />
                         Edit Profile
                       </Box>
                       <Edit sx={{ display: { xs: 'block', sm: 'none' } }} />
@@ -411,7 +410,7 @@ export default function ProfilePage() {
                       }}
                     />
                   </Grid>
-                  
+
                   {isEditing && (
                     <Grid size={{ xs: 12 }}>
                       <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
@@ -583,7 +582,7 @@ export default function ProfilePage() {
                       }}
                     />
                   </Grid>
-                  
+
                   <Grid size={{ xs: 12 }}>
                     <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
                       <Button
