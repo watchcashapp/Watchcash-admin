@@ -24,7 +24,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -f Dockerfile.dev \
+            -f Dockerfile \
             --build-arg NEXT_PUBLIC_API_BASE_URL="https://dev-api.watchncash.com/api" \
             --build-arg NEXT_PUBLIC_USE_PROXY=true \
             --build-arg NEXT_PUBLIC_APP_NAME="WatchCash Admin" \
@@ -45,8 +45,6 @@ jobs:
           ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
-            set -e
-
             echo "Pulling latest image..."
             docker pull $IMAGE
 

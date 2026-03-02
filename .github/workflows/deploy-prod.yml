@@ -24,7 +24,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            -f Dockerfile.dev \
+            -f Dockerfile \
             --build-arg NEXT_PUBLIC_API_BASE_URL="https://api.watchncash.com/api" \
             --build-arg NEXT_PUBLIC_USE_PROXY=true \
             --build-arg NEXT_PUBLIC_APP_NAME="WatchCash Admin" \

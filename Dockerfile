@@ -8,15 +8,7 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run build
-
-
-# ---------- Stage 2: Runner ----------
-FROM node:20-alpine
-
-WORKDIR /app
-
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
 ARG NEXT_PUBLIC_API_BASE_URL
@@ -26,6 +18,14 @@ ARG NEXT_PUBLIC_APP_NAME
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_USE_PROXY=$NEXT_PUBLIC_USE_PROXY
 ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
+
+RUN npm run build
+
+
+# ---------- Stage 2: Runner ----------
+FROM node:20-alpine
+
+WORKDIR /app
 
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
