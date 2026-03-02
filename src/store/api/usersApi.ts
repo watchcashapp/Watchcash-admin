@@ -82,6 +82,30 @@ export interface UserDetailResponse {
   };
 }
 
+export interface WalletTransaction {
+  id: string;
+  amount: number;
+  transactionType: 'CREDIT' | 'DEBIT';
+  reasonCode: string;
+  referenceType: string;
+  referenceId: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface UserWalletResponse {
+  status: string;
+  data: {
+    user: User;
+    walletBalance: number;
+    transactions: WalletTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: baseQueryWithReauth,
@@ -147,6 +171,15 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['Users'],
     }),
+    getUserWallet: builder.query<UserWalletResponse['data'], { userId: string; page?: number; limit?: number }>({
+      query: ({ userId, page = 1, limit = 20 }) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page.toString());
+        queryParams.append('limit', limit.toString());
+        return `/admin/users/${userId}/wallet?${queryParams.toString()}`;
+      },
+      transformResponse: (response: UserWalletResponse) => response.data,
+    }),
   }),
 });
 
@@ -156,4 +189,5 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useGetUserWalletQuery,
 } = usersApi;

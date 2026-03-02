@@ -17,12 +17,15 @@ import { useRouter } from "next/navigation";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { ConfirmDialog, useToast } from "@/components/shared";
 import { useGetUsersQuery, useDeleteUserMutation, User } from "@/store/api/usersApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface UserManagementTableProps {
   title?: string;
   showAddButton?: boolean;
   addRoute?: string;
   editRoute?: string;
+  viewRoute?: string;
   defaultUserType?: string;
   hideUserTypeFilter?: boolean;
 }
@@ -32,11 +35,13 @@ export default function UserManagementTable({
   showAddButton = false,
   addRoute = "/staff/users/add",
   editRoute = "/staff/users",
+  viewRoute = "/staff/users/view",
   defaultUserType = "",
   hideUserTypeFilter = false,
 }: UserManagementTableProps) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
+  const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [search, setSearch] = useState("");
@@ -57,6 +62,24 @@ export default function UserManagementTable({
 
   const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+
+  const handleView = (user: User) => {
+    console.log('View button clicked for user:', user);
+    
+    // Check if view should be allowed based on user roles
+    if (currentUser?.userType === 'STAFF' && user.userType === 'STAFF') {
+      console.log('Staff user cannot view other staff users');
+      return;
+    }
+    
+    if (currentUser?.userType !== 'ADMIN' && currentUser?.userType !== 'STAFF') {
+      console.log('Current user does not have permission to view');
+      return;
+    }
+    
+    console.log('Redirecting to:', `${viewRoute}/${user.id}`);
+    router.push(`${viewRoute}/${user.id}`);
+  };
 
   const handleEdit = (user: User) => {
     router.push(`${editRoute}/${user.id}`);
@@ -308,6 +331,7 @@ export default function UserManagementTable({
         isLoading={isLoading}
         getRowId={(row) => row.id}
         emptyMessage="No users found. Try adjusting your filters."
+        onView={!showAddButton ? handleView : undefined}
         onEdit={showAddButton ? handleEdit : undefined}
         onDelete={showAddButton ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
       />

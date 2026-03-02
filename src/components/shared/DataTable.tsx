@@ -14,7 +14,7 @@ import {
   CircularProgress,
   TablePagination,
 } from '@mui/material';
-import { Edit, Delete, ToggleOn, ToggleOff } from '@mui/icons-material';
+import { Edit, Delete, ToggleOn, ToggleOff, Visibility } from '@mui/icons-material';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -28,6 +28,7 @@ export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   isLoading?: boolean;
+  onView?: (row: T) => void;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onToggle?: (row: T) => void;
@@ -39,6 +40,7 @@ export default function DataTable<T extends Record<string, any>>({
   columns,
   data,
   isLoading = false,
+  onView,
   onEdit,
   onDelete,
   onToggle,
@@ -134,7 +136,7 @@ export default function DataTable<T extends Record<string, any>>({
                   {column.label}
                 </TableCell>
               ))}
-              {(onEdit || onDelete || onToggle) && (
+              {(onView || onEdit || onDelete || onToggle) && (
                 <TableCell
                   align="center"
                   sx={{
@@ -198,7 +200,7 @@ export default function DataTable<T extends Record<string, any>>({
                     </TableCell>
                   );
                 })}
-                {(onEdit || onDelete || onToggle) && (
+                {(onView || onEdit || onDelete || onToggle) && (
                   <TableCell 
                     align="center"
                     sx={{
@@ -209,6 +211,22 @@ export default function DataTable<T extends Record<string, any>>({
                     }}
                   >
                     <Box display="flex" gap={1} justifyContent="center">
+                      {onView && (
+                        <IconButton
+                          size="small"
+                          onClick={() => onView(row)}
+                          sx={{
+                            color: '#10b981',
+                            '&:hover': {
+                              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                              transform: 'scale(1.1)',
+                            },
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      )}
                       {onToggle && (
                         <IconButton
                           size="small"
