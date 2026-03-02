@@ -40,7 +40,7 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
 
-          IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:dev-${{ github.sha }}
+          IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
           ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
