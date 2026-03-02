@@ -36,20 +36,7 @@ jobs:
 
           echo "Pulling latest image..."
           IMAGE="${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest"
-          ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/watchcash_admin_dev.env"
-
-          echo "Creating .env file at \$ENV_PATH"
-
-          cat > \$ENV_PATH << EOT
-          NODE_ENV=development
-          ENV_TYPE=dev
-
-          NEXT_PUBLIC_API_BASE_URL=https://dev-api.watchncash.com/api
-          NEXT_PUBLIC_USE_PROXY=true
-          NEXT_PUBLIC_APP_NAME=WatchCash Admin
-          EOT
-
-          echo ".env file created successfully!"
+          ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
             set -e
