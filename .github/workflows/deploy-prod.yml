@@ -23,7 +23,13 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build --pull -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest .
+          docker build \
+            -f Dockerfile.dev \
+            --build-arg NEXT_PUBLIC_API_BASE_URL="https://api.watchncash.com/api" \
+            --build-arg NEXT_PUBLIC_USE_PROXY=true \
+            --build-arg NEXT_PUBLIC_APP_NAME="WatchCash Admin" \
+            --pull \
+            -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest .
 
       - name: Push to Docker Hub
         run: |
@@ -36,7 +42,7 @@ jobs:
 
           echo "Pulling latest image..."
           IMAGE="${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest"
-          ENV_PATH="${{ secrets.EC2_APP_PATH }}/.env"
+          ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
             echo "Pulling latest image..."
