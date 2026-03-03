@@ -43,7 +43,7 @@ jobs:
           IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
           ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EO
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
             set -xe
 
             ############################################
