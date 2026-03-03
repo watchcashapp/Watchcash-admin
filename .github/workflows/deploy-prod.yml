@@ -83,7 +83,7 @@ jobs:
               $IMAGE
 
             echo "Waiting for app to boot..."
-            sleep 15
+            sleep 10
 
             ############################################
             # Health Check
