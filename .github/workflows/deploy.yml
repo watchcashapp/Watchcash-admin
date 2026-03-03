@@ -109,9 +109,9 @@ jobs:
             ############################################
 
             if [ "$NEW" = "green" ]; then
-              sudo sed -i 's/watchcash_admin_blue/watchcash_admin_green/' /etc/nginx/conf.d/watchcash-front.conf
+              sudo sed -i 's/set \$active_backend watchcash_admin_blue;/set \$active_backend watchcash_admin_green;/' /etc/nginx/conf.d/watchcash-front.conf
             else
-              sudo sed -i 's/watchcash_admin_green/watchcash_admin_blue/' /etc/nginx/conf.d/watchcash-front.conf
+              sudo sed -i 's/set \$active_backend watchcash_admin_green;/set \$active_backend watchcash_admin_blue;/' /etc/nginx/conf.d/watchcash-front.conf
             fi
 
             if sudo nginx -t; then
@@ -122,9 +122,9 @@ jobs:
 
               # Rollback nginx change
               if [ "$ACTIVE" = "blue" ]; then
-                sudo sed -i 's/watchcash_admin_green/watchcash_admin_blue/' /etc/nginx/conf.d/watchcash-front.conf
+                sudo sed -i 's/set \$active_backend watchcash_admin_green;/set \$active_backend watchcash_admin_blue;/' /etc/nginx/conf.d/watchcash-front.conf
               else
-                sudo sed -i 's/watchcash_admin_blue/watchcash_admin_green/' /etc/nginx/conf.d/watchcash-front.conf
+                sudo sed -i 's/set \$active_backend watchcash_admin_blue;/set \$active_backend watchcash_admin_green;/' /etc/nginx/conf.d/watchcash-front.conf
               fi
 
               sudo nginx -t && sudo systemctl reload nginx
