@@ -43,9 +43,8 @@ jobs:
           IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
           ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
-
-            set -e
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EO
+            set -xe
 
             ############################################
             # Detect Active Container
@@ -84,7 +83,14 @@ jobs:
               $IMAGE
 
             echo "Waiting for app to boot..."
-            sleep 15
+            
+            for i in {1..10}; do
+              if curl -f http://localhost:$NEW_PORT > /dev/null 2>&1; then
+                break
+              fi
+              echo "Waiting for app..."
+              sleep 5
+            done
 
             ############################################
             # Health Check

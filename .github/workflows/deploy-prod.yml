@@ -44,8 +44,7 @@ jobs:
           ENV_PATH="/home/${{ secrets.EC2_PRODUSERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_PRODUSERNAME }}@${{ secrets.EC2_PRODHOST }} << EOF
-
-            set -e
+            set -xe
 
             ############################################
             # Detect Active Container
