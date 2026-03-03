@@ -44,8 +44,7 @@ jobs:
           ENV_PATH="/home/${{ secrets.EC2_PRODUSERNAME }}/Watchcash-admin/.env"
 
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_PRODUSERNAME }}@${{ secrets.EC2_PRODHOST }} << EOF
-
-            set -e
+            set -xe
 
             ############################################
             # Detect Active Container
@@ -84,7 +83,7 @@ jobs:
               $IMAGE
 
             echo "Waiting for app to boot..."
-            sleep 15
+            sleep 10
 
             ############################################
             # Health Check
@@ -101,14 +100,14 @@ jobs:
             ############################################
             # Switch Traffic
             ############################################
-            sudo sed -i "s/\$OLD_PORT/\$NEW_PORT/" /etc/nginx/conf.d/watchcash.conf
+            sudo sed -i "s/\$OLD_PORT/\$NEW_PORT/" /etc/nginx/conf.d/watchcash-front.conf
 
             if sudo nginx -t; then
               sudo nginx -s reload
               echo "Traffic switched ✅"
             else
               echo "Nginx failed ❌ Rolling back"
-              sudo sed -i "s/\$NEW_PORT/\$OLD_PORT/" /etc/nginx/conf.d/watchcash.conf
+              sudo sed -i "s/\$NEW_PORT/\$OLD_PORT/" /etc/nginx/conf.d/watchcash-front.conf
               docker stop watchcash_admin_\$NEW
               docker rm watchcash_admin_\$NEW
               exit 1
