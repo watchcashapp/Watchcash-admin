@@ -23,31 +23,119 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build --pull -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest .
+          docker build \
+            -f Dockerfile.dev \
+            --build-arg NEXT_PUBLIC_API_BASE_URL="https://dev-api.watchncash.com/api" \
+            --build-arg NEXT_PUBLIC_USE_PROXY=true \
+            --build-arg NEXT_PUBLIC_APP_NAME="WatchCash Admin" \
+            --pull \
+            -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest .
 
       - name: Push to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
+      - name: EC2 Blue-Green Deploy
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
 
-            echo "Pulling latest image..."
+          IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
+          ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
+
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
+
+            set -e
+
+            ############################################
+            # Detect Active Container
+            ############################################
+            if docker ps --format '{{.Names}}' | grep -q watchcash_admin_blue; then
+              ACTIVE=blue
+              NEW=green
+              NEW_PORT=9000
+              OLD_PORT=9001
+            else
+              ACTIVE=green
+              NEW=blue
+              NEW_PORT=9001
+              OLD_PORT=9000
+            fi
+
+            echo "Active container: \$ACTIVE"
+            echo "Deploying to: \$NEW"
+
+            ############################################
+            # Pull Latest Image
+            ############################################
             docker pull $IMAGE
 
-            echo "Stopping existing container..."
-            docker compose -f docker-compose.yml down || true
+            ############################################
+            # Start New Container
+            ############################################
+            docker stop watchcash_admin_\$NEW || true
+            docker rm watchcash_admin_\$NEW || true
 
-            echo "Starting updated container..."
-            docker compose -f docker-compose.yml up -d
+            docker run -d \
+              --name watchcash_admin_\$NEW \
+              --env-file $ENV_PATH \
+              -p \$NEW_PORT:3000 \
+              --restart always \
+              $IMAGE
 
-            echo "Cleaning unused images..."
-            docker image prune -af || true
+            echo "Waiting for app to boot..."
+            sleep 15
 
-            echo "Deployment completed successfully!"
+            ############################################
+            # Health Check
+            ############################################
+            if curl -f http://localhost:\$NEW_PORT > /dev/null 2>&1; then
+              echo "Health check passed ✅"
+            else
+              echo "Health check failed ❌ Rolling back"
+              docker stop watchcash_admin_\$NEW
+              docker rm watchcash_admin_\$NEW
+              exit 1
+            fi
+
+            ############################################
+            # Switch Traffic
+            ############################################
+            sudo sed -i "s/\$OLD_PORT/\$NEW_PORT/" /etc/nginx/conf.d/watchcash.conf
+
+            if sudo nginx -t; then
+              sudo nginx -s reload
+              echo "Traffic switched ✅"
+            else
+              echo "Nginx failed ❌ Rolling back"
+              sudo sed -i "s/\$NEW_PORT/\$OLD_PORT/" /etc/nginx/conf.d/watchcash.conf
+              docker stop watchcash_admin_\$NEW
+              docker rm watchcash_admin_\$NEW
+              exit 1
+            fi
+
+            ############################################
+            # Stop Old Container
+            ############################################
+            docker stop watchcash_admin_\$ACTIVE || true
+            docker rm watchcash_admin_\$ACTIVE || true
+
+            ############################################
+            # SAFE IMAGE CLEANUP
+            ############################################
+            echo "Cleaning unused images safely..."
+
+            # Remove dangling images
+            docker image prune -f
+
+            # Remove unused images not used by any container
+            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep watchcashfront_repo | while read repo id; do
+              if ! docker ps -a --format "{{.Image}}" | grep -q \$repo; then
+                echo "Removing unused image: \$repo"
+                docker rmi \$repo || true
+              fi
+            done
+
+            echo "Deployment successful 🎉"
+
+          EOF
