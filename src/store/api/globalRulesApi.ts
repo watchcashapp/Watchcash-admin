@@ -9,6 +9,11 @@ export interface GlobalRules {
   maxSessionDuration: number;
   minSessionDuration: number;
   maxDailySessions: number;
+  mediumRiskReductionPercent: number;
+  highRiskFirstReductionPercent: number;
+  highRiskSecondReductionPercent: number;
+  highRiskBlockMinutes: number;
+  veryHighBlockMinutes: number;
 }
 
 export interface GlobalRulesResponse {
@@ -16,7 +21,7 @@ export interface GlobalRulesResponse {
   data: GlobalRules;
 }
 
-export interface UpdateGlobalRulesRequest extends GlobalRules {}
+export interface UpdateGlobalRulesRequest extends GlobalRules { }
 
 export const globalRulesApi = createApi({
   reducerPath: 'globalRulesApi',
@@ -28,7 +33,7 @@ export const globalRulesApi = createApi({
       providesTags: ['GlobalRules'],
       transformResponse: (response: GlobalRulesResponse) => response.data,
     }),
-    
+
     updateGlobalRules: builder.mutation<GlobalRules, UpdateGlobalRulesRequest>({
       query: (body) => ({
         url: '/admin/global-rules',

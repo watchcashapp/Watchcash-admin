@@ -7,6 +7,7 @@ import { rbacApi } from './api/rbacApi';
 import { staffApi } from './api/staffApi';
 import { sessionsApi } from './api/sessionsApi';
 import { rolesApi } from './api/rolesApi';
+import { rewardRedemptionsApi } from './api/rewardRedemptionsApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -20,6 +21,7 @@ export const store = configureStore({
     [staffApi.reducerPath]: staffApi.reducer,
     [sessionsApi.reducerPath]: sessionsApi.reducer,
     [rolesApi.reducerPath]: rolesApi.reducer,
+    [rewardRedemptionsApi.reducerPath]: rewardRedemptionsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -30,7 +32,8 @@ export const store = configureStore({
       .concat(rbacApi.middleware)
       .concat(staffApi.middleware)
       .concat(sessionsApi.middleware)
-      .concat(rolesApi.middleware),
+      .concat(rolesApi.middleware)
+      .concat(rewardRedemptionsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

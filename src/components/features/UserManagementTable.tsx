@@ -331,7 +331,7 @@ export default function UserManagementTable({
         isLoading={isLoading}
         getRowId={(row) => row.id}
         emptyMessage="No users found. Try adjusting your filters."
-        onView={!showAddButton ? handleView : undefined}
+        onView={handleView}
         onEdit={showAddButton ? handleEdit : undefined}
         onDelete={showAddButton ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
       />

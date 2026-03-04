@@ -35,6 +35,11 @@ export default function GlobalRulesPage() {
     maxSessionDuration: 1,
     minSessionDuration: 1,
     maxDailySessions: 1,
+    mediumRiskReductionPercent: 0,
+    highRiskFirstReductionPercent: 0,
+    highRiskSecondReductionPercent: 0,
+    highRiskBlockMinutes: 0,
+    veryHighBlockMinutes: 0,
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof GlobalRules, string>>>({});
 
@@ -46,14 +51,14 @@ export default function GlobalRulesPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     const processedValue = value === '' ? '' : Number(value);
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: processedValue,
     }));
-    
+
     if (formErrors[name as keyof GlobalRules]) {
       setFormErrors(prev => ({
         ...prev,
@@ -89,6 +94,21 @@ export default function GlobalRulesPage() {
     }
     if (formData.maxDailySessions < 1) {
       errors.maxDailySessions = "Must be at least 1";
+    }
+    if (formData.mediumRiskReductionPercent < 0 || formData.mediumRiskReductionPercent > 100) {
+      errors.mediumRiskReductionPercent = "Must be between 0 and 100";
+    }
+    if (formData.highRiskFirstReductionPercent < 0 || formData.highRiskFirstReductionPercent > 100) {
+      errors.highRiskFirstReductionPercent = "Must be between 0 and 100";
+    }
+    if (formData.highRiskSecondReductionPercent < 0 || formData.highRiskSecondReductionPercent > 100) {
+      errors.highRiskSecondReductionPercent = "Must be between 0 and 100";
+    }
+    if (formData.highRiskBlockMinutes < 0) {
+      errors.highRiskBlockMinutes = "Must be 0 or greater";
+    }
+    if (formData.veryHighBlockMinutes < 0) {
+      errors.veryHighBlockMinutes = "Must be 0 or greater";
     }
 
     setFormErrors(errors);
@@ -306,6 +326,97 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 1, step: 1 }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  Risk Management Settings
+                </Typography>
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="Medium Risk Reduction %"
+                  name="mediumRiskReductionPercent"
+                  type="number"
+                  value={formData.mediumRiskReductionPercent}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.mediumRiskReductionPercent}
+                  helperText={formErrors.mediumRiskReductionPercent}
+                  required
+                  fullWidth
+                  inputProps={{ min: 0, max: 100, step: 1 }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="High Risk 1st Reduction %"
+                  name="highRiskFirstReductionPercent"
+                  type="number"
+                  value={formData.highRiskFirstReductionPercent}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.highRiskFirstReductionPercent}
+                  helperText={formErrors.highRiskFirstReductionPercent}
+                  required
+                  fullWidth
+                  inputProps={{ min: 0, max: 100, step: 1 }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="High Risk 2nd Reduction %"
+                  name="highRiskSecondReductionPercent"
+                  type="number"
+                  value={formData.highRiskSecondReductionPercent}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.highRiskSecondReductionPercent}
+                  helperText={formErrors.highRiskSecondReductionPercent}
+                  required
+                  fullWidth
+                  inputProps={{ min: 0, max: 100, step: 1 }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="High Risk Block Duration (mins)"
+                  name="highRiskBlockMinutes"
+                  type="number"
+                  value={formData.highRiskBlockMinutes}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.highRiskBlockMinutes}
+                  helperText={formErrors.highRiskBlockMinutes}
+                  required
+                  fullWidth
+                  inputProps={{ min: 0, step: 1 }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="Very High Risk Block Duration (mins)"
+                  name="veryHighBlockMinutes"
+                  type="number"
+                  value={formData.veryHighBlockMinutes}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.veryHighBlockMinutes}
+                  helperText={formErrors.veryHighBlockMinutes}
+                  required
+                  fullWidth
+                  inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
 

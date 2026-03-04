@@ -82,6 +82,7 @@ export default function DataTable<T extends Record<string, any>>({
             ? '1px solid rgba(255, 255, 255, 0.1)'
             : '1px solid rgba(0, 0, 0, 0.05)',
           borderRadius: 3,
+          overflow: 'visible',
         }}
       >
         <Typography variant="body1" color="text.secondary">
@@ -96,8 +97,7 @@ export default function DataTable<T extends Record<string, any>>({
   return (
     <Paper
       sx={{
-        width: '100%',
-        overflow: 'hidden',
+        overflow: 'visible',
         bgcolor: 'background.paper',
         backdropFilter: 'blur(20px)',
         boxShadow: (theme) => theme.palette.mode === 'dark'
@@ -109,7 +109,7 @@ export default function DataTable<T extends Record<string, any>>({
         borderRadius: 3,
       }}
     >
-      <TableContainer sx={{ maxHeight: 600, overflowX: 'auto' }}>
+      <TableContainer sx={{ overflowX: 'auto' }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -161,11 +161,11 @@ export default function DataTable<T extends Record<string, any>>({
           </TableHead>
           <TableBody>
             {paginatedData.map((row, index) => (
-              <TableRow 
-                hover 
-                key={getRowId(row)} 
-                sx={{ 
-                  '&:hover': { 
+              <TableRow
+                hover
+                key={getRowId(row)}
+                sx={{
+                  '&:hover': {
                     backgroundColor: (theme) => theme.palette.mode === 'dark'
                       ? 'rgba(102, 126, 234, 0.08)'
                       : 'rgba(102, 126, 234, 0.04)',
@@ -179,13 +179,13 @@ export default function DataTable<T extends Record<string, any>>({
                 }}
               >
                 {columns.map((column) => {
-                  const value = column.id.toString().includes('.') 
+                  const value = column.id.toString().includes('.')
                     ? column.id.toString().split('.').reduce((obj, key) => obj?.[key], row)
                     : row[column.id];
-                  
+
                   return (
-                    <TableCell 
-                      key={String(column.id)} 
+                    <TableCell
+                      key={String(column.id)}
                       align={column.align || 'left'}
                       sx={{
                         fontSize: '0.8125rem',
@@ -201,7 +201,7 @@ export default function DataTable<T extends Record<string, any>>({
                   );
                 })}
                 {(onView || onEdit || onDelete || onToggle) && (
-                  <TableCell 
+                  <TableCell
                     align="center"
                     sx={{
                       borderBottom: (theme) => theme.palette.mode === 'dark'

@@ -10,7 +10,7 @@ export default function UsersPage() {
         title="User Management" 
         defaultUserType="APP"
         hideUserTypeFilter={true}
-        viewRoute="/users"
+        viewRoute="/users/view"
       />
     </DashboardLayout>
   );

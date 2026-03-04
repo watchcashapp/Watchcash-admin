@@ -27,6 +27,7 @@ export function middleware(req: NextRequest) {
     '/staff/users',
     '/staff/roles',
     '/sessions',
+    '/reward-redemptions',
   ];
 
   // Check if the pathname exactly matches a valid route or is a dynamic route

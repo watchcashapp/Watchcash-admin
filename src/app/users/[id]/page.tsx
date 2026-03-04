@@ -35,6 +35,7 @@ function TabPanel(props: TabPanelProps) {
       hidden={value !== index}
       id={`user-tabpanel-${index}`}
       aria-labelledby={`user-tab-${index}`}
+      style={{ minHeight: 'auto' }}
       {...other}
     >
       {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
@@ -127,7 +128,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   if (loadingUser) {
     return (
       <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Box display="flex" justifyContent="center" alignItems="center" style={{ minHeight: '200px' }}>
           <CircularProgress />
         </Box>
       </DashboardLayout>
@@ -199,6 +200,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             border: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
               : '1px solid rgba(0, 0, 0, 0.08)',
+            overflow: 'visible',
           }}
         >
           <Tabs
@@ -236,6 +238,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                       border: (theme) => theme.palette.mode === 'dark'
                         ? '1px solid rgba(255, 255, 255, 0.1)'
                         : '1px solid rgba(0, 0, 0, 0.08)',
+                      overflow: 'visible',
                     }}
                   >
                     <CardContent>
@@ -326,6 +329,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     border: (theme) => theme.palette.mode === 'dark'
                       ? '1px solid rgba(255, 255, 255, 0.1)'
                       : '1px solid rgba(0, 0, 0, 0.08)',
+                    overflow: 'visible',
                   }}
                 >
                   <CardContent>
@@ -350,7 +354,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
               {/* Transactions Table */}
               {loadingWallet ? (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+                <Box display="flex" justifyContent="center" alignItems="center" style={{ minHeight: '200px' }}>
                   <CircularProgress />
                 </Box>
               ) : walletData && walletData.transactions.length > 0 ? (
@@ -413,6 +417,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     border: (theme) => theme.palette.mode === 'dark'
                       ? '1px solid rgba(255, 255, 255, 0.1)'
                       : '1px solid rgba(0, 0, 0, 0.08)',
+                    overflow: 'visible',
                   }}
                 >
                   <Typography variant="body1" color="text.secondary">

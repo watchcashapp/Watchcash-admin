@@ -82,10 +82,21 @@ export interface SessionsResponse {
   };
 }
 
+export interface ReviewSessionRequest {
+  decision: 'approve' | 'reject';
+  reason: string;
+  note?: string;
+  deduct_points: boolean;
+  deduction_type?: 'percentage' | 'fixed';
+  deduction_value?: number;
+  block_user: boolean;
+  block_minutes?: number;
+}
+
 export const sessionsApi = createApi({
   reducerPath: 'sessionsApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Sessions'],
+  tagTypes: ['Sessions', 'Users'],
   endpoints: (builder) => ({
     getSessions: builder.query<SessionsResponse, {
       page?: number;
@@ -101,7 +112,7 @@ export const sessionsApi = createApi({
         if (params.status) queryParams.append('status', params.status);
         if (params.userId) queryParams.append('userId', params.userId);
         if (params.deviceId) queryParams.append('deviceId', params.deviceId);
-        
+
         return `/admin/sessions?${queryParams.toString()}`;
       },
       providesTags: ['Sessions'],
@@ -110,10 +121,18 @@ export const sessionsApi = createApi({
       query: (sessionId) => `/admin/sessions/${sessionId}`,
       providesTags: ['Sessions'],
     }),
+    reviewSession: builder.mutation<void, { sessionId: string; data: ReviewSessionRequest }>({
+      query: ({ sessionId, data }) => ({
+        url: `/admin/sessions/${sessionId}/review`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Sessions', 'Users'], // Invalidating Users as well since points/blocking might affect user data
+    }),
   }),
 });
-
 export const {
   useGetSessionsQuery,
   useGetSessionByIdQuery,
+  useReviewSessionMutation,
 } = sessionsApi;

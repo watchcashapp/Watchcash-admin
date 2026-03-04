@@ -63,14 +63,15 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'User Management', icon: <People />, path: '/users' },
-  { 
-    text: 'Staff Management', 
-    icon: <Badge />, 
+  {
+    text: 'Staff Management',
+    icon: <Badge />,
     subItems: [
       { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users' },
       { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles' },
     ]
   },
+  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions' },
   { text: 'Sessions', icon: <BarChart />, path: '/sessions' },
   { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules' },
@@ -103,7 +104,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   React.useEffect(() => {
     menuItems.forEach((item) => {
       if (item.subItems) {
-        const isChildActive = item.subItems.some(subItem => 
+        const isChildActive = item.subItems.some(subItem =>
           pathname === subItem.path || pathname.startsWith(subItem.path + '/')
         );
         if (isChildActive && !openSubMenus[item.text]) {
@@ -153,14 +154,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         await logout({ refreshToken }).unwrap();
       }
       dispatch(clearAuth());
-      
+
       // Clear all auth cookies including agency owner token
       document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       document.cookie = 'agency_owner_gs_authtoken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-      
+
       showSuccess('Logged out successfully!');
-      
+
       // Use window.location for hard redirect to ensure middleware picks up cleared cookie
       window.location.href = '/auth/login';
     } catch (error: any) {
@@ -190,7 +191,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       return pathname === item.path || pathname.startsWith(item.path + '/');
     }
     if (item.subItems) {
-      return item.subItems.some(subItem => 
+      return item.subItems.some(subItem =>
         pathname === subItem.path || pathname.startsWith(subItem.path + '/')
       );
     }
@@ -200,11 +201,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography 
-          variant="h6" 
-          noWrap 
-          component="div" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          noWrap
+          component="div"
+          sx={{
             fontWeight: 700,
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
@@ -232,7 +233,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }}
                 sx={{
                   '&.Mui-selected': {
-                    background: item.subItems 
+                    background: item.subItems
                       ? 'rgba(102, 126, 234, 0.15)'
                       : 'linear-gradient(45deg, #667eea, #764ba2)',
                     color: item.subItems ? 'text.primary' : 'white',
@@ -250,9 +251,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   },
                 }}
               >
-                <ListItemIcon 
-                  sx={{ 
-                    color: isMenuItemActive(item) 
+                <ListItemIcon
+                  sx={{
+                    color: isMenuItemActive(item)
                       ? (item.subItems ? '#667eea' : 'white')
                       : 'text.secondary',
                     transition: 'color 0.2s ease',
@@ -260,11 +261,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary={item.text}
-                  sx={{ 
+                  sx={{
                     '& .MuiListItemText-primary': {
-                      color: isMenuItemActive(item) 
+                      color: isMenuItemActive(item)
                         ? (item.subItems ? 'text.primary' : 'white')
                         : 'text.primary',
                       fontWeight: isMenuItemActive(item) ? 600 : 400,
@@ -277,7 +278,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
               </ListItemButton>
             </ListItem>
-            
+
             {item.subItems && (
               <Collapse in={openSubMenus[item.text]} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
@@ -335,7 +336,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <AppBar
         position="fixed"
         sx={{
@@ -344,6 +345,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           backgroundColor: 'background.paper',
           color: 'text.primary',
           boxShadow: 1,
+          zIndex: 1200,
         }}
       >
         <Toolbar>
@@ -356,16 +358,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <MenuIcon />
           </IconButton>
-          
+
           <Box sx={{ flexGrow: 1 }} />
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {user && (
               <>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
+                  <Typography
+                    variant="body2"
+                    sx={{
                       fontWeight: 600,
                       background: 'linear-gradient(45deg, #667eea, #764ba2)',
                       WebkitBackgroundClip: 'text',
@@ -376,11 +378,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   >
                     {user.name}
                   </Typography>
-                 
+
                 </Box>
               </>
             )}
-            
+
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -399,7 +401,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {user?.name?.[0]?.toUpperCase() || ''}
               </Avatar>
             </IconButton>
-            
+
             <Menu
               id="menu-appbar"
               anchorEl={anchorEl}
@@ -419,8 +421,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   sx: {
                     bgcolor: 'background.paper',
                     backdropFilter: 'blur(20px)',
-                    boxShadow: (theme) => theme.palette.mode === 'dark' 
-                      ? '0 8px 32px rgba(0, 0, 0, 0.6)' 
+                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                      ? '0 8px 32px rgba(0, 0, 0, 0.6)'
                       : '0 8px 32px rgba(0, 0, 0, 0.1)',
                     border: (theme) => theme.palette.mode === 'dark'
                       ? '1px solid rgba(255, 255, 255, 0.1)'
@@ -431,9 +433,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               }}
             >
               {user && (
-                <Box sx={{ 
-                  px: 2, 
-                  py: 1.5, 
+                <Box sx={{
+                  px: 2,
+                  py: 1.5,
                   borderBottom: (theme) => theme.palette.mode === 'dark'
                     ? '1px solid rgba(255, 255, 255, 0.1)'
                     : '1px solid rgba(0, 0, 0, 0.08)'
@@ -446,7 +448,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Typography>
                 </Box>
               )}
-              <MenuItem 
+              <MenuItem
                 onClick={() => {
                   handleMenuClose();
                   router.push('/profile');
@@ -457,8 +459,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }
                 }}
               >
-                <ListItemIcon 
-                  sx={{ 
+                <ListItemIcon
+                  sx={{
                     color: 'text.secondary',
                     '&:hover': {
                       color: 'primary.main',
@@ -469,7 +471,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </ListItemIcon>
                 <Typography sx={{ fontWeight: 500 }}>Profile</Typography>
               </MenuItem>
-              <MenuItem 
+              <MenuItem
                 onClick={() => {
                   handleMenuClose();
                   setThemeDialogOpen(true);
@@ -480,8 +482,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }
                 }}
               >
-                <ListItemIcon 
-                  sx={{ 
+                <ListItemIcon
+                  sx={{
                     color: 'text.secondary',
                     '&:hover': {
                       color: 'primary.main',
@@ -492,7 +494,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </ListItemIcon>
                 <Typography sx={{ fontWeight: 500 }}>Theme</Typography>
               </MenuItem>
-              <MenuItem 
+              <MenuItem
                 onClick={handleMenuClose}
                 sx={{
                   '&:hover': {
@@ -500,8 +502,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }
                 }}
               >
-                <ListItemIcon 
-                  sx={{ 
+                <ListItemIcon
+                  sx={{
                     color: 'text.secondary',
                     '&:hover': {
                       color: 'primary.main',
@@ -513,7 +515,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Typography sx={{ fontWeight: 500 }}>Settings</Typography>
               </MenuItem>
               <Divider />
-              <MenuItem 
+              <MenuItem
                 onClick={handleLogoutClick}
                 sx={{
                   '&:hover': {
@@ -521,8 +523,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }
                 }}
               >
-                <ListItemIcon 
-                  sx={{ 
+                <ListItemIcon
+                  sx={{
                     color: 'error.main',
                   }}
                 >
@@ -567,9 +569,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           p: { xs: 2, sm: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           maxWidth: '100%',
-          overflow: 'hidden',
+          overflow: 'auto',
           backgroundColor: 'background.default',
-          minHeight: '100vh',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Toolbar />
