@@ -220,6 +220,15 @@ export const usersApi = createApi({
         `/admin/users/${userId}/transactions/${transactionId}`,
       transformResponse: (response: TransactionDetailResponse) => response.data,
     }),
+    getUserRedeemHistory: builder.query<{ items: any[]; total: number; page: number; totalPages: number }, { userId: string; page?: number; limit?: number }>({
+      query: ({ userId, page = 1, limit = 20 }) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page.toString());
+        queryParams.append('limit', limit.toString());
+        return `/admin/users/${userId}/redeemhistory?${queryParams.toString()}`;
+      },
+      transformResponse: (response: any) => response.data,
+    }),
   }),
 });
 
@@ -231,4 +240,5 @@ export const {
   useDeleteUserMutation,
   useGetUserWalletQuery,
   useGetTransactionDetailQuery,
+  useGetUserRedeemHistoryQuery,
 } = usersApi;

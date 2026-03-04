@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -32,6 +32,11 @@ export default function SessionsPage() {
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { data: sessionsData, isLoading } = useGetSessionsQuery({
     page,
@@ -117,7 +122,7 @@ export default function SessionsPage() {
       id: 'created_at',
       label: 'Created At',
       minWidth: 180,
-      format: (value: any) => new Date(value).toLocaleString(),
+      format: (value: any) => isMounted ? new Date(value).toLocaleString() : '',
     },
     {
       id: 'actions',
@@ -144,9 +149,9 @@ export default function SessionsPage() {
 
   return (
     <Box>
-      <Typography 
-        variant="h4" 
-        sx={{ 
+      <Typography
+        variant="h4"
+        sx={{
           mb: 3,
           fontWeight: 700,
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
@@ -164,8 +169,8 @@ export default function SessionsPage() {
           p: 2.5,
           mb: 3,
           bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark' 
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
           border: (theme) => theme.palette.mode === 'dark'
             ? '1px solid rgba(255, 255, 255, 0.1)'

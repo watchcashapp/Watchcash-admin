@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import {
     Box,
     Paper,
@@ -100,8 +100,8 @@ function SectionCard({
     );
 }
 
-function formatDate(dateStr?: string) {
-    if (!dateStr) return '—';
+function formatDate(dateStr?: string, isMounted?: boolean) {
+    if (!dateStr || !isMounted) return '—';
     return new Date(dateStr).toLocaleString('en-US', {
         year: 'numeric',
         month: 'long',
@@ -119,6 +119,11 @@ export default function TransactionDetailPage({
 }) {
     const resolvedParams = use(params);
     const router = useRouter();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const { data: transaction, isLoading, error } = useGetTransactionDetailQuery({
         userId: resolvedParams.id,
@@ -222,7 +227,7 @@ export default function TransactionDetailPage({
                                         Transaction Amount
                                     </Typography>
                                     <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-                                        {isCredit ? '+' : '-'}{Math.abs(transaction.amount).toLocaleString()} pts
+                                        {isCredit ? '+' : '-'}{isMounted ? Math.abs(transaction.amount).toLocaleString() : ''} pts
                                     </Typography>
                                 </Box>
                             </Box>
@@ -232,7 +237,7 @@ export default function TransactionDetailPage({
                                         Balance After
                                     </Typography>
                                     <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                        {transaction.balanceAfter.toLocaleString()} pts
+                                        {isMounted ? transaction.balanceAfter.toLocaleString() : ''} pts
                                     </Typography>
                                 </Box>
                             )}
@@ -269,7 +274,7 @@ export default function TransactionDetailPage({
                                     {transaction.referenceId || '—'}
                                 </Typography>
                             } />
-                            <InfoRow label="Created At" value={formatDate(transaction.createdAt)} />
+                            <InfoRow label="Created At" value={formatDate(transaction.createdAt, isMounted)} />
                         </SectionCard>
                     </Grid>
 
@@ -301,7 +306,7 @@ export default function TransactionDetailPage({
                                         </Typography>
                                     } />
                                 )}
-                                <InfoRow label="Created At" value={formatDate(transaction.session.created_at || transaction.session.startTime)} />
+                                <InfoRow label="Created At" value={formatDate(transaction.session.created_at || transaction.session.startTime, isMounted)} />
                                 {transaction.session.duration_seconds != null && (
                                     <InfoRow
                                         label="Duration"
@@ -358,7 +363,7 @@ export default function TransactionDetailPage({
                                         } />
                                         <InfoRow label="Type" value={transaction.adjustment.adjustmentType} />
                                         <InfoRow label="Amount" value={`${transaction.adjustment.amount} pts`} />
-                                        <InfoRow label="Created At" value={formatDate(transaction.adjustment.createdAt)} />
+                                        <InfoRow label="Created At" value={formatDate(transaction.adjustment.createdAt, isMounted)} />
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <InfoRow label="Made By" value={

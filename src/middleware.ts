@@ -36,7 +36,8 @@ export function middleware(req: NextRequest) {
     pathname.startsWith('/sessions/') ||
     pathname.startsWith('/staff/roles/') ||
     pathname.startsWith('/staff/users/') ||
-    pathname.startsWith('/users/');
+    pathname.startsWith('/users/') ||
+    pathname.startsWith('/reward-redemptions/');
 
   // Check if it's a public route
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));

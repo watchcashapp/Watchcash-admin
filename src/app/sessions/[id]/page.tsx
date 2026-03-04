@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -51,8 +51,15 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const [activeTab, setActiveTab] = useState(0);
+  const [isReviewingSession, setIsReviewingSession] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { data: response, isLoading, error } = useGetSessionByIdQuery(resolvedParams.id);
-  const [reviewSession, { isLoading: isReviewing }] = useReviewSessionMutation();
+  const [reviewSession, { isLoading: refreshingIsReviewing }] = useReviewSessionMutation();
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<Partial<ReviewSessionRequest>>({
@@ -176,7 +183,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       id: 'createdAt',
       label: 'Created At',
       minWidth: 180,
-      format: (value: string) => new Date(value).toLocaleString(),
+      format: (value: string) => isMounted ? new Date(value).toLocaleString() : '',
     },
   ];
 
@@ -185,7 +192,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
     { id: 'reviewer', label: 'Reviewer', minWidth: 150 },
     { id: 'decision', label: 'Decision', minWidth: 120 },
     { id: 'notes', label: 'Notes', minWidth: 250 },
-    { id: 'timestamp', label: 'Timestamp', minWidth: 180, format: (value: string) => new Date(value).toLocaleString() },
+    { id: 'timestamp', label: 'Timestamp', minWidth: 180, format: (value: string) => isMounted ? new Date(value).toLocaleString() : '' },
   ];
 
   // Mock review history data
@@ -372,7 +379,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         Created At
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5 }}>
-                        {new Date(session.created_at).toLocaleString()}
+                        {isMounted ? new Date(session.created_at).toLocaleString() : ''}
                       </Typography>
                     </Box>
                   </Grid>
@@ -384,7 +391,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                           Start Time
                         </Typography>
                         <Typography variant="body1" sx={{ mt: 0.5 }}>
-                          {new Date(session.metadata.start_time).toLocaleString()}
+                          {isMounted ? new Date(session.metadata.start_time).toLocaleString() : ''}
                         </Typography>
                       </Box>
                     </Grid>
@@ -397,7 +404,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                           End Time
                         </Typography>
                         <Typography variant="body1" sx={{ mt: 0.5 }}>
-                          {new Date(session.metadata.end_time).toLocaleString()}
+                          {isMounted ? new Date(session.metadata.end_time).toLocaleString() : ''}
                         </Typography>
                       </Box>
                     </Grid>
@@ -579,7 +586,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         Calculated At
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5 }}>
-                        {new Date(reward.calculated_at).toLocaleString()}
+                        {isMounted ? new Date(reward.calculated_at).toLocaleString() : ''}
                       </Typography>
                     </Box>
                   </Grid>
@@ -627,7 +634,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           <Drawer
             anchor="right"
             open={reviewDialogOpen}
-            onClose={() => !isReviewing && setReviewDialogOpen(false)}
+            onClose={() => !refreshingIsReviewing && setReviewDialogOpen(false)}
             sx={{ display: { xs: 'block', lg: 'none' } }}
             PaperProps={{
               sx: {
@@ -691,7 +698,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           <Button
             size="small"
             onClick={() => setReviewDialogOpen(false)}
-            disabled={isReviewing}
+            disabled={refreshingIsReviewing}
             sx={{ minWidth: 'auto', p: 1 }}
           >
             ✕
@@ -713,7 +720,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 label="Decision"
                 value={reviewForm.decision}
                 onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as any })}
-                disabled={isReviewing}
+                disabled={refreshingIsReviewing}
                 InputLabelProps={{ shrink: true, required: true }}
               >
                 <MenuItem value="approve">Approve</MenuItem>
@@ -727,7 +734,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 label="Reason"
                 value={reviewForm.reason}
                 onChange={(e) => setReviewForm({ ...reviewForm, reason: e.target.value })}
-                disabled={isReviewing}
+                disabled={refreshingIsReviewing}
                 placeholder="Select a reason..."
               />
             </Grid>
@@ -740,7 +747,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 placeholder="Add admin note..."
                 value={reviewForm.note}
                 onChange={(e) => setReviewForm({ ...reviewForm, note: e.target.value })}
-                disabled={isReviewing}
+                disabled={refreshingIsReviewing}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
@@ -752,7 +759,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <Switch
                   checked={reviewForm.deduct_points}
                   onChange={(e) => setReviewForm({ ...reviewForm, deduct_points: e.target.checked })}
-                  disabled={isReviewing}
+                  disabled={refreshingIsReviewing}
                 />
               </Box>
             </Grid>
@@ -790,7 +797,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         label="Value"
                         value={reviewForm.deduction_value}
                         onChange={(e) => setReviewForm({ ...reviewForm, deduction_value: Number(e.target.value) })}
-                        disabled={isReviewing}
+                        disabled={refreshingIsReviewing}
                         InputProps={{
                           endAdornment: reviewForm.deduction_type === 'percentage' ? <Typography color="text.secondary">%</Typography> : null
                         }}
@@ -813,7 +820,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <Switch
                   checked={reviewForm.block_user}
                   onChange={(e) => setReviewForm({ ...reviewForm, block_user: e.target.checked })}
-                  disabled={isReviewing}
+                  disabled={refreshingIsReviewing}
                 />
               </Box>
             </Grid>
@@ -828,7 +835,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                     label="Block Duration (minutes)"
                     value={reviewForm.block_minutes}
                     onChange={(e) => setReviewForm({ ...reviewForm, block_minutes: Number(e.target.value) })}
-                    disabled={isReviewing}
+                    disabled={refreshingIsReviewing}
                     helperText="User won't be able to create sessions"
                     InputLabelProps={{ shrink: true }}
                   />
@@ -843,13 +850,13 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             onClick={handleReviewSubmit}
             variant="contained"
             fullWidth
-            disabled={isReviewing || !reviewForm.reason}
+            disabled={refreshingIsReviewing || !reviewForm.reason}
             sx={{
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               py: 1.5,
             }}
           >
-            {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
+            {refreshingIsReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
           </Button>
         </Box>
       </Box>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -13,6 +13,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Drawer,
 } from '@mui/material';
 import {
   Search,
@@ -21,34 +22,81 @@ import {
   Visibility,
   Edit,
   Delete,
+  RateReview,
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DataTable, Column } from '@/components/shared';
-import { useGetRewardRedemptionsQuery } from '@/store/api/rewardRedemptionsApi';
+import { DataTable, Column, useToast } from '@/components/shared';
+import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 
-// Mock data for reward redemptions
-
-interface RewardRedemption {
-  id: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  rewardName: string;
-  rewardType: string;
-  points: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSED';
-  requestedAt: string;
-  processedAt: string | null;
-  notes: string;
-}
+// Mock data removed
+const PREDEFINED_REASONS = [
+  { value: 'fraud_suspected', label: 'Fraud Suspicion' },
+  { value: 'duplicate_account', label: 'Multi Account' },
+  { value: 'device_mismatch', label: 'Device Mismatch' },
+  { value: 'impossible_travel', label: 'Impossible Travel' },
+  { value: 'vpn_or_proxy_detected', label: 'VPN/Proxy Detected' },
+  { value: 'bot_or_automation', label: 'Bot/Automation' },
+  { value: 'invalid_activity', label: 'Invalid Activity' },
+  { value: 'ineligible_country', label: 'Ineligible Country' },
+  { value: 'terms_violated', label: 'Terms Violated' },
+  { value: 'age_restriction', label: 'Age Restriction' },
+  { value: 'quota_exceeded', label: 'Quota Exceeded' },
+  { value: 'tango_insufficient_funds', label: 'Tango Insufficient Funds' },
+  { value: 'tango_config_error', label: 'Tango Config Error' },
+  { value: 'internal_error', label: 'Internal Error' },
+  { value: 'manual_review_required', label: 'Manual Review' },
+  { value: 'user_request_cancel', label: 'User Cancel' },
+];
 
 export default function RewardRedemptionsPage() {
+  const router = useRouter();
   const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({});
-  const redemptions = response?.data?.reward_redemptions || [];
+  const redemptions = response?.data?.items || [];
+  const { showSuccess, showError } = useToast();
+  const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewForm, setReviewForm] = useState<{
+    decision: 'approve' | 'reject' | 'hold';
+    admin_reason_code: string;
+    admin_note: string;
+  }>({
+    decision: 'approve',
+    admin_reason_code: '',
+    admin_note: '',
+  });
+
+  const handleReviewSubmit = async () => {
+    if (!selectedRedemption) return;
+    try {
+      await reviewRewardRedemption({
+        id: selectedRedemption.id,
+        data: reviewForm,
+      }).unwrap();
+      showSuccess('Reward redemption reviewed successfully');
+      setReviewDialogOpen(false);
+      handleMenuClose();
+    } catch (err: any) {
+      showError(err?.data?.message || err?.message || 'Failed to review redemption');
+    }
+  };
+
+  const handleReviewClick = (redemption: RewardRedemption) => {
+    setSelectedRedemption(redemption);
+    setReviewDialogOpen(true);
+    handleMenuClose();
+  };
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, redemption: RewardRedemption) => {
     setAnchorEl(event.currentTarget);
@@ -61,8 +109,8 @@ export default function RewardRedemptionsPage() {
   };
 
   const handleView = (redemption: RewardRedemption) => {
-    console.log('View redemption:', redemption);
     handleMenuClose();
+    router.push(`/reward-redemptions/${redemption.id}`);
   };
 
   const handleEdit = (redemption: RewardRedemption) => {
@@ -83,6 +131,8 @@ export default function RewardRedemptionsPage() {
         return 'linear-gradient(45deg, #10b981, #059669)';
       case 'REJECTED':
         return 'linear-gradient(45deg, #ef4444, #dc2626)';
+      case 'FAILED':
+        return 'linear-gradient(45deg, #ef4444, #dc2626)';
       case 'PROCESSED':
         return 'linear-gradient(45deg, #3b82f6, #2563eb)';
       default:
@@ -94,22 +144,22 @@ export default function RewardRedemptionsPage() {
     {
       id: 'id',
       label: 'ID',
-      minWidth: 80,
-    },
-    {
-      id: 'userName',
-      label: 'User Name',
       minWidth: 150,
+      format: (value: string) => (
+        <Typography sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+          {value.split('-')[0]}...
+        </Typography>
+      ),
     },
     {
-      id: 'userEmail',
-      label: 'Email',
-      minWidth: 200,
-    },
-    {
-      id: 'rewardName',
-      label: 'Reward Name',
-      minWidth: 180,
+      id: 'userId',
+      label: 'User ID',
+      minWidth: 150,
+      format: (value: string) => (
+        <Typography sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+          {value.split('-')[0]}...
+        </Typography>
+      ),
     },
     {
       id: 'rewardType',
@@ -121,9 +171,7 @@ export default function RewardRedemptionsPage() {
           label={value}
           size="small"
           sx={{
-            background: value === 'VOUCHER'
-              ? 'linear-gradient(45deg, #667eea, #764ba2)'
-              : 'linear-gradient(45deg, #10b981, #059669)',
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
             color: 'white',
             fontWeight: 600,
           }}
@@ -137,7 +185,18 @@ export default function RewardRedemptionsPage() {
       minWidth: 100,
       format: (value: number) => (
         <Typography sx={{ fontWeight: 600, color: '#667eea' }}>
-          {value.toLocaleString()}
+          {isMounted ? value?.toLocaleString() : ''}
+        </Typography>
+      ),
+    },
+    {
+      id: 'rewardValue',
+      label: 'Value',
+      align: 'right',
+      minWidth: 100,
+      format: (value: number | undefined, row: RewardRedemption) => (
+        <Typography sx={{ fontWeight: 600 }}>
+          {value ? `${row.rewardCurrency} ${value}` : '-'}
         </Typography>
       ),
     },
@@ -159,27 +218,26 @@ export default function RewardRedemptionsPage() {
       ),
     },
     {
-      id: 'requestedAt',
-      label: 'Requested At',
+      id: 'createdAt',
+      label: 'Created At',
       minWidth: 180,
-      format: (value: string) => new Date(value).toLocaleString('en-US', {
+      format: (value: string) => isMounted ? new Date(value).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-      }),
+      }) : '',
     },
   ];
 
-  const filteredData = redemptions.filter((redemption) => {
-    const matchesSearch = !search || 
-      redemption.userName.toLowerCase().includes(search.toLowerCase()) ||
-      redemption.userEmail.toLowerCase().includes(search.toLowerCase()) ||
-      redemption.rewardName.toLowerCase().includes(search.toLowerCase());
-    
+  const filteredData = redemptions.filter((redemption: RewardRedemption) => {
+    const matchesSearch = !search ||
+      redemption.id.toLowerCase().includes(search.toLowerCase()) ||
+      redemption.userId.toLowerCase().includes(search.toLowerCase());
+
     const matchesStatus = !status || redemption.status === status;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -199,20 +257,6 @@ export default function RewardRedemptionsPage() {
           >
             Reward Redemptions
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            sx={{
-              minWidth: { xs: 'auto', sm: 120 },
-              px: { xs: 2, sm: 3 },
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
-              },
-            }}
-          >
-            Add Reward
-          </Button>
         </Box>
 
         {/* Filters */}
@@ -315,15 +359,69 @@ export default function RewardRedemptionsPage() {
             <Visibility sx={{ mr: 1, fontSize: '1.2rem', color: '#10b981' }} />
             View Details
           </MenuItem>
-          <MenuItem onClick={() => selectedRedemption && handleEdit(selectedRedemption)}>
-            <Edit sx={{ mr: 1, fontSize: '1.2rem', color: '#667eea' }} />
-            Edit
+          <MenuItem onClick={() => selectedRedemption && handleReviewClick(selectedRedemption)}>
+            <RateReview sx={{ mr: 1, fontSize: '1.2rem', color: '#667eea' }} />
+            Mark Review
           </MenuItem>
           <MenuItem onClick={() => selectedRedemption && handleDelete(selectedRedemption)}>
             <Delete sx={{ mr: 1, fontSize: '1.2rem', color: '#ef4444' }} />
             Delete
           </MenuItem>
         </Menu>
+
+        <Drawer
+          anchor="right"
+          open={reviewDialogOpen}
+          onClose={() => !isReviewing && setReviewDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              width: { xs: '100%', sm: 400 },
+              borderTopLeftRadius: { xs: 16, sm: 0 },
+              borderBottomLeftRadius: { xs: 0, sm: 0 },
+              boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+            }
+          }}
+        >
+          <Box display="flex" flexDirection="column" flex={1} minHeight={0} sx={{ overflow: 'hidden' }}>
+            <Box p={2} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Mark Review</Typography>
+              <Button size="small" onClick={() => setReviewDialogOpen(false)} disabled={isReviewing} sx={{ minWidth: 'auto', p: 1 }}>✕</Button>
+            </Box>
+            <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
+              <Box mb={3}>
+                <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} InputLabelProps={{ shrink: true, required: true }}>
+                  <MenuItem value="approve">Approve</MenuItem>
+                  <MenuItem value="reject">Reject</MenuItem>
+                  <MenuItem value="hold">Hold</MenuItem>
+                </TextField>
+              </Box>
+              <Box mb={3}>
+                <TextField fullWidth label="Reason Code" value={reviewForm.admin_reason_code} onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} disabled={isReviewing} placeholder="E.g. valid_activity" />
+                <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
+                  {PREDEFINED_REASONS.map((reason) => (
+                    <Chip
+                      key={reason.value}
+                      label={reason.label}
+                      variant={reviewForm.admin_reason_code === reason.value ? 'filled' : 'outlined'}
+                      color={reviewForm.admin_reason_code === reason.value ? 'primary' : 'default'}
+                      onClick={() => setReviewForm({ ...reviewForm, admin_reason_code: reason.value })}
+                      disabled={isReviewing}
+                      sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+              <Box mb={3}>
+                <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." InputLabelProps={{ shrink: true }} />
+              </Box>
+            </Box>
+            <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
+              <Button fullWidth variant="contained" onClick={handleReviewSubmit} disabled={isReviewing} sx={{ background: 'linear-gradient(45deg, #667eea, #764ba2)' }}>
+                {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
+              </Button>
+            </Box>
+          </Box>
+        </Drawer>
       </Box>
     </DashboardLayout>
   );

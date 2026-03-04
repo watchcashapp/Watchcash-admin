@@ -4,25 +4,35 @@ import { baseQueryWithReauth } from './authApi';
 export interface RewardRedemption {
     id: string;
     userId: string;
-    userName: string;
-    userEmail: string;
-    rewardName: string;
-    rewardType: string;
+    sessionId: string;
     points: number;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSED';
-    requestedAt: string;
-    processedAt: string | null;
-    notes: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSED' | 'FAILED';
+    idempotencyKey?: string | null;
+    rewardType: string;
+    rewardCurrency: string;
+    rewardValue: number;
+    tangoOrderId?: string | null;
+    tangoReferenceId?: string | null;
+    tangoErrorCode?: string | null;
+    tangoErrorMessage?: string | null;
+    requestMetadata?: any;
+    adminNote?: string | null;
+    adminReasonCode?: string | null;
+    createdBy?: string;
+    reviewedBy?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    decidedAt?: string | null;
 }
 
 export interface RewardRedemptionsResponse {
     status: string;
     data: {
-        reward_redemptions: RewardRedemption[];
+        items: RewardRedemption[];
         total: number;
         page: number;
         limit: number;
-        totalPages: number;
+        totalPages?: number;
     };
 }
 
@@ -46,7 +56,7 @@ export const rewardRedemptionsApi = createApi({
             query: (id) => `/admin/reward-redemptions/${id}`,
             providesTags: ['RewardRedemptions'],
         }),
-        reviewRewardRedemption: builder.mutation<void, { id: string; data: { decision: string; reason?: string } }>({
+        reviewRewardRedemption: builder.mutation<void, { id: string; data: { decision: 'approve' | 'reject' | 'hold'; admin_note?: string; admin_reason_code?: string } }>({
             query: ({ id, data }) => ({
                 url: `/admin/reward-redemptions/${id}/review`,
                 method: 'POST',

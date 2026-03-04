@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -14,11 +14,11 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import { ArrowBack, Person, AccountBalanceWallet } from '@mui/icons-material';
+import { ArrowBack, Person, AccountBalanceWallet, History } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column } from '@/components/shared';
-import { useGetUserByIdQuery, useGetUserWalletQuery, WalletTransaction } from '@/store/api/usersApi';
+import { useGetUserByIdQuery, useGetUserWalletQuery, useGetUserRedeemHistoryQuery, WalletTransaction } from '@/store/api/usersApi';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -48,10 +48,21 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [tabValue, setTabValue] = useState(0);
   const [walletPage, setWalletPage] = useState(1);
 
+  const [historyPage, setHistoryPage] = useState(1);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
     { userId: resolvedParams.id, page: walletPage, limit: 20 },
     { skip: tabValue !== 1 }
+  );
+  const { data: historyData, isLoading: loadingHistory } = useGetUserRedeemHistoryQuery(
+    { userId: resolvedParams.id, page: historyPage, limit: 20 },
+    { skip: tabValue !== 2 }
   );
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -63,13 +74,13 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       id: 'createdAt',
       label: 'Date',
       minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleString('en-US', {
+      format: (value: string) => isMounted ? new Date(value).toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-      }),
+      }) : '',
     },
     {
       id: 'transactionType',
@@ -123,6 +134,76 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       format: (value: string) => value || 'N/A',
     },
   ];
+
+  const historyColumns: Column<any>[] = [
+    {
+      id: 'createdAt',
+      label: 'Date',
+      minWidth: 150,
+      format: (value: string) => isMounted ? new Date(value).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }) : '',
+    },
+    {
+      id: 'rewardType',
+      label: 'Reward Type',
+      minWidth: 150,
+    },
+    {
+      id: 'points',
+      label: 'Points',
+      align: 'right',
+      minWidth: 100,
+      format: (value: number) => (
+        <Typography sx={{ fontWeight: 600, color: '#ef4444' }}>
+          -{value}
+        </Typography>
+      ),
+    },
+    {
+      id: 'rewardValue',
+      label: 'Value',
+      align: 'right',
+      minWidth: 100,
+      format: (value: number, row: any) => `${value} ${row.rewardCurrency}`,
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      align: 'center',
+      minWidth: 120,
+      format: (value: string) => (
+        <Chip
+          label={value}
+          size="small"
+          sx={{
+            background: getStatusBadgeColor(value),
+            color: 'white',
+            fontWeight: 600,
+          }}
+        />
+      ),
+    },
+  ];
+
+  function getStatusBadgeColor(status: string) {
+    switch (status) {
+      case 'APPROVED':
+      case 'PROCESSED':
+        return 'linear-gradient(45deg, #10b981, #059669)';
+      case 'PENDING':
+        return 'linear-gradient(45deg, #f59e0b, #d97706)';
+      case 'REJECTED':
+      case 'FAILED':
+        return 'linear-gradient(45deg, #ef4444, #dc2626)';
+      default:
+        return 'linear-gradient(45deg, #9ca3af, #4b5563)';
+    }
+  }
 
   if (loadingUser) {
     return (
@@ -223,6 +304,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           >
             <Tab icon={<Person />} iconPosition="start" label="Details" />
             <Tab icon={<AccountBalanceWallet />} iconPosition="start" label="Wallet Transactions" />
+            <Tab icon={<History />} iconPosition="start" label="Redemption History" />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
@@ -298,13 +380,13 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             Created At
                           </Typography>
                           <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                            {new Date(userResponse.createdAt).toLocaleString('en-US', {
+                            {isMounted ? new Date(userResponse.createdAt).toLocaleString('en-US', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit',
-                            })}
+                            }) : ''}
                           </Typography>
                         </Grid>
                       </Grid>
@@ -342,7 +424,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         backgroundClip: 'text',
                       }}
                     >
-                      {walletData.walletBalance.toLocaleString()} Points
+                      {isMounted ? walletData.walletBalance.toLocaleString() : ''} Points
                     </Typography>
                   </CardContent>
                 </Card>
@@ -361,7 +443,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     getRowId={(row) => row.id}
                     emptyMessage="No transactions found"
                   />
-                  
+
                   {/* Pagination */}
                   {walletData.totalPages > 1 && (
                     <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
@@ -414,6 +496,83 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 >
                   <Typography variant="body1" color="text.secondary">
                     No transactions found
+                  </Typography>
+                </Paper>
+              )}
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Box sx={{ p: 3 }}>
+              {loadingHistory ? (
+                <Box display="flex" justifyContent="center" alignItems="center" style={{ minHeight: '200px' }}>
+                  <CircularProgress />
+                </Box>
+              ) : historyData && historyData.items.length > 0 ? (
+                <>
+                  <DataTable
+                    columns={historyColumns}
+                    data={historyData.items}
+                    getRowId={(row) => row.id}
+                    emptyMessage="No redemption history found"
+                    onView={(row: any) =>
+                      router.push(`/reward-redemptions/${row.id}`)
+                    }
+                  />
+
+                  {/* Pagination */}
+                  {historyData.totalPages > 1 && (
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
+                      <button
+                        onClick={() => setHistoryPage(historyPage - 1)}
+                        disabled={historyPage === 1}
+                        style={{
+                          padding: '8px 16px',
+                          background: historyPage === 1 ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
+                          color: historyPage === 1 ? '#9ca3af' : 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: historyPage === 1 ? 'not-allowed' : 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Previous
+                      </button>
+                      <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+                        Page {historyPage} of {historyData.totalPages}
+                      </span>
+                      <button
+                        onClick={() => setHistoryPage(historyPage + 1)}
+                        disabled={historyPage === historyData.totalPages}
+                        style={{
+                          padding: '8px 16px',
+                          background: historyPage === historyData.totalPages ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
+                          color: historyPage === historyData.totalPages ? '#9ca3af' : 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: historyPage === historyData.totalPages ? 'not-allowed' : 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Next
+                      </button>
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <Paper
+                  sx={{
+                    p: 4,
+                    textAlign: 'center',
+                    bgcolor: 'background.paper',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(0, 0, 0, 0.08)',
+                    overflow: 'visible',
+                  }}
+                >
+                  <Typography variant="body1" color="text.secondary">
+                    No redemption history found
                   </Typography>
                 </Paper>
               )}
