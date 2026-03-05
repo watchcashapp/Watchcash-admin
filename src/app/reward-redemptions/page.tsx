@@ -18,10 +18,7 @@ import {
 import {
   Search,
   Add,
-  MoreVert,
   Visibility,
-  Edit,
-  Delete,
   RateReview,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -111,16 +108,6 @@ export default function RewardRedemptionsPage() {
   const handleView = (redemption: RewardRedemption) => {
     handleMenuClose();
     router.push(`/reward-redemptions/${redemption.id}`);
-  };
-
-  const handleEdit = (redemption: RewardRedemption) => {
-    console.log('Edit redemption:', redemption);
-    handleMenuClose();
-  };
-
-  const handleDelete = (redemption: RewardRedemption) => {
-    console.log('Delete redemption:', redemption);
-    handleMenuClose();
   };
 
   const getStatusColor = (status: string) => {
@@ -336,8 +323,6 @@ export default function RewardRedemptionsPage() {
           getRowId={(row) => row.id}
           emptyMessage="No reward redemptions found. Try adjusting your filters."
           onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
         />
 
         {/* Action Menu */}
@@ -358,14 +343,6 @@ export default function RewardRedemptionsPage() {
           <MenuItem onClick={() => selectedRedemption && handleView(selectedRedemption)}>
             <Visibility sx={{ mr: 1, fontSize: '1.2rem', color: '#10b981' }} />
             View Details
-          </MenuItem>
-          <MenuItem onClick={() => selectedRedemption && handleReviewClick(selectedRedemption)}>
-            <RateReview sx={{ mr: 1, fontSize: '1.2rem', color: '#667eea' }} />
-            Mark Review
-          </MenuItem>
-          <MenuItem onClick={() => selectedRedemption && handleDelete(selectedRedemption)}>
-            <Delete sx={{ mr: 1, fontSize: '1.2rem', color: '#ef4444' }} />
-            Delete
           </MenuItem>
         </Menu>
 

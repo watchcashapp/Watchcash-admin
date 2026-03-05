@@ -78,7 +78,7 @@ const menuItems: MenuItem[] = [
   // { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   // { text: 'Reports', icon: <BarChart />, path: '/reports' },
-  // { text: 'Settings', icon: <Settings />, path: '/settings' },
+  { text: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
