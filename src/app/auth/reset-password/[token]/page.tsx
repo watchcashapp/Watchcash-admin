@@ -13,9 +13,14 @@ export default function ResetPassword() {
   const { showSuccess, showError } = useToast();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
+  const [mounted, setMounted] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +44,8 @@ export default function ResetPassword() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -50,21 +57,21 @@ export default function ResetPassword() {
           py: 4,
         }}
       >
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            width: "100%", 
-            p: { xs: 3, sm: 4 }, 
+        <Paper
+          elevation={3}
+          sx={{
+            width: "100%",
+            p: { xs: 3, sm: 4 },
             borderRadius: 4,
             maxWidth: { xs: '100%', sm: 480 }
           }}
         >
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            gutterBottom 
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
             textAlign="center"
-            sx={{ 
+            sx={{
               fontSize: { xs: '1.75rem', sm: '2rem' },
               fontWeight: 600,
               color: 'primary.main'
@@ -73,9 +80,9 @@ export default function ResetPassword() {
             Set New Password
           </Typography>
 
-          <Typography 
-            variant="body2" 
-            textAlign="center" 
+          <Typography
+            variant="body2"
+            textAlign="center"
             color="text.secondary"
             sx={{ mb: 3 }}
           >
@@ -116,12 +123,13 @@ export default function ResetPassword() {
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
-                    fullWidth 
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
                     disabled={isLoading}
                     size="large"
+                    suppressHydrationWarning
                   >
                     {isLoading ? "Saving..." : "Save New Password"}
                   </Button>

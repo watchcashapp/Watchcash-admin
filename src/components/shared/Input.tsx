@@ -13,18 +13,23 @@ export interface InputProps extends Omit<TextFieldProps, 'variant'> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ 
-    label, 
-    error = false, 
-    helperText, 
-    fullWidth = true, 
+  ({
+    label,
+    error = false,
+    helperText,
+    fullWidth = true,
     size = 'small',
     type,
     sx,
-    ...props 
+    ...props
   }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const isPasswordField = type === 'password';
+
+    React.useEffect(() => {
+      setMounted(true);
+    }, []);
 
     const handleTogglePassword = () => {
       setShowPassword(!showPassword);
@@ -39,10 +44,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         fullWidth={fullWidth}
         size={size}
         variant="outlined"
-        type={isPasswordField && showPassword ? 'text' : type}
+        type={isPasswordField && mounted && showPassword ? 'text' : type}
+        suppressHydrationWarning
         slotProps={{
           input: {
-            endAdornment: isPasswordField ? (
+            endAdornment: isPasswordField && mounted ? (
               <InputAdornment position="end">
                 <IconButton
                   aria-label="toggle password visibility"
