@@ -14,6 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>WatchNCash</title>
+      </head>
       <body>
         <ThemeProvider>
           <Provider store={store}>

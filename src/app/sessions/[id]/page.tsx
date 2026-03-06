@@ -752,7 +752,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+            {/* <Grid size={{ xs: 12 }}>
               <Divider sx={{ my: 1 }} />
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle2" fontWeight={600}>Deduct Points</Typography>
@@ -762,7 +762,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   disabled={refreshingIsReviewing}
                 />
               </Box>
-            </Grid>
+            </Grid> */}
 
             {reviewForm.deduct_points && (
               <Grid size={{ xs: 12 }}>
