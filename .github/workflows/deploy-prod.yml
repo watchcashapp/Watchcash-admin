@@ -108,14 +108,27 @@ jobs:
             # Switch Traffic (Dynamic Blue/Green)
             ############################################
 
-            if [ "$NEW" = "blue" ]; then
-              # CI/CD Switch to BLUE
-              sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled || true
-              sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf || true
+            if [ "\$NEW" = "blue" ]; then
+                echo "Switching to BLUE ... Reloading nginx"
+
+                if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
+                    sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
+                fi
+
+                if [ -f /etc/nginx/conf.d/watchcash-blue.conf.disabled ]; then
+                    sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf
+                fi
+
             else
-              # CI/CD Switch to GREEN
-              sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled || true
-              sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf || true
+                echo "Switching to GREEN"
+
+                if [ -f /etc/nginx/conf.d/watchcash-blue.conf ]; then
+                    sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
+                fi
+
+                if [ -f /etc/nginx/conf.d/watchcash-front.conf.disabled ]; then
+                    sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf
+                fi
             fi
 
             if sudo nginx -t; then
@@ -125,14 +138,27 @@ jobs:
               echo "Nginx config failed ❌ Rolling back"
 
               # Rollback nginx change
-              if [ "$ACTIVE" = "blue" ]; then
-                 # CI/CD Switch to BLUE
-                sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled || true
-                sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf || true
+              if [ "\$ACTIVE" = "blue" ]; then
+                  echo "Switching to BLUE ... in failed case ... Reloading nginx"
+
+                  if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
+                      sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
+                  fi
+
+                  if [ -f /etc/nginx/conf.d/watchcash-blue.conf.disabled ]; then
+                      sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf
+                  fi
+
               else
-                # CI/CD Switch to GREEN
-                sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled || true
-                sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf || true
+                  echo "Switching to GREEN in failed case ... Reloading nginx"
+
+                  if [ -f /etc/nginx/conf.d/watchcash-blue.conf ]; then
+                      sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
+                  fi
+
+                  if [ -f /etc/nginx/conf.d/watchcash-front.conf.disabled ]; then
+                      sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf
+                  fi
               fi
 
               sudo nginx -t && sudo systemctl reload nginx

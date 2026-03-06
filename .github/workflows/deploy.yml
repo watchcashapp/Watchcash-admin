@@ -139,7 +139,7 @@ jobs:
 
               # Rollback nginx change
               if [ "\$ACTIVE" = "blue" ]; then
-                  echo "Switching to BLUE ... Reloading nginx"
+                  echo "Switching to BLUE ... in failed case ... Reloading nginx"
 
                   if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
                       sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
@@ -150,7 +150,7 @@ jobs:
                   fi
 
               else
-                  echo "Switching to GREEN"
+                  echo "Switching to GREEN in failed case ... Reloading nginx"
 
                   if [ -f /etc/nginx/conf.d/watchcash-blue.conf ]; then
                       sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
