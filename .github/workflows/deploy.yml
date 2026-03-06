@@ -108,7 +108,7 @@ jobs:
             # Switch Traffic (Dynamic Blue/Green)
             ############################################
 
-            if [ "$NEW" = "blue" ]; then
+            if [ "\$NEW" = "blue" ]; then
                 echo "Switching to BLUE ... Reloading nginx"
 
                 if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
@@ -138,7 +138,7 @@ jobs:
               echo "Nginx config failed ❌ Rolling back"
 
               # Rollback nginx change
-              if [ "$ACTIVE" = "blue" ]; then
+              if [ "\$ACTIVE" = "blue" ]; then
                   echo "Switching to BLUE ... Reloading nginx"
 
                   if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
