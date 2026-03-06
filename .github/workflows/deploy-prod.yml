@@ -108,10 +108,14 @@ jobs:
             # Switch Traffic (Dynamic Blue/Green)
             ############################################
 
-            if [ "$NEW" = "green" ]; then
-              sudo sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
+            if [ "$NEW" = "blue" ]; then
+              # CI/CD Switch to BLUE
+              sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled || true
+              sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf || true
             else
-              sudo sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
+              # CI/CD Switch to GREEN
+              sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled || true
+              sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf || true
             fi
 
             if sudo nginx -t; then
@@ -122,9 +126,13 @@ jobs:
 
               # Rollback nginx change
               if [ "$ACTIVE" = "blue" ]; then
-                sudo sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
+                 # CI/CD Switch to BLUE
+                sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled || true
+                sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf || true
               else
-                sudo sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
+                # CI/CD Switch to GREEN
+                sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled || true
+                sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf || true
               fi
 
               sudo nginx -t && sudo systemctl reload nginx
