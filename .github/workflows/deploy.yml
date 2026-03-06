@@ -109,9 +109,9 @@ jobs:
             ############################################
 
             if [ "$NEW" = "green" ]; then
-              sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
+              sudo sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
             else
-              sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
+              sudo sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
             fi
 
             if sudo nginx -t; then
@@ -122,9 +122,9 @@ jobs:
 
               # Rollback nginx change
               if [ "$ACTIVE" = "blue" ]; then
-                sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
+                sudo sed -i 's/set \$active_port 9000;/set \$active_port 9001;/' /etc/nginx/conf.d/watchcash-front.conf
               else
-                sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
+                sudo sed -i 's/set \$active_port 9001;/set \$active_port 9000;/' /etc/nginx/conf.d/watchcash-front.conf
               fi
 
               sudo nginx -t && sudo systemctl reload nginx
