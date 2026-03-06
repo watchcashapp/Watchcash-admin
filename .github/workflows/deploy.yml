@@ -120,7 +120,7 @@ jobs:
 
             if sudo nginx -t; then
               sudo systemctl reload nginx
-              echo "Traffic switched to $NEW ✅"
+              echo "Traffic switched to $NEW ✅ ... Reloading nginx"
             else
               echo "Nginx config failed ❌ Rolling back"
 
