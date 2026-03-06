@@ -128,7 +128,7 @@ export default function SettingsPage() {
 
     return (
         <DashboardLayout>
-            <Box sx={{ width: '100%', mt: 4, px: { xs: 2, md: 4 } }}>
+            <Box sx={{ width: '100%', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 <Typography
                     variant="h4"
                     gutterBottom
@@ -158,6 +158,10 @@ export default function SettingsPage() {
                             ? '1px solid rgba(255, 255, 255, 0.1)'
                             : '1px solid rgba(0, 0, 0, 0.05)',
                         transition: 'all 0.3s ease-in-out',
+                        flexGrow: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
                     }}
                 >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -169,122 +173,125 @@ export default function SettingsPage() {
                         </Typography>
                     </Box>
 
-                    {metadata.map((row, index) => {
-                        const isExisting = !!originalSettings[row.metakey];
-                        const isEditing = editingRows[index];
-                        const isDisabled = isUpdating || (isExisting && !isEditing);
+                    <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
 
-                        return (
-                            <Box
-                                key={index}
-                                sx={{
-                                    display: 'flex',
-                                    gap: 3,
-                                    mb: 2,
-                                    alignItems: 'center',
-                                    p: 1.5,
-                                    borderRadius: 2,
-                                    transition: 'background-color 0.2s ease',
-                                    '&:hover': {
-                                        bgcolor: (theme) => theme.palette.mode === 'dark'
-                                            ? 'rgba(255, 255, 255, 0.03)'
-                                            : 'rgba(0, 0, 0, 0.02)',
-                                    },
-                                    border: index === 0 ? '1px dashed #667eea' : '1px solid transparent',
-                                    bgcolor: index === 0 ? 'rgba(102, 126, 234, 0.04)' : 'transparent',
-                                }}
-                            >
-                                <TextField
-                                    fullWidth
-                                    label="Meta Key"
-                                    value={row.metakey}
-                                    onChange={(e) => handleChange(index, 'metakey', e.target.value)}
-                                    size="small"
-                                    disabled={isUpdating || isExisting}
-                                    required
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': {
-                                            '&:hover fieldset': {
-                                                borderColor: '#667eea',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#667eea',
-                                            },
-                                        },
-                                        '& .MuiInputBase-input.Mui-disabled': {
-                                            WebkitTextFillColor: (theme) => theme.palette.text.primary,
-                                            opacity: 0.7,
-                                        }
-                                    }}
-                                />
-                                <TextField
-                                    fullWidth
-                                    label="Meta Value"
-                                    value={row.metavalue}
-                                    onChange={(e) => handleChange(index, 'metavalue', e.target.value)}
-                                    size="small"
-                                    disabled={isDisabled}
-                                    required
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': {
-                                            '&:hover fieldset': {
-                                                borderColor: '#667eea',
-                                            },
-                                            '&.Mui-focused fieldset': {
-                                                borderColor: '#667eea',
-                                            },
-                                        },
-                                        '& .MuiInputBase-input.Mui-disabled': {
-                                            WebkitTextFillColor: (theme) => theme.palette.text.primary,
-                                            opacity: 0.7,
-                                        }
-                                    }}
-                                />
+                        {metadata.map((row, index) => {
+                            const isExisting = !!originalSettings[row.metakey];
+                            const isEditing = editingRows[index];
+                            const isDisabled = isUpdating || (isExisting && !isEditing);
 
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    {index === 0 && (
-                                        <IconButton
-                                            onClick={handleAddRow}
-                                            disabled={isUpdating}
-                                            sx={{
-                                                color: '#10b981',
-                                                bgcolor: 'rgba(16, 185, 129, 0.1)',
-                                                '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.2)' },
-                                            }}
-                                        >
-                                            <Add />
-                                        </IconButton>
-                                    )}
-                                    {isExisting && !isEditing && (
-                                        <IconButton
-                                            onClick={() => setEditingRows(prev => ({ ...prev, [index]: true }))}
-                                            disabled={isUpdating}
-                                            sx={{
-                                                color: '#f59e0b',
-                                                bgcolor: 'rgba(245, 158, 11, 0.1)',
-                                                '&:hover': { bgcolor: 'rgba(245, 158, 11, 0.2)' },
-                                            }}
-                                        >
-                                            <Edit />
-                                        </IconButton>
-                                    )}
-                                    <IconButton
-                                        onClick={() => handleRemoveRow(index)}
-                                        disabled={isUpdating || (metadata.length === 1 && !row.metakey && !row.metavalue)}
+                            return (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: 'flex',
+                                        gap: 3,
+                                        mb: 2,
+                                        alignItems: 'center',
+                                        p: 1.5,
+                                        borderRadius: 2,
+                                        transition: 'background-color 0.2s ease',
+                                        '&:hover': {
+                                            bgcolor: (theme) => theme.palette.mode === 'dark'
+                                                ? 'rgba(255, 255, 255, 0.03)'
+                                                : 'rgba(0, 0, 0, 0.02)',
+                                        },
+                                        border: index === 0 ? '1px dashed #667eea' : '1px solid transparent',
+                                        bgcolor: index === 0 ? 'rgba(102, 126, 234, 0.04)' : 'transparent',
+                                    }}
+                                >
+                                    <TextField
+                                        fullWidth
+                                        label="Meta Key"
+                                        value={row.metakey}
+                                        onChange={(e) => handleChange(index, 'metakey', e.target.value)}
+                                        size="small"
+                                        disabled={isUpdating || isExisting}
+                                        required
                                         sx={{
-                                            color: (metadata.length === 1 && !row.metakey && !row.metavalue) ? 'text.disabled' : '#ef4444',
-                                            bgcolor: (metadata.length === 1 && !row.metakey && !row.metavalue) ? 'transparent' : 'rgba(239, 68, 68, 0.1)',
-                                            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' },
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#667eea',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#667eea',
+                                                },
+                                            },
+                                            '& .MuiInputBase-input.Mui-disabled': {
+                                                WebkitTextFillColor: (theme) => theme.palette.text.primary,
+                                                opacity: 0.7,
+                                            }
                                         }}
-                                    >
-                                        <Delete />
-                                    </IconButton>
-                                </Box>
-                            </Box>
-                        )
-                    })}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Meta Value"
+                                        value={row.metavalue}
+                                        onChange={(e) => handleChange(index, 'metavalue', e.target.value)}
+                                        size="small"
+                                        disabled={isDisabled}
+                                        required
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#667eea',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#667eea',
+                                                },
+                                            },
+                                            '& .MuiInputBase-input.Mui-disabled': {
+                                                WebkitTextFillColor: (theme) => theme.palette.text.primary,
+                                                opacity: 0.7,
+                                            }
+                                        }}
+                                    />
 
-                    <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        {index === 0 && (
+                                            <IconButton
+                                                onClick={handleAddRow}
+                                                disabled={isUpdating}
+                                                sx={{
+                                                    color: '#10b981',
+                                                    bgcolor: 'rgba(16, 185, 129, 0.1)',
+                                                    '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.2)' },
+                                                }}
+                                            >
+                                                <Add />
+                                            </IconButton>
+                                        )}
+                                        {isExisting && !isEditing && (
+                                            <IconButton
+                                                onClick={() => setEditingRows(prev => ({ ...prev, [index]: true }))}
+                                                disabled={isUpdating}
+                                                sx={{
+                                                    color: '#f59e0b',
+                                                    bgcolor: 'rgba(245, 158, 11, 0.1)',
+                                                    '&:hover': { bgcolor: 'rgba(245, 158, 11, 0.2)' },
+                                                }}
+                                            >
+                                                <Edit />
+                                            </IconButton>
+                                        )}
+                                        <IconButton
+                                            onClick={() => handleRemoveRow(index)}
+                                            disabled={isUpdating || (metadata.length === 1 && !row.metakey && !row.metavalue)}
+                                            sx={{
+                                                color: (metadata.length === 1 && !row.metakey && !row.metavalue) ? 'text.disabled' : '#ef4444',
+                                                bgcolor: (metadata.length === 1 && !row.metakey && !row.metavalue) ? 'transparent' : 'rgba(239, 68, 68, 0.1)',
+                                                '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' },
+                                            }}
+                                        >
+                                            <Delete />
+                                        </IconButton>
+                                    </Box>
+                                </Box>
+                            )
+                        })}
+                    </Box>
+
+                    <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid rgba(0,0,0,0.05)', pt: 2 }}>
                         <Button
                             variant="contained"
                             onClick={handleSubmit}
