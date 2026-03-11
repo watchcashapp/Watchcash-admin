@@ -39,7 +39,9 @@ export interface GetUsersParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
-  userType?: 'APP' | 'ADMIN' | 'STAFF' | '';
+  userType?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface CreateUserRequest {
@@ -155,6 +157,8 @@ export const usersApi = createApi({
         if (params.search) queryParams.append('search', params.search);
         if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
         if (params.userType) queryParams.append('userType', params.userType);
+        if (params.from) queryParams.append('from', params.from);
+        if (params.to) queryParams.append('to', params.to);
 
         return `/admin/users?${queryParams.toString()}`;
       },

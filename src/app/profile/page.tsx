@@ -325,23 +325,25 @@ export default function ProfilePage() {
                   {!isEditing && (
                     <Button
                       variant="outlined"
-                      startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Edit /></Box>}
                       onClick={() => setIsEditing(true)}
                       sx={{
                         minWidth: { xs: 'auto', sm: 120 },
                         px: { xs: 2, sm: 3 },
                         borderColor: '#667eea',
                         color: '#667eea',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
                         '&:hover': {
                           borderColor: '#5a67d8',
                           backgroundColor: 'rgba(102, 126, 234, 0.04)',
                         },
                       }}
                     >
-                      <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
-                        Edit Profile
+                      <Edit fontSize="small" />
+                      <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        EDIT PROFILE
                       </Box>
-                      <Edit sx={{ display: { xs: 'block', sm: 'none' } }} />
                     </Button>
                   )}
                 </Box>

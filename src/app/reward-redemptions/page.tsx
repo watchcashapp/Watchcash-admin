@@ -13,15 +13,31 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
   Drawer,
+  useTheme,
 } from '@mui/material';
 import {
   Search,
   Add,
+  MoreVert,
   Visibility,
-  RateReview,
+  Edit,
+  Delete,
+  DateRange,
+  Download,
+  NavigateBefore,
+  NavigateNext,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import { config } from '@/config/env';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column, useToast } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
@@ -48,20 +64,43 @@ const PREDEFINED_REASONS = [
 
 export default function RewardRedemptionsPage() {
   const router = useRouter();
-  const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({});
-  const redemptions = response?.data?.items || [];
-  const { showSuccess, showError } = useToast();
-  const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
+  const theme = useTheme();
+
+  // State declarations must come before API calls
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const hasFilters = search || status || fromDate || toDate;
+  const [page, setPage] = useState(1);
+  const [limit] = useState(6);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, status, fromDate, toDate]);
+
+  // API call with state variables
+  const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({
+    search,
+    status,
+    from: fromDate,
+    to: toDate,
+    page,
+    limit,
+  });
+  const redemptions = response?.data?.items || [];
+  const pagination = response?.data;
+  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
+  const { showSuccess, showError } = useToast();
+  const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<{
@@ -244,6 +283,51 @@ export default function RewardRedemptionsPage() {
           >
             Reward Redemptions
           </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              const queryParams = new URLSearchParams();
+              if (search) queryParams.append("search", search);
+              if (status) queryParams.append("status", status);
+              if (fromDate) queryParams.append("from", fromDate);
+              if (toDate) queryParams.append("to", toDate);
+
+              const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+              const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
+
+              // Trigger download using fetch
+              fetch(url, {
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'ngrok-skip-browser-warning': 'true'
+                }
+              })
+                .then(response => response.blob())
+                .then(blob => {
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = downloadUrl;
+                  a.download = `reward_redemptions_export_${new Date().getTime()}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(downloadUrl);
+                })
+                .catch(err => {
+                  console.error('Export failed:', err);
+                });
+            }}
+            sx={{
+              borderColor: '#667eea',
+              color: '#667eea',
+              '&:hover': {
+                borderColor: '#5a67d8',
+                backgroundColor: 'rgba(102, 126, 234, 0.04)',
+              },
+            }}
+          >
+            Export CSV
+          </Button>
         </Box>
 
         {/* Filters */}
@@ -262,59 +346,131 @@ export default function RewardRedemptionsPage() {
             borderRadius: 3,
           }}
         >
-          <Box display="flex" gap={2}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Search by name, email, or reward..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search sx={{ color: '#667eea', fontSize: '1.25rem' }} />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              sx={{
-                flex: 1,
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Search by ID or user ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ color: '#667eea', fontSize: '1.25rem' }} />
+                      </InputAdornment>
+                    ),
+                  }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
                   },
-                },
-              }}
-            />
-            <TextField
-              select
-              size="small"
-              label="Status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              sx={{
-                minWidth: 150,
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
+                }}
+              >
+                <MenuItem value="">All Status</MenuItem>
+                <MenuItem value="PENDING">Pending</MenuItem>
+                <MenuItem value="APPROVED">Approved</MenuItem>
+                <MenuItem value="REJECTED">Rejected</MenuItem>
+                <MenuItem value="PROCESSED">Processed</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="From Date"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="To Date"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
                   },
-                },
-              }}
-            >
-              <MenuItem value="">All Status</MenuItem>
-              <MenuItem value="PENDING">Pending</MenuItem>
-              <MenuItem value="APPROVED">Approved</MenuItem>
-              <MenuItem value="REJECTED">Rejected</MenuItem>
-              <MenuItem value="PROCESSED">Processed</MenuItem>
-            </TextField>
-          </Box>
+                }}
+              />
+            </Grid>
+            {hasFilters && (
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => {
+                    setSearch('');
+                    setStatus('');
+                    setFromDate('');
+                    setToDate('');
+                  }}
+                  sx={{
+                    height: '40px',
+                    borderColor: '#667eea',
+                    color: '#667eea',
+                    '&:hover': {
+                      borderColor: '#5a67d8',
+                      backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                    },
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    minWidth: { xs: 'auto', md: '100px' },
+                  }}
+                >
+                  Clear
+                </Button>
+              </Grid>
+            )}
+          </Grid>
         </Box>
 
         <DataTable
@@ -324,6 +480,48 @@ export default function RewardRedemptionsPage() {
           emptyMessage="No reward redemptions found. Try adjusting your filters."
           onView={handleView}
         />
+
+        {/* Pagination */}
+        {pagination && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {redemptions.length} of {pagination.total} results
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                sx={{
+                  bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
+                  color: page <= 1 ? 'text.disabled' : 'white',
+                  '&:hover': {
+                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
+                  },
+                }}
+              >
+                <NavigateBefore />
+              </IconButton>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                {page} / {calculatedTotalPages || 1}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= (calculatedTotalPages || 1)}
+                sx={{
+                  bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.main',
+                  color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'white',
+                  '&:hover': {
+                    bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.dark',
+                  },
+                }}
+              >
+                <NavigateNext />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
 
         {/* Action Menu */}
         <Menu

@@ -20,6 +20,7 @@ import {
   useTheme,
   useMediaQuery,
   Collapse,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -38,6 +39,7 @@ import {
   ExpandMore,
   PersonOutline,
   AdminPanelSettings,
+  History,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -74,6 +76,7 @@ const menuItems: MenuItem[] = [
   { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions' },
   { text: 'Sessions', icon: <BarChart />, path: '/sessions' },
   { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
+  { text: 'Audit Logs', icon: <History />, path: '/audit-logs' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules' },
   // { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
@@ -99,6 +102,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Auto-expand submenus when their child routes are active
   React.useEffect(() => {
@@ -221,8 +229,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <List>
         {menuItems.map((item) => (
           <React.Fragment key={item.text}>
-            <ListItem disablePadding>
+            <ListItem disablePadding suppressHydrationWarning>
               <ListItemButton
+                suppressHydrationWarning
                 selected={isMenuItemActive(item)}
                 onClick={() => {
                   if (item.path) {
@@ -284,6 +293,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <List component="div" disablePadding>
                   {item.subItems.map((subItem) => (
                     <ListItemButton
+                      suppressHydrationWarning
                       key={subItem.text}
                       selected={pathname === subItem.path || pathname.startsWith(subItem.path + '/')}
                       onClick={() => handleNavigation(subItem.path)}
@@ -335,8 +345,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </Box>
   );
 
+  if (!isMounted) {
+    return (
+      <Box sx={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }} suppressHydrationWarning>
       <AppBar
         position="fixed"
         sx={{
@@ -350,6 +368,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <Toolbar>
           <IconButton
+            suppressHydrationWarning
             color="inherit"
             aria-label="open drawer"
             edge="start"
@@ -384,6 +403,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             )}
 
             <IconButton
+              suppressHydrationWarning
               size="large"
               aria-label="account of current user"
               aria-controls="menu-appbar"
@@ -449,6 +469,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Box>
               )}
               <MenuItem
+                suppressHydrationWarning
                 onClick={() => {
                   handleMenuClose();
                   router.push('/profile');
@@ -472,6 +493,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Typography sx={{ fontWeight: 500 }}>Profile</Typography>
               </MenuItem>
               <MenuItem
+                suppressHydrationWarning
                 onClick={() => {
                   handleMenuClose();
                   setThemeDialogOpen(true);
@@ -495,7 +517,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Typography sx={{ fontWeight: 500 }}>Theme</Typography>
               </MenuItem>
               <MenuItem
-                onClick={handleMenuClose}
+                suppressHydrationWarning
+                onClick={() => {
+                  router.push('/settings');
+                  handleMenuClose();
+                }}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'rgba(102, 126, 234, 0.08)',
@@ -516,6 +542,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </MenuItem>
               <Divider />
               <MenuItem
+                suppressHydrationWarning
                 onClick={handleLogoutClick}
                 sx={{
                   '&:hover': {

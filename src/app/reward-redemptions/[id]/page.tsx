@@ -205,13 +205,19 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                     <Box display="flex" flexDirection="column" gap={2}>
                                         <Box>
                                             <Typography variant="caption" color="text.secondary">User ID</Typography>
-                                            <Box sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                                            <Box
+                                                onClick={() => router.push(`/users/view/${redemption.userId}`)}
+                                                sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1, cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
+                                            >
                                                 {redemption.userId}
                                             </Box>
                                         </Box>
                                         <Box>
                                             <Typography variant="caption" color="text.secondary">Session ID</Typography>
-                                            <Box sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                                            <Box
+                                                onClick={() => router.push(`/sessions/${redemption.sessionId}`)}
+                                                sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1, cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
+                                            >
                                                 {redemption.sessionId}
                                             </Box>
                                         </Box>

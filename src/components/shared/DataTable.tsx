@@ -12,7 +12,6 @@ import {
   Box,
   Typography,
   CircularProgress,
-  TablePagination,
 } from '@mui/material';
 import { Edit, Delete, ToggleOn, ToggleOff, Visibility } from '@mui/icons-material';
 
@@ -34,6 +33,7 @@ export interface DataTableProps<T> {
   onToggle?: (row: T) => void;
   getRowId: (row: T) => string;
   emptyMessage?: string;
+  renderPagination?: () => React.ReactNode;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -46,18 +46,8 @@ export default function DataTable<T extends Record<string, any>>({
   onToggle,
   getRowId,
   emptyMessage = 'No data available',
+  renderPagination,
 }: DataTableProps<T>) {
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   if (isLoading && (!data || data.length === 0)) {
     return (
@@ -92,7 +82,7 @@ export default function DataTable<T extends Record<string, any>>({
     );
   }
 
-  const paginatedData = data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
 
   return (
     <Paper
@@ -160,7 +150,7 @@ export default function DataTable<T extends Record<string, any>>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedData.map((row, index) => (
+            {data.map((row, index) => (
               <TableRow
                 hover
                 key={getRowId(row)}
@@ -283,27 +273,11 @@ export default function DataTable<T extends Record<string, any>>({
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        component="div"
-        count={data.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        sx={{
-          borderTop: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.08)'
-            : '1px solid rgba(0, 0, 0, 0.06)',
-          '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
-            fontSize: '0.875rem',
-            color: 'text.secondary',
-          },
-          '.MuiTablePagination-select': {
-            fontSize: '0.875rem',
-          },
-        }}
-      />
+      {renderPagination && (
+        <Box sx={{ p: 2, borderTop: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)' }}>
+          {renderPagination()}
+        </Box>
+      )}
     </Paper>
   );
 }

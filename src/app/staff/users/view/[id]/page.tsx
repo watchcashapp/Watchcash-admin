@@ -16,17 +16,38 @@ import { ArrowBack, Edit } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useGetUserByIdQuery } from '@/store/api/usersApi';
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`user-tabpanel-${index}`}
+      aria-labelledby={`user-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
 
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
 
   if (loadingUser) {
     return (
@@ -105,6 +126,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
       <Paper
         sx={{
+          p: 3,
           bgcolor: 'background.paper',
           p: 3,
           boxShadow: (theme) => theme.palette.mode === 'dark'

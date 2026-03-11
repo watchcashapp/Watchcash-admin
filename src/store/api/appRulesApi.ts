@@ -42,13 +42,24 @@ export interface CreateAppRuleRequest {
 
 export interface UpdateAppRuleRequest extends CreateAppRuleRequest {}
 
+export interface GetAppRulesParams {
+  from?: string;
+  to?: string;
+}
+
 export const appRulesApi = createApi({
   reducerPath: 'appRulesApi',
   baseQuery: baseQueryWithReauth,
   tagTypes: ['AppRules'],
   endpoints: (builder) => ({
-    getAppRules: builder.query<AppRule[], void>({
-      query: () => '/admin/app-rules',
+    getAppRules: builder.query<AppRule[], GetAppRulesParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.from) queryParams.append('from', params.from);
+        if (params.to) queryParams.append('to', params.to);
+        
+        return `/admin/app-rules?${queryParams.toString()}`;
+      },
       providesTags: ['AppRules'],
       transformResponse: (response: AppRulesResponse) => response.data,
     }),
