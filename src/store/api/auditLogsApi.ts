@@ -82,10 +82,18 @@ export const auditLogsApi = createApi({
             providesTags: ['AuditLogs'],
             transformResponse: (response: AuditLogsResponse) => response.data,
         }),
+        getAuditLog: builder.query<AuditLog, { userId: string; logId: string }>({
+            query: ({ userId }) => `/admin/audit-logs/${userId}`,
+            providesTags: (_result, _error, { logId }) => [{ type: 'AuditLogs', id: logId }],
+            transformResponse: (response: AuditLogsResponse, _meta, { logId }) => {
+                return response.data?.items?.find((item: AuditLog) => item.id === logId) || null as any;
+            },
+        }),
     }),
 });
 
 export const {
     useGetAuditLogsQuery,
     useGetAuditLogsByUserQuery,
+    useGetAuditLogQuery,
 } = auditLogsApi;

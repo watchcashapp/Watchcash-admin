@@ -234,6 +234,7 @@ export default function AuditLogsUserPage() {
                     getRowId={(row: any) => row.id}
                     isLoading={isLoading}
                     emptyMessage="No audit logs found for this user"
+                    onView={(row) => router.push(`/audit-logs/${userId}/details/${row.id}`)}
                 />
             </Paper>
 

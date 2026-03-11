@@ -111,8 +111,10 @@ export default function AuditLogsPage() {
                         '&:hover': { color: 'primary.dark' }
                     }}
                     onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/audit-logs/${value.id}`);
+                        if (value?.id) {
+                            e.stopPropagation();
+                            router.push(`/audit-logs/${value.id}`);
+                        }
                     }}
                 >
                     {value.name || value.email}
@@ -256,6 +258,10 @@ export default function AuditLogsPage() {
                     getRowId={(row: any) => row.id}
                     isLoading={isLoading}
                     emptyMessage="No audit logs found"
+                    onView={(row) => {
+                        const targetId = row.targetUser?.id || 'system';
+                        router.push(`/audit-logs/${targetId}/details/${row.id}`);
+                    }}
                 />
             </Paper>
 
