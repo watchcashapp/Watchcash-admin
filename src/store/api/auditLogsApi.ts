@@ -83,10 +83,16 @@ export const auditLogsApi = createApi({
             transformResponse: (response: AuditLogsResponse) => response.data,
         }),
         getAuditLog: builder.query<AuditLog, { userId: string; logId: string }>({
-            query: ({ userId }) => `/admin/audit-logs/${userId}`,
+            query: ({ userId }) => `/admin/audit-logs/${userId}?limit=100`,
             providesTags: (_result, _error, { logId }) => [{ type: 'AuditLogs', id: logId }],
             transformResponse: (response: AuditLogsResponse, _meta, { logId }) => {
-                return response.data?.items?.find((item: AuditLog) => item.id === logId) || null as any;
+                const items = response.data?.items || [];
+                // Search for the logId. Try exact match first, then partial match if ID seems truncated (at least 30 chars)
+                return items.find((item: AuditLog) =>
+                    item.id === logId ||
+                    (logId.length >= 30 && item.id.startsWith(logId)) ||
+                    (item.id.length >= 30 && logId.startsWith(item.id))
+                ) || null as any;
             },
         }),
     }),

@@ -94,7 +94,7 @@ export default function AuditLogDetailPage() {
                         >
                             Log Detail
                         </Typography>
-                       
+
                     </Box>
                     <Chip
                         label={(log?.action || 'Unknown').toLowerCase().replace(/_/g, ' ')}
@@ -170,8 +170,8 @@ export default function AuditLogDetailPage() {
                                 </Box>
                                 <Box>
                                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Admin / Performing User</Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{log.admin.name}</Typography>
-                                    <Typography variant="body2" color="text.secondary">{log.admin.email}</Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{log.admin?.name || 'Unknown'}</Typography>
+                                    <Typography variant="body2" color="text.secondary">{log.admin?.email || 'N/A'}</Typography>
                                 </Box>
                             </Box>
 
@@ -218,7 +218,7 @@ export default function AuditLogDetailPage() {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
 
-                        {Object.keys(log.metadata).length > 0 ? (
+                        {Object.keys(log?.metadata || {}).length > 0 ? (
                             <TableContainer>
                                 <Table size="small">
                                     <TableBody>
