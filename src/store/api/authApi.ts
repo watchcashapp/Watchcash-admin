@@ -12,23 +12,23 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { endpoint }) => {
     // Public endpoints that don't need authentication
     const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword'];
-    
+
     // Only add Authorization header for private/protected endpoints
     if (!publicEndpoints.includes(endpoint)) {
-      const accessToken = typeof window !== 'undefined' 
+      const accessToken = typeof window !== 'undefined'
         ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
         : '';
-      
+
       if (accessToken) {
         headers.set('Authorization', `Bearer ${accessToken}`);
       }
     }
-    
+
     headers.set('Content-Type', 'application/json');
-    
+
     // Add ngrok-skip-browser-warning header to bypass ngrok warning page
     headers.set('ngrok-skip-browser-warning', 'true');
-    
+
     return headers;
   },
 });
@@ -41,34 +41,34 @@ export const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   // Wait until the mutex is available without locking it
   await mutex.waitForUnlock();
-  
+
   let result = await baseQuery(args, api, extraOptions);
-  
-  console.log('[Auth] API call result:', { 
+
+  console.log('[Auth] API call result:', {
     url: typeof args === 'string' ? args : args.url,
     status: result.error?.status,
     hasError: !!result.error,
     hasData: !!result.data,
   });
-  
+
   // Check for 401 HTTP status
   const is401Error = result.error && result.error.status === 401;
-  
+
   if (is401Error) {
     console.log('[Auth] 401 error detected, attempting token refresh');
-    
+
     // Check if the mutex is locked
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
-      
+
       try {
         const refreshToken = typeof window !== 'undefined'
           ? document.cookie.replace(/(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
           : '';
-        
+
         if (refreshToken) {
           console.log('[Auth] Attempting token refresh...');
-          
+
           // Try to get a new token
           const refreshResult = await baseQuery(
             {
@@ -79,44 +79,44 @@ export const baseQueryWithReauth: BaseQueryFn<
             api,
             extraOptions
           );
-          
-          console.log('[Auth] Refresh result:', { 
+
+          console.log('[Auth] Refresh result:', {
             hasData: !!refreshResult.data,
             hasError: !!refreshResult.error,
           });
-          
+
           // Check if refresh was successful
-          if (refreshResult.data && 
-              typeof refreshResult.data === 'object' &&
-              'status' in refreshResult.data &&
-              refreshResult.data.status === 'success' &&
-              'data' in refreshResult.data) {
-            
+          if (refreshResult.data &&
+            typeof refreshResult.data === 'object' &&
+            'status' in refreshResult.data &&
+            refreshResult.data.status === 'success' &&
+            'data' in refreshResult.data) {
+
             const data = refreshResult.data as { status: string; data: { accessToken: string; refreshToken: string } };
-            
+
             console.log('[Auth] Token refresh successful, updating cookies');
-            
+
             // Store the new tokens (without secure flag for localhost)
             if (typeof window !== 'undefined') {
-              const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-              const cookieOptions = isLocalhost 
-                ? 'path=/; samesite=strict'
-                : 'path=/; secure; samesite=strict';
-              
+              const isSecure = window.location.protocol === 'https:';
+              const cookieOptions = isSecure
+                ? 'path=/; secure; samesite=lax'
+                : 'path=/; samesite=lax';
+
               document.cookie = `accessToken=${data.data.accessToken}; ${cookieOptions}; max-age=3600`;
               document.cookie = `refreshToken=${data.data.refreshToken}; ${cookieOptions}; max-age=604800`;
             }
-            
+
             // Retry the initial query with new token
             console.log('[Auth] Retrying original request with new token');
             result = await baseQuery(args, api, extraOptions);
-            console.log('[Auth] Retry result:', { 
+            console.log('[Auth] Retry result:', {
               hasData: !!result.data,
               hasError: !!result.error,
             });
           } else {
             console.log('[Auth] Token refresh failed, redirecting to login');
-            
+
             // Refresh failed - clear tokens and redirect to login
             if (typeof window !== 'undefined') {
               document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -126,7 +126,7 @@ export const baseQueryWithReauth: BaseQueryFn<
           }
         } else {
           console.log('[Auth] No refresh token found, redirecting to login');
-          
+
           // No refresh token - redirect to login
           if (typeof window !== 'undefined') {
             document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -143,7 +143,7 @@ export const baseQueryWithReauth: BaseQueryFn<
       result = await baseQuery(args, api, extraOptions);
     }
   }
-  
+
   return result;
 };
 
@@ -210,18 +210,18 @@ export const authApi = createApi({
       transformResponse: (response: LoginResponse) => {
         // Store both tokens in cookies (without secure flag for localhost)
         if (typeof window !== 'undefined' && response.data) {
-          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const cookieOptions = isLocalhost 
-            ? 'path=/; samesite=strict'
-            : 'path=/; secure; samesite=strict';
-          
+          const isSecure = window.location.protocol === 'https:';
+          const cookieOptions = isSecure
+            ? 'path=/; secure; samesite=lax'
+            : 'path=/; samesite=lax';
+
           document.cookie = `accessToken=${response.data.accessToken}; ${cookieOptions}; max-age=3600`;
           document.cookie = `refreshToken=${response.data.refreshToken}; ${cookieOptions}; max-age=604800`;
         }
         return response;
       },
     }),
-    
+
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (userData) => ({
         url: '/admin/register',
@@ -237,7 +237,7 @@ export const authApi = createApi({
         body,
       }),
     }),
-    
+
 
 
 
@@ -253,7 +253,7 @@ export const authApi = createApi({
         if (typeof window !== 'undefined') {
           // Clear accessToken cookie
           document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-          
+
           // Clear all auth-related cookies
           const cookies = document.cookie.split(';');
           cookies.forEach(cookie => {
@@ -263,13 +263,13 @@ export const authApi = createApi({
               document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
             }
           });
-          
+
           // Clear localStorage
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
           localStorage.removeItem('auth');
-          
+
           // Clear sessionStorage
           sessionStorage.removeItem('token');
           sessionStorage.removeItem('refreshToken');
@@ -303,7 +303,7 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
       transformResponse: (response: ProfileResponse) => response.data,
     }),
-    
+
     refreshToken: builder.mutation<void, void>({
       query: () => ({
         url: '/admin/refresh',
@@ -321,7 +321,7 @@ export const authApi = createApi({
       providesTags: ['User'],
       transformResponse: (response: ProfileResponse) => response.data,
     }),
-    
+
     changePassword: builder.mutation<{ message: string }, { currentPassword: string; newPassword: string }>({
       query: (body) => ({
         url: '/admin/change-password',

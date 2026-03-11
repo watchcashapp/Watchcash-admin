@@ -85,7 +85,7 @@ export default function RolesPage() {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Add /></Box>}
+          startIcon={<Add />}
           onClick={() => router.push('/staff/roles/add')}
           sx={{
             minWidth: { xs: 'auto', sm: 120 },
@@ -96,11 +96,8 @@ export default function RolesPage() {
             },
           }}
         >
-          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add Role</Box>
-          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-            <Add fontSize="small" />
-            Add
-          </Box>
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>ADD ROLE</Box>
+          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>ADD</Box>
         </Button>
       </Box>
 

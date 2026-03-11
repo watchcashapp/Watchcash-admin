@@ -52,51 +52,51 @@ function LoginForm() {
 
     try {
       const result = await login({ email, password }).unwrap();
-      
+
       console.log('Login response:', result);
-      
+
       // Decode the access token to get user data
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
       console.log('Decoded token in login:', decodedToken);
-      
+
       // For agency owners, use ownerId as the user ID
       const userId = decodedToken.profile.ownerId || decodedToken.profile.id;
-      
+
       const userData = {
         id: userId,
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
       };
-      
+
       console.log('User data to store:', userData);
-      
-      // Set both tokens in cookies (without secure flag for localhost)
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const cookieOptions = isLocalhost 
-        ? 'path=/; samesite=strict'
-        : 'path=/; secure; samesite=strict';
-      
+
+      // Set both tokens in cookies
+      const isSecure = window.location.protocol === 'https:';
+      const cookieOptions = isSecure
+        ? 'path=/; secure; samesite=lax'
+        : 'path=/; samesite=lax';
+
       document.cookie = `accessToken=${result.data.accessToken}; ${cookieOptions}; max-age=3600`;
       document.cookie = `refreshToken=${result.data.refreshToken}; ${cookieOptions}; max-age=604800`;
-      
+
       // If agency owner token exists, store it separately
       if (result.data.agency_owner_gs_authtoken) {
         console.log('Agency owner token detected');
         document.cookie = `agency_owner_gs_authtoken=${result.data.agency_owner_gs_authtoken}; ${cookieOptions}; max-age=604800`;
       }
-      
+
       // Store tokens and user data in Redux
-      dispatch(setUser({ 
+      dispatch(setUser({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
         user: userData
       }));
-      
+
       console.log('User set in Redux, redirecting to:', returnTo);
-      
+
       showSuccess('Login successful!');
-      
+
       // Force a hard navigation to ensure middleware picks up the cookie
       window.location.href = returnTo;
     } catch (error: any) {
@@ -132,13 +132,13 @@ function LoginForm() {
           pointerEvents: 'none',
         }}
       />
-      
-      <Paper 
+
+      <Paper
         elevation={12}
-        sx={{ 
-          width: "100%", 
+        sx={{
+          width: "100%",
           maxWidth: 420,
-          p: { xs: 3, sm: 4 }, 
+          p: { xs: 3, sm: 4 },
           borderRadius: 4,
           bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
@@ -152,12 +152,12 @@ function LoginForm() {
           zIndex: 1,
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
           textAlign="center"
-          sx={{ 
+          sx={{
             fontSize: { xs: '1.75rem', sm: '2rem' },
             fontWeight: 700,
             color: 'primary.main',
@@ -172,9 +172,9 @@ function LoginForm() {
           Welcome Back
         </Typography>
 
-        <Typography 
-          variant="body1" 
-          textAlign="center" 
+        <Typography
+          variant="body1"
+          textAlign="center"
           color="text.secondary"
           sx={{ mb: 4 }}
         >

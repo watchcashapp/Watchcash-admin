@@ -3,81 +3,68 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const accessToken = req.cookies.get('accessToken')?.value;
 
-  // Public routes that don't require authentication
-  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
-
-  // Special routes that should be accessible regardless of auth status
-  const specialRoutes = ['/auth/reset-password'];
-
-  // All valid routes that actually exist in your app
-  const validRoutes = [
-    '/',
-    '/auth/login',
-    '/auth/signup',
-    '/auth/forgot-password',
-    '/dashboard',
-    '/profile',
-    '/app-rules',
-    '/global-rules',
-    '/rbac-rules',
-    '/users',
-    '/staff',
-    '/staff/users',
-    '/staff/roles',
-    '/sessions',
-    '/reward-redemptions',
-  ];
-
-  // Check if the pathname exactly matches a valid route or is a dynamic route
-  const isValidRoute = validRoutes.includes(pathname) ||
-    pathname.startsWith('/auth/reset-password/') ||
-    pathname.startsWith('/sessions/') ||
-    pathname.startsWith('/staff/roles/') ||
-    pathname.startsWith('/staff/users/') ||
-    pathname.startsWith('/users/') ||
-    pathname.startsWith('/reward-redemptions/');
-
-  // Check if it's a public route
-  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
-
-  // Check if it's a special route
-  const isSpecialRoute = specialRoutes.some(route => pathname.startsWith(route));
-
-  // Redirect root to appropriate page based on authentication
-  if (pathname === '/') {
-    const url = req.nextUrl.clone();
-    url.pathname = accessToken ? '/dashboard' : '/auth/login';
-    return NextResponse.redirect(url);
-  }
-
-  // If user is authenticated and trying to access public auth routes (except special routes)
-  if (accessToken && isPublicRoute && !isSpecialRoute) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
-  }
-
-  // Reset password route is special - allow access regardless of auth status
-  if (isSpecialRoute) {
+  // 1. Skip middleware for internal Next.js paths and common static assets
+  if (
+    pathname.includes('.') ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
+  ) {
     return NextResponse.next();
   }
 
-  // Handle invalid/unknown routes
-  if (!isValidRoute) {
-    const url = req.nextUrl.clone();
-    // If authenticated, redirect to dashboard; otherwise to login
-    url.pathname = accessToken ? '/dashboard' : '/auth/login';
-    return NextResponse.redirect(url);
-  }
+  const accessToken = req.cookies.get('accessToken')?.value;
+  const refreshToken = req.cookies.get('refreshToken')?.value;
+  const agencyToken = req.cookies.get('agency_owner_gs_authtoken')?.value;
 
-  // If user is not authenticated and trying to access protected routes
-  if (!accessToken && (pathname.startsWith('/dashboard') || pathname === '/profile' || pathname === '/app-rules' || pathname === '/global-rules' || pathname === '/rbac-rules' || pathname.startsWith('/users') || pathname.startsWith('/staff') || pathname.startsWith('/sessions'))) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/auth/login';
-    url.search = ''; // Remove query parameters
-    return NextResponse.redirect(url);
+  // Robust auth check - handle common edge cases like 'undefined' or 'null' strings
+  const hasAuth = !!(
+    (accessToken && accessToken !== 'undefined' && accessToken !== 'null') ||
+    (refreshToken && refreshToken !== 'undefined' && refreshToken !== 'null') ||
+    (agencyToken && agencyToken !== 'undefined' && agencyToken !== 'null')
+  );
+
+  // Route categories
+  // Public routes (auth pages) should NOT be accessible when logged in
+  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'];
+  const protectedPrefixes = [
+    '/dashboard', '/profile', '/app-rules', '/global-rules',
+    '/rbac-rules', '/users', '/staff', '/sessions',
+    '/reward-redemptions', '/audit-logs', '/settings', '/admin'
+  ];
+
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+  const isKnownProtected = protectedPrefixes.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
+
+  // Logic for Authenticated users
+  if (hasAuth) {
+    // If authenticated, redirect away from public auth pages or root to dashboard
+    if (pathname === '/' || isPublicRoute) {
+      console.log(`[Middleware] Authenticated user on ${pathname} -> Redirecting to /dashboard`);
+      const url = req.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  }
+  // Logic for Unauthenticated users
+  else {
+    // If NOT authenticated, redirect to login if on root, protected route, or unknown route
+    // (Everything except publicRoutes is considered protected in this admin app)
+    if (pathname === '/' || !isPublicRoute) {
+      console.log(`[Middleware] Unauthenticated user on ${pathname} -> Redirecting to /auth/login (AccessToken: ${accessToken ? 'present' : 'missing'}, RefreshToken: ${refreshToken ? 'present' : 'missing'})`);
+      const url = req.nextUrl.clone();
+      url.pathname = '/auth/login';
+      // Only add returnTo if it's a known protected route and not just root
+      if (pathname !== '/' && (isKnownProtected || !isPublicRoute)) {
+        url.search = `returnTo=${encodeURIComponent(pathname)}`;
+      } else {
+        url.search = '';
+      }
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();
@@ -88,12 +75,9 @@ export const config = {
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico
-     * - robots.txt
-     * - sitemap.xml
+     * - _next (Next.js internals)
+     * - static files (favicon.ico, robots.txt, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+    '/((?!api|_next|favicon.ico|robots.txt|sitemap.xml).*)',
   ],
 };

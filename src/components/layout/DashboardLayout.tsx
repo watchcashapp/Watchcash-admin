@@ -39,6 +39,7 @@ import {
   ExpandMore,
   PersonOutline,
   AdminPanelSettings,
+  History,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -75,6 +76,7 @@ const menuItems: MenuItem[] = [
   { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions' },
   { text: 'Sessions', icon: <BarChart />, path: '/sessions' },
   { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
+  { text: 'Audit Logs', icon: <History />, path: '/audit-logs' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules' },
   // { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },

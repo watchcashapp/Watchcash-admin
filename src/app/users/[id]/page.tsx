@@ -153,24 +153,25 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       id: 'rewardType',
       label: 'Reward Type',
       minWidth: 150,
+      format: (value: string) => value ? value : '--',
     },
     {
       id: 'points',
       label: 'Points',
       align: 'right',
       minWidth: 100,
-      format: (value: number) => (
+      format: (value: number) => value != null ? (
         <Typography sx={{ fontWeight: 600, color: '#ef4444' }}>
           -{value}
         </Typography>
-      ),
+      ) : '--',
     },
     {
       id: 'rewardValue',
       label: 'Value',
       align: 'right',
       minWidth: 100,
-      format: (value: number, row: any) => `${value} ${row.rewardCurrency}`,
+      format: (value: number, row: any) => value != null ? `${value} ${row.rewardCurrency || ''}` : '--',
     },
     {
       id: 'status',
