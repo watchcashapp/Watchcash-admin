@@ -77,16 +77,20 @@ export default function UserManagementTable({
   }, [refreshToken, showError]);
 
   // Build query params
-  const queryParams: any = { page, limit };
-  if (search) queryParams.search = search;
-  if (isActive !== "") queryParams.isActive = isActive === "true";
-  // Use userType state if not hidden, otherwise use defaultUserType if provided
   const effectiveUserType = hideUserTypeFilter ? defaultUserType : userType;
-  if (effectiveUserType) queryParams.userType = effectiveUserType;
-  if (fromDate) queryParams.from = fromDate;
-  if (toDate) queryParams.to = toDate;
+  const queryParams = React.useMemo(() => {
+    const params: any = { page, limit };
+    if (search) params.search = search;
+    if (isActive !== "") params.isActive = isActive === "true";
+    if (effectiveUserType) params.userType = effectiveUserType;
+    if (fromDate) params.from = fromDate;
+    if (toDate) params.to = toDate;
+    return params;
+  }, [page, limit, search, isActive, effectiveUserType, fromDate, toDate]);
 
-  const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams);
+  const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams, {
+    refetchOnMountOrArgChange: true,
+  });
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   // Reset page when filters change
@@ -196,7 +200,7 @@ export default function UserManagementTable({
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography
           variant="h4"
           sx={{
@@ -286,7 +290,7 @@ export default function UserManagementTable({
       {/* Filters */}
       <Box
         sx={{
-          mb: 3,
+          mb: 2,
           p: { xs: 1.5, sm: 2 },
           bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
@@ -456,17 +460,6 @@ export default function UserManagementTable({
         </Grid>
       </Box>
 
-      {/* Pagination Info */}
-      {data && data.pagination && (
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Showing {data.users.length} of {data.pagination.total} users
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Page {data.pagination.page} of {data.pagination.totalPages}
-          </Typography>
-        </Box>
-      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -483,49 +476,35 @@ export default function UserManagementTable({
         onView={handleView}
         onEdit={showAddButton ? handleEdit : undefined}
         onDelete={showAddButton ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
-      />
-
-      {/* Pagination Controls */}
-      {data && data.pagination && data.pagination.totalPages > 1 && (
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Showing {data.users.length} of {data.pagination.total} results
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <IconButton
-              size="small"
-              onClick={() => setPage(page - 1)}
-              disabled={page <= 1}
-              sx={{
-                bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
-                color: page <= 1 ? 'text.disabled' : 'white',
-                '&:hover': {
-                  bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
-                },
-              }}
-            >
-              <NavigateBefore />
-            </IconButton>
-            <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-              {page} / {data.pagination.totalPages}
+        renderPagination={() => data ? (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {data.users?.length || 0} of {(data as any).pagination?.total || (data as any).total || 0} results
             </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= data.pagination.totalPages}
-              sx={{
-                bgcolor: page >= data.pagination.totalPages ? 'action.disabled' : 'primary.main',
-                color: page >= data.pagination.totalPages ? 'text.disabled' : 'white',
-                '&:hover': {
-                  bgcolor: page >= data.pagination.totalPages ? 'action.disabled' : 'primary.dark',
-                },
-              }}
-            >
-              <NavigateNext />
-            </IconButton>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
+              >
+                <NavigateBefore />
+              </IconButton>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
+                {page} / {(data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1)}
+                sx={{ color: page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1) ? 'text.disabled' : 'text.secondary' }}
+              >
+                <NavigateNext />
+              </IconButton>
+            </Box>
           </Box>
-        </Box>
-      )}
+        ) : null}
+      />
 
       {/* Delete Confirmation */}
       <ConfirmDialog

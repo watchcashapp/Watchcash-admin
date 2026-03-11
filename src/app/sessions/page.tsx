@@ -57,6 +57,8 @@ export default function SessionsPage() {
     deviceId: deviceId || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
+  }, {
+    refetchOnMountOrArgChange: true
   });
 
   const sessions = sessionsData?.data.sessions || [];
@@ -371,30 +373,18 @@ export default function SessionsPage() {
                   size="small"
                   onClick={() => setPage(page - 1)}
                   disabled={page <= 1}
-                  sx={{
-                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
-                    color: page <= 1 ? 'text.disabled' : 'white',
-                    '&:hover': {
-                      bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
-                    },
-                  }}
+                  sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
                 >
                   <NavigateBefore />
                 </IconButton>
-                <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
                   {page} / {calculatedTotalPages || 1}
                 </Typography>
                 <IconButton
                   size="small"
                   onClick={() => setPage(page + 1)}
                   disabled={page >= (calculatedTotalPages || 1)}
-                  sx={{
-                    bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.main',
-                    color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'white',
-                    '&:hover': {
-                      bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.dark',
-                    },
-                  }}
+                  sx={{ color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'text.secondary' }}
                 >
                   <NavigateNext />
                 </IconButton>

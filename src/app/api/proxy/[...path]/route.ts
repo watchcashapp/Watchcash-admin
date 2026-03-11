@@ -50,21 +50,16 @@ async function proxyRequest(
   try {
     const path = pathSegments.join('/');
     
-    // Build the full URL with query parameters
     const baseUrl = `${API_BASE_URL}/${path}`;
     const url = new URL(baseUrl);
     
-    // Copy all query parameters from the request
     request.nextUrl.searchParams.forEach((value, key) => {
       url.searchParams.append(key, value);
     });
     
     const finalUrl = url.toString();
     
-    console.log(`[Proxy] ${method} ${finalUrl}`);
-    console.log(`[Proxy] Query params:`, Object.fromEntries(request.nextUrl.searchParams.entries()));
-    
-    // Get the request body if it exists
+   
     let body = undefined;
     if (method !== 'GET' && method !== 'DELETE') {
       try {
@@ -78,13 +73,11 @@ async function proxyRequest(
       }
     }
 
-    // Forward headers
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true', // Skip ngrok warning page
+      'ngrok-skip-browser-warning': 'true', 
     };
     
-    // Copy authorization header if present
     const authHeader = request.headers.get('authorization');
     if (authHeader) {
       headers['Authorization'] = authHeader;

@@ -33,6 +33,7 @@ export interface DataTableProps<T> {
   onToggle?: (row: T) => void;
   getRowId: (row: T) => string;
   emptyMessage?: string;
+  renderPagination?: () => React.ReactNode;
 }
 
 export default function DataTable<T extends Record<string, any>>({
@@ -45,6 +46,7 @@ export default function DataTable<T extends Record<string, any>>({
   onToggle,
   getRowId,
   emptyMessage = 'No data available',
+  renderPagination,
 }: DataTableProps<T>) {
 
   if (isLoading && (!data || data.length === 0)) {
@@ -271,6 +273,11 @@ export default function DataTable<T extends Record<string, any>>({
           </TableBody>
         </Table>
       </TableContainer>
+      {renderPagination && (
+        <Box sx={{ p: 2, borderTop: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)' }}>
+          {renderPagination()}
+        </Box>
+      )}
     </Paper>
   );
 }

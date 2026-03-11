@@ -423,30 +423,18 @@ export default function AppRulesPage() {
                 size="small"
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1}
-                sx={{
-                  bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
-                  color: page <= 1 ? 'text.disabled' : 'white',
-                  '&:hover': {
-                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
-                  },
-                }}
+                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
               >
                 <NavigateBefore />
               </IconButton>
-              <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
                 {page} / {totalPages || 1}
               </Typography>
               <IconButton
                 size="small"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= (totalPages || 1)}
-                sx={{
-                  bgcolor: page >= (totalPages || 1) ? 'action.disabled' : 'primary.main',
-                  color: page >= (totalPages || 1) ? 'text.disabled' : 'white',
-                  '&:hover': {
-                    bgcolor: page >= (totalPages || 1) ? 'action.disabled' : 'primary.dark',
-                  },
-                }}
+                sx={{ color: page >= (totalPages || 1) ? 'text.disabled' : 'text.secondary' }}
               >
                 <NavigateNext />
               </IconButton>

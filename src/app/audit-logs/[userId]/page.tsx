@@ -25,7 +25,7 @@ export default function AuditLogsUserPage() {
     const userId = params.userId as string;
 
     const [page, setPage] = useState(1);
-    const rowsPerPage = 20;
+    const rowsPerPage = 6;
 
     // Filters
     const [actionSearch, setActionSearch] = useState('');
@@ -35,15 +35,18 @@ export default function AuditLogsUserPage() {
     const [isMounted, setIsMounted] = useState(false);
     React.useEffect(() => setIsMounted(true), []);
 
-    const { data, isLoading } = useGetAuditLogsByUserQuery({
+    const queryArgs = React.useMemo(() => ({
         user_id: userId,
         page,
         limit: rowsPerPage,
         action: actionSearch || undefined,
         from: fromDate ? new Date(fromDate).toISOString() : undefined,
         to: toDate ? new Date(toDate).toISOString() : undefined,
-    }, {
+    }), [userId, page, rowsPerPage, actionSearch, fromDate, toDate]);
+
+    const { data, isLoading } = useGetAuditLogsByUserQuery(queryArgs, {
         skip: !userId,
+        refetchOnMountOrArgChange: true,
     });
 
     const columns = [
@@ -214,70 +217,42 @@ export default function AuditLogsUserPage() {
                 </Grid>
             </Paper>
 
-            <Paper
-                sx={{
-                    width: '100%',
-                    overflow: 'hidden',
-                    bgcolor: 'background.paper',
-                    boxShadow: (theme) => theme.palette.mode === 'dark'
-                        ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-                        : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                    border: (theme) => theme.palette.mode === 'dark'
-                        ? '1px solid rgba(255, 255, 255, 0.1)'
-                        : '1px solid rgba(0, 0, 0, 0.08)',
-                    borderRadius: 2,
-                }}
-            >
-                <DataTable
-                    columns={columns}
-                    data={data?.items || []}
-                    getRowId={(row: any) => row.id}
-                    isLoading={isLoading}
-                    emptyMessage="No audit logs found for this user"
-                    onView={(row) => router.push(`/audit-logs/${userId}/details/${row.id}`)}
-                />
-            </Paper>
-
-            {data?.total ? (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                        Showing {((page - 1) * rowsPerPage) + 1} to {Math.min(page * rowsPerPage, data.total)} of {data.total} entries
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                            size="small"
-                            onClick={() => setPage(page - 1)}
-                            disabled={page <= 1}
-                            sx={{
-                                bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
-                                color: page <= 1 ? 'text.disabled' : 'white',
-                                '&:hover': {
-                                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
-                                },
-                            }}
-                        >
-                            <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                            {page} / {data.totalPages || 1}
+            <DataTable
+                columns={columns}
+                data={data?.items || []}
+                getRowId={(row: any) => row.id}
+                isLoading={isLoading}
+                emptyMessage="No audit logs found for this user"
+                onView={(row) => router.push(`/audit-logs/${userId}/details/${row.id}`)}
+                renderPagination={() => data && data.items && data.items.length > 0 ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            Showing {((page - 1) * rowsPerPage) + 1} to {Math.min(page * rowsPerPage, (data as any).total || (data as any).pagination?.total || 0)} of {(data as any).total || (data as any).pagination?.total || 0} entries
                         </Typography>
-                        <IconButton
-                            size="small"
-                            onClick={() => setPage(page + 1)}
-                            disabled={page >= (data.totalPages || 1)}
-                            sx={{
-                                bgcolor: page >= (data.totalPages || 1) ? 'action.disabled' : 'primary.main',
-                                color: page >= (data.totalPages || 1) ? 'text.disabled' : 'white',
-                                '&:hover': {
-                                    bgcolor: page >= (data.totalPages || 1) ? 'action.disabled' : 'primary.dark',
-                                },
-                            }}
-                        >
-                            <NavigateNext />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <IconButton
+                                size="small"
+                                onClick={() => setPage(page - 1)}
+                                disabled={page <= 1}
+                                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
+                            >
+                                <NavigateBefore />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
+                                {page} / {(data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1}
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                onClick={() => setPage(page + 1)}
+                                disabled={page >= ((data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1)}
+                                sx={{ color: page >= ((data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1) ? 'text.disabled' : 'text.secondary' }}
+                            >
+                                <NavigateNext />
+                            </IconButton>
+                        </Box>
                     </Box>
-                </Box>
-            ) : null}
+                ) : null}
+            />
         </DashboardLayout>
     );
 }
