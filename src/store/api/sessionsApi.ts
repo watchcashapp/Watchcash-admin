@@ -93,18 +93,22 @@ export interface ReviewSessionRequest {
   block_minutes?: number;
 }
 
+export interface GetSessionsParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  userId?: string;
+  deviceId?: string;
+  from?: string;
+  to?: string;
+}
+
 export const sessionsApi = createApi({
   reducerPath: 'sessionsApi',
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Sessions', 'Users'],
   endpoints: (builder) => ({
-    getSessions: builder.query<SessionsResponse, {
-      page?: number;
-      limit?: number;
-      status?: string;
-      userId?: string;
-      deviceId?: string;
-    }>({
+    getSessions: builder.query<SessionsResponse, GetSessionsParams>({
       query: (params) => {
         const queryParams = new URLSearchParams();
         if (params.page) queryParams.append('page', params.page.toString());
@@ -112,6 +116,8 @@ export const sessionsApi = createApi({
         if (params.status) queryParams.append('status', params.status);
         if (params.userId) queryParams.append('userId', params.userId);
         if (params.deviceId) queryParams.append('deviceId', params.deviceId);
+        if (params.from) queryParams.append('from', params.from);
+        if (params.to) queryParams.append('to', params.to);
 
         return `/admin/sessions?${queryParams.toString()}`;
       },

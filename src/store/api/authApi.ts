@@ -304,6 +304,18 @@ export const authApi = createApi({
       transformResponse: (response: ProfileResponse) => response.data,
     }),
     
+    refreshToken: builder.mutation<void, void>({
+      query: () => ({
+        url: '/admin/refresh',
+        method: 'POST',
+        body: {
+          refreshToken: typeof window !== 'undefined'
+            ? document.cookie.replace(/(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+            : '',
+        },
+      }),
+    }),
+
     getCurrentUser: builder.query<User, void>({
       query: () => '/admin/me',
       providesTags: ['User'],
@@ -330,4 +342,5 @@ export const {
   useUpdateProfileMutation,
   useGetCurrentUserQuery,
   useChangePasswordMutation,
+  useRefreshTokenMutation,
 } = authApi;

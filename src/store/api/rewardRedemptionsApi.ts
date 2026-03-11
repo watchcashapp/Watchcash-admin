@@ -36,18 +36,29 @@ export interface RewardRedemptionsResponse {
     };
 }
 
+export interface RewardRedemptionsQueryParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+}
+
 export const rewardRedemptionsApi = createApi({
     reducerPath: 'rewardRedemptionsApi',
     baseQuery: baseQueryWithReauth,
     tagTypes: ['RewardRedemptions'],
     endpoints: (builder) => ({
-        getRewardRedemptions: builder.query<RewardRedemptionsResponse, { page?: number; limit?: number; status?: string; search?: string }>({
+        getRewardRedemptions: builder.query<RewardRedemptionsResponse, RewardRedemptionsQueryParams>({
             query: (params) => {
                 const queryParams = new URLSearchParams();
                 if (params?.page) queryParams.append('page', params.page.toString());
                 if (params?.limit) queryParams.append('limit', params.limit.toString());
                 if (params?.status) queryParams.append('status', params.status);
                 if (params?.search) queryParams.append('search', params.search);
+                if (params?.from) queryParams.append('from', params.from);
+                if (params?.to) queryParams.append('to', params.to);
                 return `/admin/reward-redemptions?${queryParams.toString()}`;
             },
             providesTags: ['RewardRedemptions'],

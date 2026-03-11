@@ -15,8 +15,9 @@ import {
   Switch,
   FormControlLabel,
   Alert,
+  IconButton,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Add, NavigateBefore, NavigateNext } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
@@ -31,7 +32,7 @@ import {
 } from "@/store/api/appRulesApi";
 import { useGetPermissionsQuery } from "@/store/api/rbacApi";
 
-interface FormData extends CreateAppRuleRequest {}
+interface FormData extends CreateAppRuleRequest { }
 
 const initialFormData: FormData = {
   appName: "",
@@ -48,17 +49,28 @@ const initialFormData: FormData = {
 
 export default function AppRulesPage() {
   const { showSuccess, showError } = useToast();
-  const { data: appRules = [], isLoading, error } = useGetAppRulesQuery();
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
+  const hasFilters = fromDate || toDate;
+  const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
+    from: fromDate,
+    to: toDate,
+  });
   const [createAppRule, { isLoading: isCreating }] = useCreateAppRuleMutation();
   const [updateAppRule, { isLoading: isUpdating }] = useUpdateAppRuleMutation();
   const [deleteAppRule] = useDeleteAppRuleMutation();
   const [toggleStatus] = useToggleAppRuleStatusMutation();
 
+  const totalPages = Math.ceil((appRules?.length || 0) / itemsPerPage);
+  const paginatedRules = appRules?.slice((page - 1) * itemsPerPage, page * itemsPerPage) || [];
+
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  
+
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
@@ -67,27 +79,27 @@ export default function AppRulesPage() {
 
   const columns: Column<AppRule>[] = [
     { id: 'appName', label: 'App Name', minWidth: 150 },
-    { 
-      id: 'pointsPerMinute', 
-      label: 'Points/Min', 
+    {
+      id: 'pointsPerMinute',
+      label: 'Points/Min',
       align: 'center',
       minWidth: 100,
     },
-    { 
-      id: 'dailyHardCap', 
-      label: 'Hard Cap', 
+    {
+      id: 'dailyHardCap',
+      label: 'Hard Cap',
       align: 'center',
       minWidth: 100,
     },
-    { 
-      id: 'dailySoftCap', 
-      label: 'Soft Cap', 
+    {
+      id: 'dailySoftCap',
+      label: 'Soft Cap',
       align: 'center',
       minWidth: 100,
     },
-    { 
-      id: 'maxDailySessions', 
-      label: 'Max Sessions', 
+    {
+      id: 'maxDailySessions',
+      label: 'Max Sessions',
       align: 'center',
       minWidth: 120,
     },
@@ -142,9 +154,9 @@ export default function AppRulesPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    
+
     let processedValue: any;
-    
+
     if (type === 'checkbox') {
       processedValue = checked;
     } else if (type === 'number') {
@@ -153,12 +165,12 @@ export default function AppRulesPage() {
     } else {
       processedValue = value;
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: processedValue,
     }));
-    
+
     if (formErrors[name as keyof FormData]) {
       setFormErrors(prev => ({
         ...prev,
@@ -274,7 +286,7 @@ export default function AppRulesPage() {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<Box sx={{ display: { xs: 'none', sm: 'block' } }}><Add /></Box>}
+            startIcon={<Add sx={{ fontSize: '1rem' }} />}
             onClick={() => handleOpenDialog()}
             sx={{
               minWidth: { xs: 'auto', sm: 140 },
@@ -295,6 +307,94 @@ export default function AppRulesPage() {
           </Button>
         </Box>
 
+        {/* Date Range Filters */}
+        <Box
+          sx={{
+            mb: 3,
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: 'background.paper',
+            backdropFilter: 'blur(20px)',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.6)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.05)',
+            borderRadius: 3,
+          }}
+        >
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="From Date"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="To Date"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: '#667eea',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#667eea',
+                    },
+                  },
+                }}
+              />
+            </Grid>
+            {hasFilters && (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  onClick={() => {
+                    setFromDate('');
+                    setToDate('');
+                    setPage(1);
+                  }}
+                  sx={{
+                    height: '40px',
+                    borderColor: '#667eea',
+                    color: '#667eea',
+                    '&:hover': {
+                      borderColor: '#5a67d8',
+                      backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                    },
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    minWidth: { xs: 'auto', md: '100px' },
+                  }}
+                >
+                  Clear
+                </Button>
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             Failed to load app rules. Please try again.
@@ -303,7 +403,7 @@ export default function AppRulesPage() {
 
         <DataTable
           columns={columns}
-          data={appRules}
+          data={paginatedRules}
           isLoading={isLoading}
           onEdit={handleOpenDialog}
           onDelete={handleDelete}
@@ -312,10 +412,52 @@ export default function AppRulesPage() {
           emptyMessage="No app rules found. Create your first rule!"
         />
 
-        <Dialog 
-          open={openDialog} 
-          onClose={handleCloseDialog} 
-          maxWidth="md" 
+        {/* Pagination */}
+        {!isLoading && appRules && appRules.length > 0 && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {paginatedRules.length} of {appRules.length} results
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                sx={{
+                  bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
+                  color: page <= 1 ? 'text.disabled' : 'white',
+                  '&:hover': {
+                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
+                  },
+                }}
+              >
+                <NavigateBefore />
+              </IconButton>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                {page} / {totalPages || 1}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= (totalPages || 1)}
+                sx={{
+                  bgcolor: page >= (totalPages || 1) ? 'action.disabled' : 'primary.main',
+                  color: page >= (totalPages || 1) ? 'text.disabled' : 'white',
+                  '&:hover': {
+                    bgcolor: page >= (totalPages || 1) ? 'action.disabled' : 'primary.dark',
+                  },
+                }}
+              >
+                <NavigateNext />
+              </IconButton>
+            </Box>
+          </Box>
+        )}
+
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="md"
           fullWidth
           slotProps={{
             paper: {
@@ -344,7 +486,7 @@ export default function AppRulesPage() {
                   fullWidth
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Points Per Minute"
@@ -360,7 +502,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Daily Hard Cap"
@@ -376,7 +518,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Daily Soft Cap"
@@ -392,7 +534,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Soft Cap Multiplier"
@@ -408,7 +550,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 0, step: 0.1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Max Session Duration"
@@ -424,7 +566,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Min Session Duration"
@@ -440,7 +582,7 @@ export default function AppRulesPage() {
                   inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-              
+
               <Grid size={{ xs: 12 }}>
                 <TextField
                   label="Max Daily Sessions"
@@ -456,8 +598,8 @@ export default function AppRulesPage() {
                   inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-              
-              
+
+
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel
                   control={

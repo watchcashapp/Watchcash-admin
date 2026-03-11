@@ -9,6 +9,7 @@ import { sessionsApi } from './api/sessionsApi';
 import { rolesApi } from './api/rolesApi';
 import { rewardRedemptionsApi } from './api/rewardRedemptionsApi';
 import { settingsApi } from './api/settingsApi';
+import { dashboardApi } from './api/dashboardApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -24,6 +25,7 @@ export const store = configureStore({
     [rolesApi.reducerPath]: rolesApi.reducer,
     [rewardRedemptionsApi.reducerPath]: rewardRedemptionsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -36,7 +38,8 @@ export const store = configureStore({
       .concat(sessionsApi.middleware)
       .concat(rolesApi.middleware)
       .concat(rewardRedemptionsApi.middleware)
-      .concat(settingsApi.middleware),
+      .concat(settingsApi.middleware)
+      .concat(dashboardApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

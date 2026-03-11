@@ -13,8 +13,9 @@ import {
   Chip,
   Card,
   CardContent,
+  IconButton,
 } from '@mui/material';
-import { ArrowBack, Person, AccountBalanceWallet, History } from '@mui/icons-material';
+import { ArrowBack, Person, AccountBalanceWallet, History, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column } from '@/components/shared';
@@ -58,11 +59,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
-    { userId: resolvedParams.id, page: walletPage, limit: 20 },
+    { userId: resolvedParams.id, page: walletPage, limit: 6 },
     { skip: tabValue !== 1 }
   );
   const { data: historyData, isLoading: loadingHistory } = useGetUserRedeemHistoryQuery(
-    { userId: resolvedParams.id, page: historyPage, limit: 20 },
+    { userId: resolvedParams.id, page: historyPage, limit: 6 },
     { skip: tabValue !== 2 }
   );
 
@@ -452,40 +453,43 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
                   {/* Pagination */}
                   {walletData.totalPages > 1 && (
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
-                      <button
-                        onClick={() => setWalletPage(walletPage - 1)}
-                        disabled={walletPage === 1}
-                        style={{
-                          padding: '8px 16px',
-                          background: walletPage === 1 ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
-                          color: walletPage === 1 ? '#9ca3af' : 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: walletPage === 1 ? 'not-allowed' : 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Previous
-                      </button>
-                      <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                        Page {walletPage} of {walletData.totalPages}
-                      </span>
-                      <button
-                        onClick={() => setWalletPage(walletPage + 1)}
-                        disabled={walletPage === walletData.totalPages}
-                        style={{
-                          padding: '8px 16px',
-                          background: walletPage === walletData.totalPages ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
-                          color: walletPage === walletData.totalPages ? '#9ca3af' : 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: walletPage === walletData.totalPages ? 'not-allowed' : 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Next
-                      </button>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Showing {walletData.transactions.length} of {walletData.total} results
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => setWalletPage(walletPage - 1)}
+                          disabled={walletPage <= 1}
+                          sx={{
+                            bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.main',
+                            color: walletPage <= 1 ? 'text.disabled' : 'white',
+                            '&:hover': {
+                              bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.dark',
+                            },
+                          }}
+                        >
+                          <NavigateBefore />
+                        </IconButton>
+                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                          {walletPage} / {walletData.totalPages}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => setWalletPage(walletPage + 1)}
+                          disabled={walletPage >= walletData.totalPages}
+                          sx={{
+                            bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.main',
+                            color: walletPage >= walletData.totalPages ? 'text.disabled' : 'white',
+                            '&:hover': {
+                              bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.dark',
+                            },
+                          }}
+                        >
+                          <NavigateNext />
+                        </IconButton>
+                      </Box>
                     </Box>
                   )}
                 </>
@@ -529,40 +533,43 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
                   {/* Pagination */}
                   {historyData.totalPages > 1 && (
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
-                      <button
-                        onClick={() => setHistoryPage(historyPage - 1)}
-                        disabled={historyPage === 1}
-                        style={{
-                          padding: '8px 16px',
-                          background: historyPage === 1 ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
-                          color: historyPage === 1 ? '#9ca3af' : 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: historyPage === 1 ? 'not-allowed' : 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Previous
-                      </button>
-                      <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                        Page {historyPage} of {historyData.totalPages}
-                      </span>
-                      <button
-                        onClick={() => setHistoryPage(historyPage + 1)}
-                        disabled={historyPage === historyData.totalPages}
-                        style={{
-                          padding: '8px 16px',
-                          background: historyPage === historyData.totalPages ? '#e5e7eb' : 'linear-gradient(45deg, #667eea, #764ba2)',
-                          color: historyPage === historyData.totalPages ? '#9ca3af' : 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: historyPage === historyData.totalPages ? 'not-allowed' : 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Next
-                      </button>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Showing {historyData.items.length} of {historyData.total} results
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => setHistoryPage(historyPage - 1)}
+                          disabled={historyPage <= 1}
+                          sx={{
+                            bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.main',
+                            color: historyPage <= 1 ? 'text.disabled' : 'white',
+                            '&:hover': {
+                              bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.dark',
+                            },
+                          }}
+                        >
+                          <NavigateBefore />
+                        </IconButton>
+                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                          {historyPage} / {historyData.totalPages}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => setHistoryPage(historyPage + 1)}
+                          disabled={historyPage >= historyData.totalPages}
+                          sx={{
+                            bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.main',
+                            color: historyPage >= historyData.totalPages ? 'text.disabled' : 'white',
+                            '&:hover': {
+                              bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.dark',
+                            },
+                          }}
+                        >
+                          <NavigateNext />
+                        </IconButton>
+                      </Box>
                     </Box>
                   )}
                 </>

@@ -11,9 +11,12 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Button,
+  Grid,
 } from '@mui/material';
-import { Visibility } from '@mui/icons-material';
+import { Visibility, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import { config } from '@/config/env';
 import { DataTable } from '@/components/shared';
 import { useGetSessionsQuery } from '@/store/api/sessionsApi';
 
@@ -28,15 +31,23 @@ const statusOptions = [
 export default function SessionsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const hasFilters = status || userId || deviceId || fromDate || toDate;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [status, userId, deviceId, fromDate, toDate]);
 
   const { data: sessionsData, isLoading } = useGetSessionsQuery({
     page,
@@ -44,7 +55,13 @@ export default function SessionsPage() {
     status: status || undefined,
     userId: userId || undefined,
     deviceId: deviceId || undefined,
+    from: fromDate || undefined,
+    to: toDate || undefined,
   });
+
+  const sessions = sessionsData?.data.sessions || [];
+  const pagination = sessionsData?.data;
+  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,19 +166,66 @@ export default function SessionsPage() {
 
   return (
     <Box>
-      <Typography
-        variant="h4"
-        sx={{
-          mb: 3,
-          fontWeight: 700,
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        Session Management
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Session Management
+        </Typography>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            const queryParams = new URLSearchParams();
+            if (status) queryParams.append("status", status);
+            if (userId) queryParams.append("userId", userId);
+            if (deviceId) queryParams.append("deviceId", deviceId);
+            if (fromDate) queryParams.append("from", fromDate);
+            if (toDate) queryParams.append("to", toDate);
+
+            const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+            const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
+
+            // Trigger download using fetch
+            fetch(url, {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'ngrok-skip-browser-warning': 'true'
+              }
+            })
+              .then(response => response.blob())
+              .then(blob => {
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `sessions_export_${new Date().getTime()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+              })
+              .catch(err => {
+                console.error('Export failed:', err);
+              });
+          }}
+          sx={{
+            borderColor: '#667eea',
+            color: '#667eea',
+            '&:hover': {
+              borderColor: '#5a67d8',
+              backgroundColor: 'rgba(102, 126, 234, 0.04)',
+            },
+          }}
+        >
+          Export CSV
+        </Button>
+      </Box>
 
       {/* Filters */}
       <Paper
@@ -177,47 +241,110 @@ export default function SessionsPage() {
             : '1px solid rgba(0, 0, 0, 0.08)',
         }}
       >
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <TextField
-            label="User ID"
-            value={userId}
-            onChange={(e) => {
-              setUserId(e.target.value);
-              setPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 200 }}
-            placeholder="Search by user ID"
-          />
-          <TextField
-            label="Device ID"
-            value={deviceId}
-            onChange={(e) => {
-              setDeviceId(e.target.value);
-              setPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 200 }}
-            placeholder="Search by device ID"
-          />
-          <TextField
-            select
-            label="Status"
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            {statusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
+        <Grid container spacing={2} alignItems="center">
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <TextField
+              label="User ID"
+              value={userId}
+              onChange={(e) => {
+                setUserId(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              fullWidth
+              placeholder="Search by user ID"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <TextField
+              label="Device ID"
+              value={deviceId}
+              onChange={(e) => {
+                setDeviceId(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              fullWidth
+              placeholder="Search by device ID"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              select
+              label="Status"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              fullWidth
+            >
+              {statusOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="From Date"
+              type="date"
+              value={fromDate}
+              onChange={(e) => {
+                setFromDate(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              label="To Date"
+              type="date"
+              value={toDate}
+              onChange={(e) => {
+                setToDate(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          {hasFilters && (
+            <Grid size={{ xs: 12, sm: 6, md: 1 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  setStatus('');
+                  setUserId('');
+                  setDeviceId('');
+                  setFromDate('');
+                  setToDate('');
+                  setPage(1);
+                }}
+                sx={{
+                  height: '40px',
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    borderColor: '#5a67d8',
+                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 'auto', md: '100px' },
+                }}
+              >
+                Clear
+              </Button>
+            </Grid>
+          )}
+        </Grid>
       </Paper>
 
       {/* Sessions Table */}
@@ -226,11 +353,55 @@ export default function SessionsPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <DataTable
-          columns={columns}
-          data={sessionsData?.data.sessions || []}
-          getRowId={(row) => row.id}
-        />
+        <>
+          <DataTable
+            columns={columns}
+            data={sessionsData?.data.sessions || []}
+            getRowId={(row) => row.id}
+          />
+
+          {/* Pagination */}
+          {sessionsData?.data && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {sessionsData.data.sessions.length} of {sessionsData.data.total} results
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page <= 1}
+                  sx={{
+                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
+                    color: page <= 1 ? 'text.disabled' : 'white',
+                    '&:hover': {
+                      bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
+                    },
+                  }}
+                >
+                  <NavigateBefore />
+                </IconButton>
+                <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                  {page} / {calculatedTotalPages || 1}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page >= (calculatedTotalPages || 1)}
+                  sx={{
+                    bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.main',
+                    color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'white',
+                    '&:hover': {
+                      bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.dark',
+                    },
+                  }}
+                >
+                  <NavigateNext />
+                </IconButton>
+              </Box>
+            </Box>
+          )}
+        </>
       )}
     </Box>
   );

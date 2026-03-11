@@ -495,7 +495,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Typography sx={{ fontWeight: 500 }}>Theme</Typography>
               </MenuItem>
               <MenuItem
-                onClick={handleMenuClose}
+                onClick={() => {
+                  router.push('/settings');
+                  handleMenuClose();
+                }}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'rgba(102, 126, 234, 0.08)',

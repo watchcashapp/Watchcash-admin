@@ -61,6 +61,16 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   const { data: response, isLoading, error } = useGetSessionByIdQuery(resolvedParams.id);
   const [reviewSession, { isLoading: refreshingIsReviewing }] = useReviewSessionMutation();
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Session Detail API States:', {
+      sessionId: resolvedParams.id,
+      response,
+      isLoading,
+      error,
+    });
+  }, [resolvedParams.id, response, isLoading, error]);
+
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<Partial<ReviewSessionRequest>>({
     decision: 'approve',
@@ -137,8 +147,17 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           Back to Sessions
         </Button>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="error">
+          <Typography variant="h6" color="error" sx={{ mb: 2 }}>
             Session not found or error loading session details
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Session ID: {resolvedParams.id}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Error: {error && 'message' in error ? error.message : 'Unknown error'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Response: {JSON.stringify(response, null, 2)}
           </Typography>
         </Paper>
       </Box>
@@ -146,6 +165,32 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const { session, user, reward, wallet_transactions } = response.data;
+
+  // Additional safety check
+  if (!session) {
+    return (
+      <Box>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => router.push('/sessions')}
+          sx={{ mb: 3 }}
+        >
+          Back to Sessions
+        </Button>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h6" color="error" sx={{ mb: 2 }}>
+            No session data available
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Session ID: {resolvedParams.id}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Response data: {JSON.stringify(response?.data, null, 2)}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   const transactionColumns = [
     {
