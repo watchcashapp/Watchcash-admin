@@ -446,46 +446,44 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   />
 
                   {/* Pagination */}
-                  {walletData.totalPages > 1 && (
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {walletData.transactions.length} of {walletData.total} results
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Showing {walletData.transactions.length} of {walletData.total} results
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => setWalletPage(walletPage - 1)}
+                        disabled={walletPage <= 1}
+                        sx={{
+                          bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.main',
+                          color: walletPage <= 1 ? 'text.disabled' : 'white',
+                          '&:hover': {
+                            bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.dark',
+                          },
+                        }}
+                      >
+                        <NavigateBefore />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                        {walletPage} / {walletData.totalPages}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setWalletPage(walletPage - 1)}
-                          disabled={walletPage <= 1}
-                          sx={{
-                            bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: walletPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {walletPage} / {walletData.totalPages}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setWalletPage(walletPage + 1)}
-                          disabled={walletPage >= walletData.totalPages}
-                          sx={{
-                            bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.main',
-                            color: walletPage >= walletData.totalPages ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
-                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={() => setWalletPage(walletPage + 1)}
+                        disabled={walletPage >= walletData.totalPages}
+                        sx={{
+                          bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.main',
+                          color: walletPage >= walletData.totalPages ? 'text.disabled' : 'white',
+                          '&:hover': {
+                            bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.dark',
+                          },
+                        }}
+                      >
+                        <NavigateNext />
+                      </IconButton>
                     </Box>
-                  )}
+                  </Box>
                 </>
               ) : (
                 <Paper
@@ -525,46 +523,44 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   />
 
                   {/* Pagination */}
-                  {historyData.totalPages > 1 && (
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {historyData.items.length} of {historyData.total} results
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Showing {historyData.items.length} of {historyData.total} results
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => setHistoryPage(historyPage - 1)}
+                        disabled={historyPage <= 1}
+                        sx={{
+                          bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.main',
+                          color: historyPage <= 1 ? 'text.disabled' : 'white',
+                          '&:hover': {
+                            bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.dark',
+                          },
+                        }}
+                      >
+                        <NavigateBefore />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                        {historyPage} / {historyData.totalPages}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setHistoryPage(historyPage - 1)}
-                          disabled={historyPage <= 1}
-                          sx={{
-                            bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: historyPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {historyPage} / {historyData.totalPages}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setHistoryPage(historyPage + 1)}
-                          disabled={historyPage >= historyData.totalPages}
-                          sx={{
-                            bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.main',
-                            color: historyPage >= historyData.totalPages ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
-                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={() => setHistoryPage(historyPage + 1)}
+                        disabled={historyPage >= historyData.totalPages}
+                        sx={{
+                          bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.main',
+                          color: historyPage >= historyData.totalPages ? 'text.disabled' : 'white',
+                          '&:hover': {
+                            bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.dark',
+                          },
+                        }}
+                      >
+                        <NavigateNext />
+                      </IconButton>
                     </Box>
-                  )}
+                  </Box>
                 </>
               ) : (
                 <Paper

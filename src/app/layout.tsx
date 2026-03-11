@@ -17,7 +17,7 @@ export default function RootLayout({
       <head>
         <title>WatchNCash</title>
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider>
           <Provider store={store}>
             <AuthInitializer />
