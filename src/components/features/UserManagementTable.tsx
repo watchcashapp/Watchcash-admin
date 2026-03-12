@@ -68,9 +68,9 @@ export default function UserManagementTable({
     const refreshTokenOnMount = async () => {
       try {
         await refreshToken().unwrap();
-        console.log('Token refreshed successfully in user management');
+
       } catch (error: any) {
-        console.error('Failed to refresh token:', error);
+
         showError('Failed to refresh authentication token');
       }
     };
@@ -255,7 +255,7 @@ export default function UserManagementTable({
                     window.URL.revokeObjectURL(downloadUrl);
                   })
                   .catch(err => {
-                    console.error('Export failed:', err);
+
                     showError('Failed to export users');
                   });
               }}

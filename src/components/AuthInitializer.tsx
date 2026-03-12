@@ -17,14 +17,11 @@ export default function AuthInitializer() {
   });
 
   useEffect(() => {
-    console.log('AuthInitializer - accessToken:', accessToken ? 'exists' : 'missing');
-    console.log('AuthInitializer - refreshToken:', refreshToken ? 'exists' : 'missing');
-    console.log('AuthInitializer - API user data:', currentUser);
-    console.log('AuthInitializer - API success:', isSuccess);
+
 
     // Only set user if we have both tokens AND user data from API
     if (accessToken && refreshToken && currentUser && isSuccess) {
-      console.log('AuthInitializer - setting user in Redux:', currentUser);
+
       dispatch(setUser({
         accessToken,
         refreshToken,

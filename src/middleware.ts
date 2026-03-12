@@ -45,7 +45,7 @@ export function middleware(req: NextRequest) {
     const shouldRedirect = pathname === '/' || (isPublicRoute && !pathname.startsWith('/auth/reset-password'));
 
     if (shouldRedirect) {
-      console.log(`[Middleware] Authenticated user on ${pathname} -> Redirecting to /dashboard`);
+
       const url = req.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
@@ -56,7 +56,7 @@ export function middleware(req: NextRequest) {
     // If NOT authenticated, redirect to login if on root, protected route, or unknown route
     // (Everything except publicRoutes is considered protected in this admin app)
     if (pathname === '/' || !isPublicRoute) {
-      console.log(`[Middleware] Unauthenticated user on ${pathname} -> Redirecting to /auth/login (AccessToken: ${accessToken ? 'present' : 'missing'}, RefreshToken: ${refreshToken ? 'present' : 'missing'})`);
+
       const url = req.nextUrl.clone();
       url.pathname = '/auth/login';
       // Only add returnTo if it's a known protected route and not just root

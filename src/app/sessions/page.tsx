@@ -224,7 +224,7 @@ export default function SessionsPage() {
                   window.URL.revokeObjectURL(downloadUrl);
                 })
                 .catch(err => {
-                  console.error('Export failed:', err);
+
                   showError('Failed to export sessions');
                 });
             }}

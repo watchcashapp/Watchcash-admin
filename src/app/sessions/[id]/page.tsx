@@ -88,12 +88,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
   // Debug logging
   useEffect(() => {
-    console.log('Session Detail API States:', {
-      sessionId: resolvedParams.id,
-      response,
-      isLoading,
-      error,
-    });
+
   }, [resolvedParams.id, response, isLoading, error]);
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);

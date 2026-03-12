@@ -48,14 +48,7 @@ export default function DashboardPage() {
   const [highRiskPage, setHighRiskPage] = React.useState(1);
   const itemsPerPage = 6;
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('Dashboard API States:', {
-      stats: data,
-      summary: summaryData,
-      summaryError,
-    });
-  }, [data, summaryData, summaryError]);
+
 
   // Fallback data for demo purposes when APIs don't exist
   const fallbackFlaggedSessions: any[] = [];

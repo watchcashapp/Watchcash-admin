@@ -314,7 +314,7 @@ export default function RewardRedemptionsPage() {
                   window.URL.revokeObjectURL(downloadUrl);
                 })
                 .catch(err => {
-                  console.error('Export failed:', err);
+
                 });
             }}
             sx={{
