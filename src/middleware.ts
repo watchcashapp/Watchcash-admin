@@ -41,8 +41,10 @@ export function middleware(req: NextRequest) {
 
   // Logic for Authenticated users
   if (hasAuth) {
-    // If authenticated, redirect away from public auth pages or root to dashboard
-    if (pathname === '/' || isPublicRoute) {
+    // If authenticated, redirect away from public auth pages (except reset-password) or root to dashboard
+    const shouldRedirect = pathname === '/' || (isPublicRoute && !pathname.startsWith('/auth/reset-password'));
+
+    if (shouldRedirect) {
       console.log(`[Middleware] Authenticated user on ${pathname} -> Redirecting to /dashboard`);
       const url = req.nextUrl.clone();
       url.pathname = '/dashboard';

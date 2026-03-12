@@ -152,11 +152,18 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface Permission {
+  id: string;
+  code: string;
+  description: string;
+}
+
 export interface LoginResponse {
   status: string;
   data: {
     accessToken: string;
     refreshToken: string;
+    permissions?: Permission[];
     agency_owner_gs_authtoken?: string; // Optional token for agency owners
   };
 }
@@ -167,6 +174,7 @@ export interface User {
   email: string;
   userType: string;
   isActive: boolean;
+  permissions?: Permission[];
   createdAt: string;
   updatedAt: string;
 }

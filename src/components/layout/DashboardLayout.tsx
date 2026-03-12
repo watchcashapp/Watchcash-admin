@@ -48,6 +48,7 @@ import { clearAuth } from '@/store/slices/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const drawerWidth = 280;
 
@@ -59,29 +60,29 @@ interface MenuItem {
   text: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { text: string; icon: React.ReactNode; path: string }[];
+  permission?: string;
+  subItems?: { text: string; icon: React.ReactNode; path: string; permission?: string }[];
 }
 
 const menuItems: MenuItem[] = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'User Management', icon: <People />, path: '/users' },
+  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', permission: 'dashboard:view' },
+  { text: 'User Management', icon: <People />, path: '/users', permission: 'users:list' },
   {
     text: 'Staff Management',
     icon: <Badge />,
+    permission: 'rbac:manage_roles',
     subItems: [
-      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users' },
-      { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles' },
+      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'dashboard:view_total_staff' },
+      { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'rbac:manage_roles' },
     ]
   },
-  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions' },
-  { text: 'Sessions', icon: <BarChart />, path: '/sessions' },
-  { text: 'App Rules', icon: <Rule />, path: '/app-rules' },
-  { text: 'Audit Logs', icon: <History />, path: '/audit-logs' },
-  { text: 'Global Rules', icon: <Settings />, path: '/global-rules' },
-  // { text: 'Transactions', icon: <AccountBalance />, path: '/transactions' },
+  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:view' },
+  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'dashboard:view_total_device_sessions' },
+  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:update' },
+  { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
+  { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
-  // { text: 'Reports', icon: <BarChart />, path: '/reports' },
-  { text: 'Settings', icon: <Settings />, path: '/settings' },
+  { text: 'Settings', icon: <Settings />, path: '/settings', permission: 'admin:full_access' },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -93,6 +94,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
   const { refreshToken, user } = useSelector((state: RootState) => state.auth);
+  const { hasPermission } = usePermissions();
+
+  const filteredMenuItems = React.useMemo(() => {
+    return menuItems.filter(item => {
+      // If item has a permission, check it
+      if (item.permission && !hasPermission(item.permission)) {
+        return false;
+      }
+
+      // If it has subItems, filter them too
+      if (item.subItems) {
+        const visibleSubItems = item.subItems.filter(subItem =>
+          !subItem.permission || hasPermission(subItem.permission)
+        );
+        // If no subItems are visible, hide the parent too (unless it has its own path)
+        if (visibleSubItems.length === 0 && !item.path) {
+          return false;
+        }
+        item.subItems = visibleSubItems;
+      }
+
+      return true;
+    });
+  }, [hasPermission]);
 
   console.log('DashboardLayout - user from Redux:', user);
 
@@ -227,7 +252,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </Toolbar>
       <Divider />
       <List>
-        {menuItems.map((item) => (
+        {filteredMenuItems.map((item) => (
           <React.Fragment key={item.text}>
             <ListItem disablePadding suppressHydrationWarning>
               <ListItemButton

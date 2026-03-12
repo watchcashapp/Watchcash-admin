@@ -10,7 +10,7 @@ export default function AuthInitializer() {
   const dispatch = useDispatch();
   const accessToken = getTokenFromCookie('accessToken');
   const refreshToken = getTokenFromCookie('refreshToken');
-  
+
   // Fetch current user from API if tokens exist
   const { data: currentUser, isSuccess } = useGetProfileQuery(undefined, {
     skip: !accessToken || !refreshToken,
@@ -21,7 +21,7 @@ export default function AuthInitializer() {
     console.log('AuthInitializer - refreshToken:', refreshToken ? 'exists' : 'missing');
     console.log('AuthInitializer - API user data:', currentUser);
     console.log('AuthInitializer - API success:', isSuccess);
-    
+
     // Only set user if we have both tokens AND user data from API
     if (accessToken && refreshToken && currentUser && isSuccess) {
       console.log('AuthInitializer - setting user in Redux:', currentUser);

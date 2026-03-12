@@ -15,6 +15,7 @@ import {
 import { Save, Edit } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useToast } from "@/components/shared";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useGetGlobalRulesQuery,
   useUpdateGlobalRulesMutation,
@@ -23,6 +24,7 @@ import {
 
 export default function GlobalRulesPage() {
   const { showSuccess, showError } = useToast();
+  const { hasPermission } = usePermissions();
   const { data: globalRules, isLoading, error } = useGetGlobalRulesQuery();
   const [updateGlobalRules, { isLoading: isUpdating }] = useUpdateGlobalRulesMutation();
 
@@ -176,7 +178,13 @@ export default function GlobalRulesPage() {
             <Button
               variant="outlined"
               startIcon={<Edit />}
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                if (hasPermission('global_rules:update')) {
+                  setIsEditing(true);
+                } else {
+                  showError('You do not have permission to edit global rules');
+                }
+              }}
               sx={{
                 borderColor: '#667eea',
                 color: '#667eea',

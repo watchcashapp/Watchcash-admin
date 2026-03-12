@@ -14,7 +14,7 @@ export default function ForgotPassword() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
-  
+
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -22,18 +22,19 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     if (!validateEmail(email)) {
       setError("Enter a valid email");
       return;
     }
-    
+
     try {
       await forgotPassword({ email }).unwrap();
       setSent(true);
       showSuccess('Password reset link sent successfully!');
     } catch (error: any) {
-      showError(error.data || 'Failed to send reset link. Please try again.');
+      const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to send reset link. Please try again.');
+      showError(errorMessage);
     }
   };
 
@@ -64,13 +65,13 @@ export default function ForgotPassword() {
           pointerEvents: 'none',
         }}
       />
-      
-      <Paper 
+
+      <Paper
         elevation={12}
-        sx={{ 
-          width: "100%", 
+        sx={{
+          width: "100%",
           maxWidth: 420,
-          p: { xs: 3, sm: 4 }, 
+          p: { xs: 3, sm: 4 },
           borderRadius: 4,
           background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(20px)',
@@ -80,12 +81,12 @@ export default function ForgotPassword() {
           zIndex: 1,
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
           textAlign="center"
-          sx={{ 
+          sx={{
             fontSize: { xs: '1.75rem', sm: '2rem' },
             fontWeight: 700,
             color: 'primary.main',
@@ -100,132 +101,132 @@ export default function ForgotPassword() {
           Reset Password
         </Typography>
 
-        <Typography 
-          variant="body1" 
-          textAlign="center" 
+        <Typography
+          variant="body1"
+          textAlign="center"
           color="text.secondary"
           sx={{ mb: 4 }}
         >
           Enter your email to receive a password reset link
         </Typography>
 
-          {sent ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-                ✓ Password reset link sent!
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Check your email for instructions to reset your password.
-              </Typography>
-              <Button 
-                variant="outlined" 
-                onClick={() => router.push('/auth/login')}
-                size="large"
-                sx={{
-                  height: '48px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderColor: '#667eea',
-                  color: '#667eea',
-                  '&:hover': {
-                    borderColor: '#5a67d8',
-                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                  },
-                }}
-              >
-                Back to Sign In
-              </Button>
-            </Box>
-          ) : (
-            <Box component="form" onSubmit={handleSubmit} noValidate>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    error={!!error}
-                    helperText={error || undefined}
-                    required
-                    fullWidth
-                    size="small"
-                    sx={{
-                      '& .MuiInputLabel-root': {
-                        color: 'text.secondary',
-                        fontSize: '0.875rem',
-                        transform: 'translate(20px, -8px) scale(0.8)',
-                        fontWeight: 500,
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        padding: '0 4px',
-                        borderRadius: '4px',
-                      },
-                      '& .MuiInputBase-input': {
-                        fontSize: '0.75rem',
-                      },
-                      '& .MuiFormLabel-asterisk': {
-                        color: 'error.main',
-                      },
-                    }}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
-                    fullWidth 
-                    disabled={isLoading}
-                    size="large"
-                    sx={{
-                      height: '48px',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                        boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-                        transform: 'translateY(-2px)',
-                      },
-                      '&:active': {
-                        transform: 'translateY(0)',
-                      },
-                    }}
-                  >
-                    {isLoading ? "Sending..." : "Send Reset Link"}
-                  </Button>
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center',
-                      gap: 1
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Remember your password?
-                    </Typography>
-                    <Link 
-                      href="/auth/login" 
-                      sx={{ 
-                        fontSize: '0.875rem',
-                        textDecoration: 'none',
-                        '&:hover': { textDecoration: 'underline' }
-                      }}
-                    >
-                      Sign in
-                    </Link>
-                  </Box>
-                </Grid>
+        {sent ? (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
+              ✓ Password reset link sent!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Check your email for instructions to reset your password.
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => router.push('/auth/login')}
+              size="large"
+              sx={{
+                height: '48px',
+                fontSize: '1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                borderColor: '#667eea',
+                color: '#667eea',
+                '&:hover': {
+                  borderColor: '#5a67d8',
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                },
+              }}
+            >
+              Back to Sign In
+            </Button>
+          </Box>
+        ) : (
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={!!error}
+                  helperText={error || undefined}
+                  required
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      color: 'text.secondary',
+                      fontSize: '0.875rem',
+                      transform: 'translate(20px, -8px) scale(0.8)',
+                      fontWeight: 500,
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                      padding: '0 4px',
+                      borderRadius: '4px',
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: '0.75rem',
+                    },
+                    '& .MuiFormLabel-asterisk': {
+                      color: 'error.main',
+                    },
+                  }}
+                />
               </Grid>
-            </Box>
-          )}
-        </Paper>
-      </Box>
+
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={isLoading}
+                  size="large"
+                  sx={{
+                    height: '48px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                      transform: 'translateY(-2px)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(0)',
+                    },
+                  }}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Remember your password?
+                  </Typography>
+                  <Link
+                    href="/auth/login"
+                    sx={{
+                      fontSize: '0.875rem',
+                      textDecoration: 'none',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+      </Paper>
+    </Box>
   );
 }

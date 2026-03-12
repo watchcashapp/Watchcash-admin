@@ -67,6 +67,7 @@ function LoginForm() {
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
+        permissions: result.data.permissions || [],
       };
 
       console.log('User data to store:', userData);
