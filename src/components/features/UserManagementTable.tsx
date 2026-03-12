@@ -22,6 +22,7 @@ import { useGetUsersQuery, useDeleteUserMutation, User } from "@/store/api/users
 import { useRefreshTokenMutation } from "@/store/api/authApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface UserManagementTableProps {
   title?: string;
@@ -45,6 +46,7 @@ export default function UserManagementTable({
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  const { hasPermission } = usePermissions();
   const [page, setPage] = useState(1);
   const [limit] = useState(6);
   const [search, setSearch] = useState("");
@@ -66,9 +68,9 @@ export default function UserManagementTable({
     const refreshTokenOnMount = async () => {
       try {
         await refreshToken().unwrap();
-        console.log('Token refreshed successfully in user management');
+
       } catch (error: any) {
-        console.error('Failed to refresh token:', error);
+
         showError('Failed to refresh authentication token');
       }
     };
@@ -99,28 +101,33 @@ export default function UserManagementTable({
   }, [search, isActive, userType, fromDate, toDate]);
 
   const handleView = (user: User) => {
-    console.log('View button clicked for user:', user);
-
-    // Check if view should be allowed based on user roles
-    if (currentUser?.userType === 'STAFF' && user.userType === 'STAFF') {
-      console.log('Staff user cannot view other staff users');
+    if (!hasPermission('users:view')) {
+      showError('You do not have permission to view user details');
       return;
     }
 
-    if (currentUser?.userType !== 'ADMIN' && currentUser?.userType !== 'STAFF') {
-      console.log('Current user does not have permission to view');
+    // Secondary check: Staff cannot view other staff if that's still a requirement
+    if (currentUser?.userType === 'STAFF' && user.userType === 'STAFF' && !hasPermission('admin:full_access')) {
+      showError('Staff users cannot view other staff members');
       return;
     }
 
-    console.log('Redirecting to:', `${viewRoute}/${user.id}`);
     router.push(`${viewRoute}/${user.id}`);
   };
 
   const handleEdit = (user: User) => {
+    if (!hasPermission('users:update')) {
+      showError('You do not have permission to edit users');
+      return;
+    }
     router.push(`${editRoute}/${user.id}`);
   };
 
   const handleDelete = async () => {
+    if (!hasPermission('users:delete')) {
+      showError('You do not have permission to delete users');
+      return;
+    }
     if (!deleteConfirm.user) return;
     try {
       await deleteUser(deleteConfirm.user.id).unwrap();
@@ -214,56 +221,59 @@ export default function UserManagementTable({
           {title}
         </Typography>
         <Box display="flex" gap={2}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              const queryParams = new URLSearchParams();
-              if (search) queryParams.append("search", search);
-              if (isActive !== "") queryParams.append("isActive", isActive);
-              if (effectiveUserType) queryParams.append("userType", effectiveUserType);
-              if (fromDate) queryParams.append("from", fromDate);
-              if (toDate) queryParams.append("to", toDate);
+          {hasPermission('users:list') && (
+            <Button
+              variant="outlined"
+              onClick={() => {
+                // ... (rest of the export logic)
+                const queryParams = new URLSearchParams();
+                if (search) queryParams.append("search", search);
+                if (isActive !== "") queryParams.append("isActive", isActive);
+                if (effectiveUserType) queryParams.append("userType", effectiveUserType);
+                if (fromDate) queryParams.append("from", fromDate);
+                if (toDate) queryParams.append("to", toDate);
 
-              const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-              const url = `${config.apiUrl}/admin/users/export?${queryParams.toString()}`;
+                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+                const url = `${config.apiUrl}/admin/users/export?${queryParams.toString()}`;
 
-              // Trigger download using fetch to avoid opening new tab and handle token
-              fetch(url, {
-                headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'ngrok-skip-browser-warning': 'true'
-                }
-              })
-                .then(response => response.blob())
-                .then(blob => {
-                  const downloadUrl = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = downloadUrl;
-                  a.download = `users_export_${new Date().getTime()}.csv`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  window.URL.revokeObjectURL(downloadUrl);
+                // Trigger download using fetch to avoid opening new tab and handle token
+                fetch(url, {
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'ngrok-skip-browser-warning': 'true'
+                  }
                 })
-                .catch(err => {
-                  console.error('Export failed:', err);
-                  showError('Failed to export users');
-                });
-            }}
-            sx={{
-              minWidth: { xs: 'auto', sm: 120 },
-              px: { xs: 2, sm: 3 },
-              borderColor: '#667eea',
-              color: '#667eea',
-              '&:hover': {
-                borderColor: '#5a67d8',
-                backgroundColor: 'rgba(102, 126, 234, 0.04)',
-              },
-            }}
-          >
-            Export CSV
-          </Button>
-          {showAddButton && (
+                  .then(response => response.blob())
+                  .then(blob => {
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `users_export_${new Date().getTime()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                  })
+                  .catch(err => {
+
+                    showError('Failed to export users');
+                  });
+              }}
+              sx={{
+                minWidth: { xs: 'auto', sm: 120 },
+                px: { xs: 2, sm: 3 },
+                borderColor: '#667eea',
+                color: '#667eea',
+                '&:hover': {
+                  borderColor: '#5a67d8',
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                },
+              }}
+            >
+              Export CSV
+            </Button>
+          )}
+          {showAddButton && hasPermission('users:create') && (
             <Button
               variant="contained"
               startIcon={<Add sx={{ fontSize: '1rem' }} />}
@@ -473,9 +483,9 @@ export default function UserManagementTable({
         isLoading={isLoading}
         getRowId={(row) => row.id}
         emptyMessage="No users found. Try adjusting your filters."
-        onView={handleView}
-        onEdit={showAddButton ? handleEdit : undefined}
-        onDelete={showAddButton ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
+        onView={hasPermission('users:view') ? handleView : undefined}
+        onEdit={showAddButton && hasPermission('users:update') ? handleEdit : undefined}
+        onDelete={showAddButton && hasPermission('users:delete') ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
         renderPagination={() => data ? (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary">

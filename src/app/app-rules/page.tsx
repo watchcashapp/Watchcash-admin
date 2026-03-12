@@ -21,6 +21,7 @@ import { Add, NavigateBefore, NavigateNext } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useGetAppRulesQuery,
   useCreateAppRuleMutation,
@@ -49,6 +50,7 @@ const initialFormData: FormData = {
 
 export default function AppRulesPage() {
   const { showSuccess, showError } = useToast();
+  const { hasPermission } = usePermissions();
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [page, setPage] = useState(1);
@@ -124,20 +126,17 @@ export default function AppRulesPage() {
 
   const handleOpenDialog = (rule?: AppRule) => {
     if (rule) {
+      if (!hasPermission('app_rules:update')) {
+        showError('You do not have permission to update app rules');
+        return;
+      }
       setEditingRule(rule);
-      setFormData({
-        appName: rule.appName,
-        pointsPerMinute: rule.pointsPerMinute,
-        dailyHardCap: rule.dailyHardCap,
-        dailySoftCap: rule.dailySoftCap,
-        softCapMultiplier: rule.softCapMultiplier,
-        maxSessionDuration: rule.maxSessionDuration,
-        minSessionDuration: rule.minSessionDuration,
-        maxDailySessions: rule.maxDailySessions,
-        enabled: rule.enabled,
-        permissions: rule.permissions || [],
-      });
+      // ...
     } else {
+      if (!hasPermission('app_rules:create')) {
+        showError('You do not have permission to create app rules');
+        return;
+      }
       setEditingRule(null);
       setFormData(initialFormData);
     }
@@ -235,6 +234,10 @@ export default function AppRulesPage() {
   };
 
   const handleDelete = async (rule: AppRule) => {
+    if (!hasPermission('app_rules:delete')) {
+      showError('You do not have permission to delete app rules');
+      return;
+    }
     setConfirmDialog({
       open: true,
       ruleToDelete: rule,
@@ -259,6 +262,10 @@ export default function AppRulesPage() {
   };
 
   const handleToggle = async (rule: AppRule) => {
+    if (!hasPermission('app_rules:toggle_status')) {
+      showError('You do not have permission to toggle rule status');
+      return;
+    }
     try {
       await toggleStatus({ id: rule.id, enabled: !rule.enabled }).unwrap();
       showSuccess(`App rule ${rule.enabled ? 'disabled' : 'enabled'} successfully!`);
@@ -284,27 +291,29 @@ export default function AppRulesPage() {
           >
             App Rules Management
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add sx={{ fontSize: '1rem' }} />}
-            onClick={() => handleOpenDialog()}
-            sx={{
-              minWidth: { xs: 'auto', sm: 140 },
-              px: { xs: 2, sm: 3 },
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-              },
-            }}
-          >
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add New Rule</Box>
-            <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-              <Add fontSize="small" />
-              Add
-            </Box>
-          </Button>
+          {hasPermission('app_rules:create') && (
+            <Button
+              variant="contained"
+              startIcon={<Add sx={{ fontSize: '1rem' }} />}
+              onClick={() => handleOpenDialog()}
+              sx={{
+                minWidth: { xs: 'auto', sm: 140 },
+                px: { xs: 2, sm: 3 },
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                  boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                },
+              }}
+            >
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add New Rule</Box>
+              <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
+                <Add fontSize="small" />
+                Add
+              </Box>
+            </Button>
+          )}
         </Box>
 
         {/* Date Range Filters */}
@@ -405,9 +414,9 @@ export default function AppRulesPage() {
           columns={columns}
           data={paginatedRules}
           isLoading={isLoading}
-          onEdit={handleOpenDialog}
-          onDelete={handleDelete}
-          onToggle={handleToggle}
+          onEdit={hasPermission('app_rules:update') ? handleOpenDialog : undefined}
+          onDelete={hasPermission('app_rules:delete') ? handleDelete : undefined}
+          onToggle={hasPermission('app_rules:toggle_status') ? handleToggle : undefined}
           getRowId={(row) => row.id}
           emptyMessage="No app rules found. Create your first rule!"
         />

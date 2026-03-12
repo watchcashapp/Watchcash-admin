@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -25,12 +25,12 @@ function validateEmail(email: string) {
 export default function AddUserPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  
+
   // Refs for form fields
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const rolesRef = useRef<HTMLDivElement>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,6 +46,29 @@ export default function AddUserPage() {
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const { data: rolesResponse, isLoading: loadingRoles } = useGetRolesQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
+
+  // Pre-select default permissions once they are loaded
+  useEffect(() => {
+    if (permissionsResponse?.data) {
+      const defaultCodes = ['dashboard:view', 'dashboard:view_total_users'];
+      const defaultIds: string[] = [];
+
+      Object.values(permissionsResponse.data).forEach((category: any) => {
+        category.forEach((perm: any) => {
+          if (defaultCodes.includes(perm.code)) {
+            defaultIds.push(perm.id);
+          }
+        });
+      });
+
+      if (defaultIds.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          permissions: Array.from(new Set([...prev.permissions, ...defaultIds]))
+        }));
+      }
+    }
+  }, [permissionsResponse]);
 
   const handleRoleToggle = (roleId: string) => {
     setFormData(prev => ({
@@ -66,26 +89,26 @@ export default function AddUserPage() {
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Invalid email address';
     }
-    
+
     setErrors(newErrors);
     return { isValid: Object.keys(newErrors).length === 0, errors: newErrors };
   };
 
   const handleSubmit = async () => {
     const validation = validateForm();
-    
+
     if (!validation.isValid) {
       // Scroll to first error field using the validation result
       if (validation.errors.name && nameRef.current) {
@@ -124,7 +147,7 @@ export default function AddUserPage() {
       router.push('/staff/users');
     } catch (error: any) {
       const errorMessage = error?.data?.message || error?.message || 'Failed to create user';
-      
+
       // Handle validation errors from API
       if (error?.data?.details?.errors) {
         const apiErrors: typeof errors = {};
@@ -134,7 +157,7 @@ export default function AddUserPage() {
           }
         });
         setErrors(apiErrors);
-        
+
         // Scroll to first API error field
         setTimeout(() => {
           if (apiErrors.name && nameRef.current) {
@@ -146,7 +169,7 @@ export default function AddUserPage() {
           }
         }, 100);
       }
-      
+
       showError(errorMessage);
     }
   };
@@ -164,7 +187,7 @@ export default function AddUserPage() {
       <Button
         startIcon={<ArrowBack />}
         onClick={() => router.push('/staff/users')}
-        sx={{ 
+        sx={{
           mb: 1.5,
           '&:hover': {
             backgroundColor: 'rgba(102, 126, 234, 0.08)',
@@ -174,9 +197,9 @@ export default function AddUserPage() {
         Back to Staff Users
       </Button>
 
-      <Typography 
-        variant="h4" 
-        sx={{ 
+      <Typography
+        variant="h4"
+        sx={{
           mb: 2,
           fontWeight: 700,
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
@@ -192,8 +215,8 @@ export default function AddUserPage() {
         sx={{
           p: 4,
           bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark' 
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
           border: (theme) => theme.palette.mode === 'dark'
             ? '1px solid rgba(255, 255, 255, 0.1)'

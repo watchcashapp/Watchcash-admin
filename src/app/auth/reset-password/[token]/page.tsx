@@ -40,7 +40,8 @@ export default function ResetPassword() {
       showSuccess('Password reset successfully!');
       router.push('/auth/login');
     } catch (error: any) {
-      showError(error.data || 'Failed to reset password. Please try again.');
+      const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to reset password. Please try again.');
+      showError(errorMessage);
     }
   };
 

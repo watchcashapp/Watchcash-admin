@@ -44,19 +44,10 @@ export const baseQueryWithReauth: BaseQueryFn<
 
   let result = await baseQuery(args, api, extraOptions);
 
-  console.log('[Auth] API call result:', {
-    url: typeof args === 'string' ? args : args.url,
-    status: result.error?.status,
-    hasError: !!result.error,
-    hasData: !!result.data,
-  });
-
   // Check for 401 HTTP status
   const is401Error = result.error && result.error.status === 401;
 
   if (is401Error) {
-    console.log('[Auth] 401 error detected, attempting token refresh');
-
     // Check if the mutex is locked
     if (!mutex.isLocked()) {
       const release = await mutex.acquire();
@@ -67,8 +58,6 @@ export const baseQueryWithReauth: BaseQueryFn<
           : '';
 
         if (refreshToken) {
-          console.log('[Auth] Attempting token refresh...');
-
           // Try to get a new token
           const refreshResult = await baseQuery(
             {
@@ -80,21 +69,14 @@ export const baseQueryWithReauth: BaseQueryFn<
             extraOptions
           );
 
-          console.log('[Auth] Refresh result:', {
-            hasData: !!refreshResult.data,
-            hasError: !!refreshResult.error,
-          });
-
           // Check if refresh was successful
           if (refreshResult.data &&
             typeof refreshResult.data === 'object' &&
             'status' in refreshResult.data &&
-            refreshResult.data.status === 'success' &&
+            (refreshResult.data as any).status === 'success' &&
             'data' in refreshResult.data) {
 
-            const data = refreshResult.data as { status: string; data: { accessToken: string; refreshToken: string } };
-
-            console.log('[Auth] Token refresh successful, updating cookies');
+            const data = (refreshResult.data as any).data as { accessToken: string; refreshToken: string };
 
             // Store the new tokens (without secure flag for localhost)
             if (typeof window !== 'undefined') {
@@ -103,20 +85,13 @@ export const baseQueryWithReauth: BaseQueryFn<
                 ? 'path=/; secure; samesite=lax'
                 : 'path=/; samesite=lax';
 
-              document.cookie = `accessToken=${data.data.accessToken}; ${cookieOptions}; max-age=3600`;
-              document.cookie = `refreshToken=${data.data.refreshToken}; ${cookieOptions}; max-age=604800`;
+              document.cookie = `accessToken=${data.accessToken}; ${cookieOptions}; max-age=3600`;
+              document.cookie = `refreshToken=${data.refreshToken}; ${cookieOptions}; max-age=604800`;
             }
 
             // Retry the initial query with new token
-            console.log('[Auth] Retrying original request with new token');
             result = await baseQuery(args, api, extraOptions);
-            console.log('[Auth] Retry result:', {
-              hasData: !!result.data,
-              hasError: !!result.error,
-            });
           } else {
-            console.log('[Auth] Token refresh failed, redirecting to login');
-
             // Refresh failed - clear tokens and redirect to login
             if (typeof window !== 'undefined') {
               document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -125,8 +100,6 @@ export const baseQueryWithReauth: BaseQueryFn<
             }
           }
         } else {
-          console.log('[Auth] No refresh token found, redirecting to login');
-
           // No refresh token - redirect to login
           if (typeof window !== 'undefined') {
             document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
@@ -152,11 +125,18 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface Permission {
+  id: string;
+  code: string;
+  description: string;
+}
+
 export interface LoginResponse {
   status: string;
   data: {
     accessToken: string;
     refreshToken: string;
+    permissions?: Permission[];
     agency_owner_gs_authtoken?: string; // Optional token for agency owners
   };
 }
@@ -167,6 +147,7 @@ export interface User {
   email: string;
   userType: string;
   isActive: boolean;
+  permissions?: Permission[];
   createdAt: string;
   updatedAt: string;
 }

@@ -17,8 +17,9 @@ import {
 import { Visibility, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable } from '@/components/shared';
+import { DataTable, useToast } from '@/components/shared';
 import { useGetSessionsQuery } from '@/store/api/sessionsApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -30,6 +31,8 @@ const statusOptions = [
 
 export default function SessionsPage() {
   const router = useRouter();
+  const { hasPermission } = usePermissions();
+  const { showError } = useToast();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
@@ -151,7 +154,13 @@ export default function SessionsPage() {
         <Tooltip title="View Details">
           <IconButton
             size="small"
-            onClick={() => router.push(`/sessions/${row.session_id}`)}
+            onClick={() => {
+              if (hasPermission('sessions:review') || hasPermission('sessions:view_live')) {
+                router.push(`/sessions/${row.session_id}`);
+              } else {
+                showError('You do not have permission to view session details');
+              }
+            }}
             sx={{
               color: 'primary.main',
               '&:hover': {
@@ -181,52 +190,56 @@ export default function SessionsPage() {
         >
           Session Management
         </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            const queryParams = new URLSearchParams();
-            if (status) queryParams.append("status", status);
-            if (userId) queryParams.append("userId", userId);
-            if (deviceId) queryParams.append("deviceId", deviceId);
-            if (fromDate) queryParams.append("from", fromDate);
-            if (toDate) queryParams.append("to", toDate);
+        {hasPermission('sessions:view_live') && (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              // ... export logic
+              const queryParams = new URLSearchParams();
+              if (status) queryParams.append("status", status);
+              if (userId) queryParams.append("userId", userId);
+              if (deviceId) queryParams.append("deviceId", deviceId);
+              if (fromDate) queryParams.append("from", fromDate);
+              if (toDate) queryParams.append("to", toDate);
 
-            const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-            const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
+              const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+              const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
 
-            // Trigger download using fetch
-            fetch(url, {
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'ngrok-skip-browser-warning': 'true'
-              }
-            })
-              .then(response => response.blob())
-              .then(blob => {
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = `sessions_export_${new Date().getTime()}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(downloadUrl);
+              // Trigger download using fetch
+              fetch(url, {
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'ngrok-skip-browser-warning': 'true'
+                }
               })
-              .catch(err => {
-                console.error('Export failed:', err);
-              });
-          }}
-          sx={{
-            borderColor: '#667eea',
-            color: '#667eea',
-            '&:hover': {
-              borderColor: '#5a67d8',
-              backgroundColor: 'rgba(102, 126, 234, 0.04)',
-            },
-          }}
-        >
-          Export CSV
-        </Button>
+                .then(response => response.blob())
+                .then(blob => {
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = downloadUrl;
+                  a.download = `sessions_export_${new Date().getTime()}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(downloadUrl);
+                })
+                .catch(err => {
+
+                  showError('Failed to export sessions');
+                });
+            }}
+            sx={{
+              borderColor: '#667eea',
+              color: '#667eea',
+              '&:hover': {
+                borderColor: '#5a67d8',
+                backgroundColor: 'rgba(102, 126, 234, 0.04)',
+              },
+            }}
+          >
+            Export CSV
+          </Button>
+        )}
       </Box>
 
       {/* Filters */}
@@ -359,7 +372,7 @@ export default function SessionsPage() {
           <DataTable
             columns={columns}
             data={sessionsData?.data.sessions || []}
-            getRowId={(row) => row.id}
+            getRowId={(row: any) => row.session_id || row.id}
           />
 
           {/* Pagination */}

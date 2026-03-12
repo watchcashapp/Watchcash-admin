@@ -26,6 +26,7 @@ interface GroupedPermissionsSelectProps {
   groupedPermissions: { [category: string]: Permission[] };
   value: string[];
   onChange: (selectedIds: string[]) => void;
+  disabledCodes?: string[];
 }
 
 export default function GroupedPermissionsSelect({
@@ -33,6 +34,7 @@ export default function GroupedPermissionsSelect({
   groupedPermissions,
   value,
   onChange,
+  disabledCodes = ['dashboard:view', 'dashboard:view_total_users'],
 }: GroupedPermissionsSelectProps) {
   const [expanded, setExpanded] = useState<string[]>(
     Object.keys(groupedPermissions)
@@ -65,11 +67,17 @@ export default function GroupedPermissionsSelect({
     }
   };
 
-  const handleTogglePermission = (permissionId: string) => {
-    if (value.includes(permissionId)) {
-      onChange(value.filter((id) => id !== permissionId));
+  const isPermissionDisabled = (permission: Permission) => {
+    return disabledCodes.includes(permission.code);
+  };
+
+  const handleTogglePermission = (permission: Permission) => {
+    if (isPermissionDisabled(permission)) return;
+
+    if (value.includes(permission.id)) {
+      onChange(value.filter((id) => id !== permission.id));
     } else {
-      onChange([...value, permissionId]);
+      onChange([...value, permission.id]);
     }
   };
 
@@ -161,6 +169,7 @@ export default function GroupedPermissionsSelect({
                     onChange={() => handleSelectAll(category, permissions)}
                     onClick={(e) => e.stopPropagation()}
                     size="small"
+                    disabled={permissions.every(isPermissionDisabled)}
                   />
                   <Typography
                     sx={{
@@ -187,8 +196,9 @@ export default function GroupedPermissionsSelect({
                       control={
                         <Checkbox
                           checked={value.includes(permission.id)}
-                          onChange={() => handleTogglePermission(permission.id)}
+                          onChange={() => handleTogglePermission(permission)}
                           size="small"
+                          disabled={isPermissionDisabled(permission)}
                         />
                       }
                       label={

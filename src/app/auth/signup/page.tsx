@@ -47,58 +47,58 @@ function SignupForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextErrors: typeof errors = {};
-    
+
     if (!name.trim()) nextErrors.name = "Name is required";
     if (!validateEmail(email)) nextErrors.email = "Enter a valid email";
     if (password.length < 6) nextErrors.password = "Password must be at least 6 characters";
     if (password !== confirmPassword) nextErrors.confirmPassword = "Passwords do not match";
-    
+
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
     try {
       const result = await register({ name, email, password }).unwrap();
-      
-      console.log('Signup response:', result);
-      
+
+
+
       // Decode the access token to get user data
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
-      console.log('Decoded token in signup:', decodedToken);
-      
+
+
       // For agency owners, use ownerId as the user ID
       const userId = decodedToken.profile.ownerId || decodedToken.profile.id;
-      
+
       const userData = {
         id: userId,
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
       };
-      
+
       // Set both tokens in cookies (without secure flag for localhost)
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const cookieOptions = isLocalhost 
+      const cookieOptions = isLocalhost
         ? 'path=/; samesite=strict'
         : 'path=/; secure; samesite=strict';
-      
+
       document.cookie = `accessToken=${result.data.accessToken}; ${cookieOptions}; max-age=3600`;
       document.cookie = `refreshToken=${result.data.refreshToken}; ${cookieOptions}; max-age=604800`;
-      
+
       // If agency owner token exists, store it separately
       if (result.data.agency_owner_gs_authtoken) {
-        console.log('Agency owner token detected');
+
         document.cookie = `agency_owner_gs_authtoken=${result.data.agency_owner_gs_authtoken}; ${cookieOptions}; max-age=604800`;
       }
-      
+
       // Store tokens and user data in Redux
-      dispatch(setUser({ 
+      dispatch(setUser({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
         user: userData
       }));
-      
+
       showSuccess('Account created successfully!');
-      
+
       // Force a hard navigation to ensure middleware picks up the cookie
       window.location.href = '/dashboard';
     } catch (error: any) {
@@ -134,13 +134,13 @@ function SignupForm() {
           pointerEvents: 'none',
         }}
       />
-      
-      <Paper 
+
+      <Paper
         elevation={12}
-        sx={{ 
-          width: "100%", 
+        sx={{
+          width: "100%",
           maxWidth: 420,
-          p: { xs: 3, sm: 4 }, 
+          p: { xs: 3, sm: 4 },
           borderRadius: 4,
           background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(20px)',
@@ -150,12 +150,12 @@ function SignupForm() {
           zIndex: 1,
         }}
       >
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
           textAlign="center"
-          sx={{ 
+          sx={{
             fontSize: { xs: '1.75rem', sm: '2rem' },
             fontWeight: 700,
             color: 'primary.main',
@@ -170,196 +170,196 @@ function SignupForm() {
           Create Account
         </Typography>
 
-        <Typography 
-          variant="body1" 
-          textAlign="center" 
+        <Typography
+          variant="body1"
+          textAlign="center"
           color="text.secondary"
           sx={{ mb: 4 }}
         >
           Join WatchCash to manage your finances
         </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  label="Full Name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      transform: 'translate(20px, -8px) scale(0.8)',
-                      fontWeight: 500,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      padding: '0 4px',
-                      borderRadius: '4px',
-                    },
-                    '& .MuiInputBase-input': {
-                      fontSize: '0.75rem',
-                    },
-                    '& .MuiFormLabel-asterisk': {
-                      color: 'error.main',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      transform: 'translate(20px, -8px) scale(0.8)',
-                      fontWeight: 500,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      padding: '0 4px',
-                      borderRadius: '4px',
-                    },
-                    '& .MuiInputBase-input': {
-                      fontSize: '0.75rem',
-                    },
-                    '& .MuiFormLabel-asterisk': {
-                      color: 'error.main',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      transform: 'translate(20px, -8px) scale(0.8)',
-                      fontWeight: 500,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      padding: '0 4px',
-                      borderRadius: '4px',
-                    },
-                    '& .MuiInputBase-input': {
-                      fontSize: '0.75rem',
-                    },
-                    '& .MuiFormLabel-asterisk': {
-                      color: 'error.main',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  label="Confirm Password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword}
-                  required
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      transform: 'translate(20px, -8px) scale(0.8)',
-                      fontWeight: 500,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      padding: '0 4px',
-                      borderRadius: '4px',
-                    },
-                    '& .MuiInputBase-input': {
-                      fontSize: '0.75rem',
-                    },
-                    '& .MuiFormLabel-asterisk': {
-                      color: 'error.main',
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  fullWidth 
-                  disabled={isLoading}
-                  size="large"
-                  sx={{
-                    height: '48px',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-                      transform: 'translateY(-2px)',
-                    },
-                    '&:active': {
-                      transform: 'translateY(0)',
-                    },
-                  }}
-                >
-                  {isLoading ? "Creating account..." : "Create Account"}
-                </Button>
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center',
-                    gap: 1
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Already have an account?
-                  </Typography>
-                  <Link 
-                    href="/auth/login" 
-                    sx={{ 
-                      fontSize: '0.875rem',
-                      textDecoration: 'none',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    Sign in
-                  </Link>
-                </Box>
-              </Grid>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                label="Full Name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                error={!!errors.name}
+                helperText={errors.name}
+                required
+                fullWidth
+                size="small"
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                    transform: 'translate(20px, -8px) scale(0.8)',
+                    fontWeight: 500,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    padding: '0 4px',
+                    borderRadius: '4px',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.75rem',
+                  },
+                  '& .MuiFormLabel-asterisk': {
+                    color: 'error.main',
+                  },
+                }}
+              />
             </Grid>
-          </Box>
-        </Paper>
-      </Box>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={!!errors.email}
+                helperText={errors.email}
+                required
+                fullWidth
+                size="small"
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                    transform: 'translate(20px, -8px) scale(0.8)',
+                    fontWeight: 500,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    padding: '0 4px',
+                    borderRadius: '4px',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.75rem',
+                  },
+                  '& .MuiFormLabel-asterisk': {
+                    color: 'error.main',
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={!!errors.password}
+                helperText={errors.password}
+                required
+                fullWidth
+                size="small"
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                    transform: 'translate(20px, -8px) scale(0.8)',
+                    fontWeight: 500,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    padding: '0 4px',
+                    borderRadius: '4px',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.75rem',
+                  },
+                  '& .MuiFormLabel-asterisk': {
+                    color: 'error.main',
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                required
+                fullWidth
+                size="small"
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                    transform: 'translate(20px, -8px) scale(0.8)',
+                    fontWeight: 500,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    padding: '0 4px',
+                    borderRadius: '4px',
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.75rem',
+                  },
+                  '& .MuiFormLabel-asterisk': {
+                    color: 'error.main',
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isLoading}
+                size="large"
+                sx={{
+                  height: '48px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
+                }}
+              >
+                {isLoading ? "Creating account..." : "Create Account"}
+              </Button>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 1
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Already have an account?
+                </Typography>
+                <Link
+                  href="/auth/login"
+                  sx={{
+                    fontSize: '0.875rem',
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  Sign in
+                </Link>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
 

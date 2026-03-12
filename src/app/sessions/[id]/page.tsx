@@ -18,6 +18,7 @@ import { ArrowBack, RateReview, NavigateBefore, NavigateNext } from '@mui/icons-
 import { useRouter } from 'next/navigation';
 import { useGetSessionByIdQuery, useReviewSessionMutation, ReviewSessionRequest } from '@/store/api/sessionsApi';
 import { DataTable, LocationMap, useToast } from '@/components/shared';
+import { usePermissions } from '@/hooks/usePermissions';
 import {
   Drawer,
   TextField,
@@ -70,6 +71,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   const resolvedParams = use(params);
   const router = useRouter();
   const { showSuccess, showError } = useToast();
+  const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState(0);
   const [isReviewingSession, setIsReviewingSession] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -86,12 +88,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
   // Debug logging
   useEffect(() => {
-    console.log('Session Detail API States:', {
-      sessionId: resolvedParams.id,
-      response,
-      isLoading,
-      error,
-    });
+
   }, [resolvedParams.id, response, isLoading, error]);
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -310,29 +307,31 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             Back to Sessions
           </Box>
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<RateReview />}
-          onClick={() => setReviewDialogOpen(true)}
-          sx={{
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
-            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-            minWidth: { xs: 'auto', sm: '160px' },
-            px: { xs: 2, sm: 3 },
-            '&:hover': {
-              background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-              boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-            },
-            '& .MuiButton-startIcon': {
-              mr: { xs: 0, sm: 1 },
-              ml: { xs: 0, sm: -0.5 }
-            }
-          }}
-        >
-          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-            Review Session
-          </Box>
-        </Button>
+        {hasPermission('sessions:review') && (
+          <Button
+            variant="contained"
+            startIcon={<RateReview />}
+            onClick={() => setReviewDialogOpen(true)}
+            sx={{
+              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+              minWidth: { xs: 'auto', sm: '160px' },
+              px: { xs: 2, sm: 3 },
+              '&:hover': {
+                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+              },
+              '& .MuiButton-startIcon': {
+                mr: { xs: 0, sm: 1 },
+                ml: { xs: 0, sm: -0.5 }
+              }
+            }}
+          >
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              Review Session
+            </Box>
+          </Button>
+        )}
       </Box>
 
       <Typography

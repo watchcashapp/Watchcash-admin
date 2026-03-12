@@ -41,9 +41,11 @@ export function middleware(req: NextRequest) {
 
   // Logic for Authenticated users
   if (hasAuth) {
-    // If authenticated, redirect away from public auth pages or root to dashboard
-    if (pathname === '/' || isPublicRoute) {
-      console.log(`[Middleware] Authenticated user on ${pathname} -> Redirecting to /dashboard`);
+    // If authenticated, redirect away from public auth pages (except reset-password) or root to dashboard
+    const shouldRedirect = pathname === '/' || (isPublicRoute && !pathname.startsWith('/auth/reset-password'));
+
+    if (shouldRedirect) {
+
       const url = req.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
@@ -54,7 +56,7 @@ export function middleware(req: NextRequest) {
     // If NOT authenticated, redirect to login if on root, protected route, or unknown route
     // (Everything except publicRoutes is considered protected in this admin app)
     if (pathname === '/' || !isPublicRoute) {
-      console.log(`[Middleware] Unauthenticated user on ${pathname} -> Redirecting to /auth/login (AccessToken: ${accessToken ? 'present' : 'missing'}, RefreshToken: ${refreshToken ? 'present' : 'missing'})`);
+
       const url = req.nextUrl.clone();
       url.pathname = '/auth/login';
       // Only add returnTo if it's a known protected route and not just root

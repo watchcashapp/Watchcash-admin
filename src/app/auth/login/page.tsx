@@ -53,11 +53,11 @@ function LoginForm() {
     try {
       const result = await login({ email, password }).unwrap();
 
-      console.log('Login response:', result);
+
 
       // Decode the access token to get user data
       const decodedToken = jwtDecode<DecodedToken>(result.data.accessToken);
-      console.log('Decoded token in login:', decodedToken);
+
 
       // For agency owners, use ownerId as the user ID
       const userId = decodedToken.profile.ownerId || decodedToken.profile.id;
@@ -67,9 +67,10 @@ function LoginForm() {
         name: decodedToken.profile.name,
         email: decodedToken.profile.email,
         userType: decodedToken.profile.userType,
+        permissions: result.data.permissions || [],
       };
 
-      console.log('User data to store:', userData);
+
 
       // Set both tokens in cookies
       const isSecure = window.location.protocol === 'https:';
@@ -82,7 +83,7 @@ function LoginForm() {
 
       // If agency owner token exists, store it separately
       if (result.data.agency_owner_gs_authtoken) {
-        console.log('Agency owner token detected');
+
         document.cookie = `agency_owner_gs_authtoken=${result.data.agency_owner_gs_authtoken}; ${cookieOptions}; max-age=604800`;
       }
 
@@ -93,7 +94,7 @@ function LoginForm() {
         user: userData
       }));
 
-      console.log('User set in Redux, redirecting to:', returnTo);
+
 
       showSuccess('Login successful!');
 
