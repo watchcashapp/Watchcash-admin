@@ -3,7 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/hooks/usePermissions';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import UserManagementTable from '@/components/features/UserManagementTable';
 
 export default function StaffUsersPage() {
@@ -24,15 +23,13 @@ export default function StaffUsersPage() {
   if (!isMounted) return null;
 
   return (
-    <DashboardLayout>
-      <UserManagementTable
-        title="Staff Users"
-        defaultUserType="STAFF"
-        hideUserTypeFilter={true}
-        showAddButton={true}
-        addRoute="/staff/users/add"
-        editRoute="/staff/users"
-      />
-    </DashboardLayout>
+    <UserManagementTable
+      title="Staff Users"
+      defaultUserType="STAFF"
+      hideUserTypeFilter={true}
+      showAddButton={true}
+      addRoute="/staff/users/add"
+      editRoute="/staff/users"
+    />
   );
 }
