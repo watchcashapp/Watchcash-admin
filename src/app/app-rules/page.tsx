@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -49,6 +50,7 @@ const initialFormData: FormData = {
 };
 
 export default function AppRulesPage() {
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
   const [fromDate, setFromDate] = useState('');
@@ -56,6 +58,18 @@ export default function AppRulesPage() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
   const hasFilters = fromDate || toDate;
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('app_rules:list')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
     from: fromDate,
     to: toDate,

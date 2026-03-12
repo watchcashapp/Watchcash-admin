@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -15,31 +15,45 @@ import { IconButton } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DataTable } from '@/components/shared';
+import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function AuditLogsPage() {
     const router = useRouter();
+    const { hasPermission } = usePermissions();
+    const { showError } = useToast();
     const [page, setPage] = useState(1);
     const rowsPerPage = 6;
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Filters
     const [actionSearch, setActionSearch] = useState('');
-    const [userIdSearch, setUserIdSearch] = useState('');
+    const [targetUserSearch, setTargetUserSearch] = useState('');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
 
-    const [isMounted, setIsMounted] = useState(false);
-    React.useEffect(() => setIsMounted(true), []);
+    React.useEffect(() => {
+        if (isMounted && !hasPermission('admin_audit_logs:view')) {
+            router.push('/dashboard');
+        }
+    }, [isMounted, hasPermission, router]);
+
+    React.useEffect(() => {
+        setPage(1);
+    }, [actionSearch, targetUserSearch, fromDate, toDate]);
 
     const queryArgs = React.useMemo(() => ({
         page,
         limit: rowsPerPage,
         action: actionSearch || undefined,
-        userId: userIdSearch || undefined,
+        targetUser: targetUserSearch || undefined,
         from: fromDate ? new Date(fromDate).toISOString() : undefined,
         to: toDate ? new Date(toDate).toISOString() : undefined,
-    }), [page, rowsPerPage, actionSearch, userIdSearch, fromDate, toDate]);
+    }), [page, rowsPerPage, actionSearch, targetUserSearch, fromDate, toDate]);
 
     const { data, isLoading } = useGetAuditLogsQuery(queryArgs, {
         refetchOnMountOrArgChange: true,
@@ -117,6 +131,10 @@ export default function AuditLogsPage() {
                     onClick={(e) => {
                         if (value?.id) {
                             e.stopPropagation();
+                            if (!hasPermission('admin_audit_logs:view')) {
+                                showError('You do not have permission to view user audit logs');
+                                return;
+                            }
                             router.push(`/audit-logs/${value.id}`);
                         }
                     }}
@@ -196,10 +214,10 @@ export default function AuditLogsPage() {
                         <TextField
                             fullWidth
                             size="small"
-                            placeholder="Filter by User ID..."
-                            value={userIdSearch}
+                            placeholder="Filter by Target User..."
+                            value={targetUserSearch}
                             onChange={(e) => {
-                                setUserIdSearch(e.target.value);
+                                setTargetUserSearch(e.target.value);
                                 setPage(1);
                             }}
                             InputProps={{
@@ -248,10 +266,7 @@ export default function AuditLogsPage() {
                 getRowId={(row: any) => row.id}
                 isLoading={isLoading}
                 emptyMessage="No audit logs found"
-                onView={(row) => {
-                    const targetId = row.targetUser?.id || 'system';
-                    router.push(`/audit-logs/${targetId}/details/${row.id}`);
-                }}
+                onView={hasPermission('admin_audit_logs:view') ? (row) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
                 renderPagination={() => data && data.items && data.items.length > 0 ? (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">

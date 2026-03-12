@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Save, Edit } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
@@ -23,12 +24,25 @@ import {
 } from "@/store/api/globalRulesApi";
 
 export default function GlobalRulesPage() {
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
   const { data: globalRules, isLoading, error } = useGetGlobalRulesQuery();
   const [updateGlobalRules, { isLoading: isUpdating }] = useUpdateGlobalRulesMutation();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('global_rules:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
   const [formData, setFormData] = useState<GlobalRules>({
     defaultPointsPerMinute: 0,
     dailyHardCap: 0,

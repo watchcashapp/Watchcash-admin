@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -17,12 +17,25 @@ import {
   useGetRolesQuery,
   Role,
 } from '@/store/api/rbacApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function RolesPage() {
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('rbac:manage_roles')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   const { data: rolesData, isLoading } = useGetRolesQuery(undefined);
 
@@ -83,22 +96,24 @@ export default function RolesPage() {
         >
           Roles Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => router.push('/staff/roles/add')}
-          sx={{
-            minWidth: { xs: 'auto', sm: 120 },
-            px: { xs: 2, sm: 3 },
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
-            },
-          }}
-        >
-          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>ADD ROLE</Box>
-          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>ADD</Box>
-        </Button>
+        {hasPermission('rbac:create') && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => router.push('/staff/roles/add')}
+            sx={{
+              minWidth: { xs: 'auto', sm: 120 },
+              px: { xs: 2, sm: 3 },
+              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+              },
+            }}
+          >
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>ADD ROLE</Box>
+            <Box sx={{ display: { xs: 'block', sm: 'none' } }}>ADD</Box>
+          </Button>
+        )}
       </Box>
 
       {/* Search Filter */}
@@ -139,7 +154,7 @@ export default function RolesPage() {
             columns={columns}
             data={paginatedRoles}
             getRowId={(row) => row.id}
-            onEdit={(row) => router.push(`/staff/roles/${row.id}`)}
+            onEdit={hasPermission('rbac:update') ? (row) => router.push(`/staff/roles/${row.id}`) : undefined}
           />
 
           {/* Pagination */}

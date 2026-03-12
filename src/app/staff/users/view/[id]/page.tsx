@@ -17,6 +17,7 @@ import {
 import { ArrowBack, Edit } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useGetUserByIdQuery } from '@/store/api/usersApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,6 +51,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const { hasPermission } = usePermissions();
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('users:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   if (loadingUser) {
     return (

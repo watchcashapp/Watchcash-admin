@@ -13,7 +13,9 @@ import {
 import { Add, Delete, Edit } from '@mui/icons-material';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useToast } from '@/components/shared';
+import { useRouter } from 'next/navigation';
 import { useGetSettingsQuery, useUpdateSettingsMutation } from '@/store/api/settingsApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function SettingsPage() {
     const [metadata, setMetadata] = useState([{ metakey: '', metavalue: '' }]);
@@ -23,6 +25,19 @@ export default function SettingsPage() {
 
     const { data: response, isLoading: isFetching } = useGetSettingsQuery();
     const [updateSettings, { isLoading: isUpdating }] = useUpdateSettingsMutation();
+    const router = useRouter();
+    const { hasPermission } = usePermissions();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted && !hasPermission('admin:full_access')) {
+            router.push('/dashboard');
+        }
+    }, [isMounted, hasPermission, router]);
 
     useEffect(() => {
         if (response?.settings) {

@@ -13,7 +13,7 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import { Edit, Delete, ToggleOn, ToggleOff, Visibility } from '@mui/icons-material';
+import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview } from '@mui/icons-material';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -31,6 +31,7 @@ export interface DataTableProps<T> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onToggle?: (row: T) => void;
+  onMarkReview?: (row: T) => void;
   getRowId: (row: T) => string;
   emptyMessage?: string;
   renderPagination?: () => React.ReactNode;
@@ -44,6 +45,7 @@ export default function DataTable<T extends Record<string, any>>({
   onEdit,
   onDelete,
   onToggle,
+  onMarkReview,
   getRowId,
   emptyMessage = 'No data available',
   renderPagination,
@@ -190,7 +192,7 @@ export default function DataTable<T extends Record<string, any>>({
                     </TableCell>
                   );
                 })}
-                {(onView || onEdit || onDelete || onToggle) && (
+                {(onView || onEdit || onDelete || onToggle || onMarkReview) && (
                   <TableCell
                     align="center"
                     sx={{
@@ -201,6 +203,22 @@ export default function DataTable<T extends Record<string, any>>({
                     }}
                   >
                     <Box display="flex" gap={1} justifyContent="center">
+                      {onMarkReview && (
+                        <IconButton
+                          size="small"
+                          onClick={() => onMarkReview(row)}
+                          sx={{
+                            color: '#f59e0b',
+                            '&:hover': {
+                              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                              transform: 'scale(1.1)',
+                            },
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <RateReview fontSize="small" />
+                        </IconButton>
+                      )}
                       {onView && (
                         <IconButton
                           size="small"

@@ -11,8 +11,6 @@ import {
   InputAdornment,
   Chip,
   IconButton,
-  Menu,
-  MenuItem,
   Grid,
   Dialog,
   DialogTitle,
@@ -23,16 +21,11 @@ import {
   Select,
   Drawer,
   useTheme,
+  MenuItem,
 } from '@mui/material';
 import {
   Search,
-  Add,
-  MoreVert,
   Visibility,
-  Edit,
-  Delete,
-  DateRange,
-  Download,
   NavigateBefore,
   NavigateNext,
 } from '@mui/icons-material';
@@ -41,8 +34,8 @@ import { config } from '@/config/env';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column, useToast } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
-// Mock data removed
 const PREDEFINED_REASONS = [
   { value: 'fraud_suspected', label: 'Fraud Suspicion' },
   { value: 'duplicate_account', label: 'Multi Account' },
@@ -63,45 +56,19 @@ const PREDEFINED_REASONS = [
 ];
 
 export default function RewardRedemptionsPage() {
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const theme = useTheme();
+  const { showSuccess, showError } = useToast();
 
-  // State declarations must come before API calls
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const hasFilters = search || status || fromDate || toDate;
   const [page, setPage] = useState(1);
   const [limit] = useState(6);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [search, status, fromDate, toDate]);
-
-  // API call with state variables
-  const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({
-    search,
-    status,
-    from: fromDate,
-    to: toDate,
-    page,
-    limit,
-  });
-  const redemptions = response?.data?.items || [];
-  const pagination = response?.data;
-  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
-  const { showSuccess, showError } = useToast();
-  const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
-
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<{
     decision: 'approve' | 'reject' | 'hold';
@@ -113,6 +80,37 @@ export default function RewardRedemptionsPage() {
     admin_note: '',
   });
 
+  const hasFilters = search || status || fromDate || toDate;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('reward_redemptions:list')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, status, fromDate, toDate]);
+
+  const { data: response, isLoading } = useGetRewardRedemptionsQuery({
+    search,
+    status,
+    from: fromDate,
+    to: toDate,
+    page,
+    limit,
+  });
+
+  const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
+
+  const redemptions = response?.data?.items || [];
+  const pagination = response?.data;
+  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
+
   const handleReviewSubmit = async () => {
     if (!selectedRedemption) return;
     try {
@@ -122,7 +120,7 @@ export default function RewardRedemptionsPage() {
       }).unwrap();
       showSuccess('Reward redemption reviewed successfully');
       setReviewDialogOpen(false);
-      handleMenuClose();
+      setSelectedRedemption(null);
     } catch (err: any) {
       showError(err?.data?.message || err?.message || 'Failed to review redemption');
     }
@@ -131,21 +129,13 @@ export default function RewardRedemptionsPage() {
   const handleReviewClick = (redemption: RewardRedemption) => {
     setSelectedRedemption(redemption);
     setReviewDialogOpen(true);
-    handleMenuClose();
-  };
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, redemption: RewardRedemption) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedRedemption(redemption);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedRedemption(null);
   };
 
   const handleView = (redemption: RewardRedemption) => {
-    handleMenuClose();
+    if (!hasPermission('reward_redemptions:view')) {
+      showError('You do not have permission to view reward redemption details');
+      return;
+    }
     router.push(`/reward-redemptions/${redemption.id}`);
   };
 
@@ -156,7 +146,6 @@ export default function RewardRedemptionsPage() {
       case 'APPROVED':
         return 'linear-gradient(45deg, #10b981, #059669)';
       case 'REJECTED':
-        return 'linear-gradient(45deg, #ef4444, #dc2626)';
       case 'FAILED':
         return 'linear-gradient(45deg, #ef4444, #dc2626)';
       case 'PROCESSED':
@@ -283,51 +272,50 @@ export default function RewardRedemptionsPage() {
           >
             Reward Redemptions
           </Typography>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              const queryParams = new URLSearchParams();
-              if (search) queryParams.append("search", search);
-              if (status) queryParams.append("status", status);
-              if (fromDate) queryParams.append("from", fromDate);
-              if (toDate) queryParams.append("to", toDate);
+          {hasPermission('reward_redemptions:list') && (
+            <Button
+              variant="outlined"
+              onClick={() => {
+                const queryParams = new URLSearchParams();
+                if (search) queryParams.append("search", search);
+                if (status) queryParams.append("status", status);
+                if (fromDate) queryParams.append("from", fromDate);
+                if (toDate) queryParams.append("to", toDate);
 
-              const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-              const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
+                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+                const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
 
-              // Trigger download using fetch
-              fetch(url, {
-                headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'ngrok-skip-browser-warning': 'true'
-                }
-              })
-                .then(response => response.blob())
-                .then(blob => {
-                  const downloadUrl = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = downloadUrl;
-                  a.download = `reward_redemptions_export_${new Date().getTime()}.csv`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  window.URL.revokeObjectURL(downloadUrl);
+                fetch(url, {
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'ngrok-skip-browser-warning': 'true'
+                  }
                 })
-                .catch(err => {
-
-                });
-            }}
-            sx={{
-              borderColor: '#667eea',
-              color: '#667eea',
-              '&:hover': {
-                borderColor: '#5a67d8',
-                backgroundColor: 'rgba(102, 126, 234, 0.04)',
-              },
-            }}
-          >
-            Export CSV
-          </Button>
+                  .then(response => response.blob())
+                  .then(blob => {
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `reward_redemptions_export_${new Date().getTime()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                  })
+                  .catch(() => { });
+              }}
+              sx={{
+                borderColor: '#667eea',
+                color: '#667eea',
+                '&:hover': {
+                  borderColor: '#5a67d8',
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                },
+              }}
+            >
+              Export CSV
+            </Button>
+          )}
         </Box>
 
         {/* Filters */}
@@ -363,16 +351,6 @@ export default function RewardRedemptionsPage() {
                     ),
                   }
                 }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
@@ -383,16 +361,6 @@ export default function RewardRedemptionsPage() {
                 label="Status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
-                  },
-                }}
               >
                 <MenuItem value="">All Status</MenuItem>
                 <MenuItem value="PENDING">Pending</MenuItem>
@@ -410,16 +378,6 @@ export default function RewardRedemptionsPage() {
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
@@ -431,16 +389,6 @@ export default function RewardRedemptionsPage() {
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
-                  },
-                }}
               />
             </Grid>
             {hasFilters && (
@@ -458,12 +406,6 @@ export default function RewardRedemptionsPage() {
                     height: '40px',
                     borderColor: '#667eea',
                     color: '#667eea',
-                    '&:hover': {
-                      borderColor: '#5a67d8',
-                      backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                    },
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    minWidth: { xs: 'auto', md: '100px' },
                   }}
                 >
                   Clear
@@ -478,7 +420,9 @@ export default function RewardRedemptionsPage() {
           data={filteredData}
           getRowId={(row) => row.id}
           emptyMessage="No reward redemptions found. Try adjusting your filters."
-          onView={handleView}
+          onView={hasPermission('reward_redemptions:view') ? handleView : undefined}
+          onMarkReview={hasPermission('reward_redemptions:mark_reviewed') ? handleReviewClick : undefined}
+          isLoading={isLoading}
         />
 
         {/* Pagination */}
@@ -492,13 +436,6 @@ export default function RewardRedemptionsPage() {
                 size="small"
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1}
-                sx={{
-                  bgcolor: page <= 1 ? 'action.disabled' : 'primary.main',
-                  color: page <= 1 ? 'text.disabled' : 'white',
-                  '&:hover': {
-                    bgcolor: page <= 1 ? 'action.disabled' : 'primary.dark',
-                  },
-                }}
               >
                 <NavigateBefore />
               </IconButton>
@@ -509,13 +446,6 @@ export default function RewardRedemptionsPage() {
                 size="small"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= (calculatedTotalPages || 1)}
-                sx={{
-                  bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.main',
-                  color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'white',
-                  '&:hover': {
-                    bgcolor: page >= (calculatedTotalPages || 1) ? 'action.disabled' : 'primary.dark',
-                  },
-                }}
               >
                 <NavigateNext />
               </IconButton>
@@ -523,27 +453,7 @@ export default function RewardRedemptionsPage() {
           </Box>
         )}
 
-        {/* Action Menu */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          PaperProps={{
-            elevation: 3,
-            sx: {
-              minWidth: 200,
-              '& .MuiList-root': {
-                padding: '8px',
-              },
-            },
-          }}
-        >
-          <MenuItem onClick={() => selectedRedemption && handleView(selectedRedemption)}>
-            <Visibility sx={{ mr: 1, fontSize: '1.2rem', color: '#10b981' }} />
-            View Details
-          </MenuItem>
-        </Menu>
-
+        {/* Review Drawer */}
         <Drawer
           anchor="right"
           open={reviewDialogOpen}
@@ -551,8 +461,6 @@ export default function RewardRedemptionsPage() {
           PaperProps={{
             sx: {
               width: { xs: '100%', sm: 400 },
-              borderTopLeftRadius: { xs: 16, sm: 0 },
-              borderBottomLeftRadius: { xs: 0, sm: 0 },
               boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
             }
           }}

@@ -70,15 +70,15 @@ const menuItems: MenuItem[] = [
   {
     text: 'Staff Management',
     icon: <Badge />,
-    permission: 'rbac:manage_roles',
+    permission: 'staff:list',
     subItems: [
-      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'dashboard:view_total_staff' },
+      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'staff:list' },
       { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'rbac:manage_roles' },
     ]
   },
-  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:view' },
-  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'dashboard:view_total_device_sessions' },
-  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:update' },
+  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:list' },
+  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
+  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:list' },
   { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
@@ -132,6 +132,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Permission check for Audit Logs page
+  React.useEffect(() => {
+    if (isMounted && pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router, pathname]);
 
   // Auto-expand submenus when their child routes are active
   React.useEffect(() => {

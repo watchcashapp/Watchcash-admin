@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -26,6 +27,7 @@ import {
   useToggleStaffStatusMutation,
   Staff,
 } from "@/store/api/staffApi";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface StaffFormData {
   name: string;
@@ -42,12 +44,26 @@ const initialFormData: StaffFormData = {
 };
 
 export default function StaffPage() {
+  const router = useRouter();
+  const { hasPermission } = usePermissions();
   const { showSuccess, showError } = useToast();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('staff:list')) {
+      showError("You don't have permission to view staff");
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router, showError]);
 
   const { data, isLoading, error } = useGetStaffQuery({
     page,
@@ -225,21 +241,23 @@ export default function StaffPage() {
         >
           Staff Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpenDialog()}
-          sx={{
-            background: "linear-gradient(45deg, #667eea, #764ba2)",
-            boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
-            "&:hover": {
-              background: "linear-gradient(45deg, #5a67d8, #764ba2)",
-              boxShadow: "0 6px 16px rgba(102, 126, 234, 0.5)",
-            },
-          }}
-        >
-          Add Staff
-        </Button>
+        {hasPermission('staff:create') && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpenDialog()}
+            sx={{
+              background: "linear-gradient(45deg, #667eea, #764ba2)",
+              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(45deg, #5a67d8, #764ba2)",
+                boxShadow: "0 6px 16px rgba(102, 126, 234, 0.5)",
+              },
+            }}
+          >
+            Add Staff
+          </Button>
+        )}
       </Box>
 
       {/* Filters */}
@@ -327,9 +345,9 @@ export default function StaffPage() {
             columns={columns}
             data={data?.data.staff || []}
             getRowId={(row) => row.id}
-            onEdit={(staff) => handleOpenDialog(staff as Staff)}
-            onDelete={(staff) => setDeleteConfirm(staff as Staff)}
-            onToggle={(staff) => handleToggleStatus(staff as Staff)}
+            onEdit={hasPermission('staff:update') ? (staff) => handleOpenDialog(staff as Staff) : undefined}
+            onDelete={hasPermission('staff:delete') ? (staff) => setDeleteConfirm(staff as Staff) : undefined}
+            onToggle={hasPermission('staff:toggle_status') ? (staff) => handleToggleStatus(staff as Staff) : undefined}
             emptyMessage="No staff found. Try adjusting your filters."
           />
 

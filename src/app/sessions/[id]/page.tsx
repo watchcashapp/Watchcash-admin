@@ -688,129 +688,133 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               </Box>
             </TabPanel>
 
-            <TabPanel value={activeTab} index={1}>
-              <Box sx={{ px: 4, pb: 4 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                  Wallet Transactions ({wallet_transactions.length})
-                </Typography>
-                {wallet_transactions.length > 0 ? (
-                  <>
-                    <DataTable
-                      columns={transactionColumns}
-                      data={paginatedTransactions}
-                      getRowId={(row: any) => row.id}
-                    />
-                    {/* Pagination */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {paginatedTransactions.length} of {wallet_transactions.length} results
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setTransactionsPage(transactionsPage - 1)}
-                          disabled={transactionsPage <= 1}
-                          sx={{
-                            bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: transactionsPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {transactionsPage} / {totalTransactionsPages || 1}
+            {hasPermission('users:view_transactions') && (
+              <TabPanel value={activeTab} index={1}>
+                <Box sx={{ px: 4, pb: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                    Wallet Transactions ({wallet_transactions.length})
+                  </Typography>
+                  {wallet_transactions.length > 0 ? (
+                    <>
+                      <DataTable
+                        columns={transactionColumns}
+                        data={paginatedTransactions}
+                        getRowId={(row: any) => row.id}
+                      />
+                      {/* Pagination */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Showing {paginatedTransactions.length} of {wallet_transactions.length} results
                         </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setTransactionsPage(transactionsPage + 1)}
-                          disabled={transactionsPage >= (totalTransactionsPages || 1)}
-                          sx={{
-                            bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.main',
-                            color: transactionsPage >= (totalTransactionsPages || 1) ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => setTransactionsPage(transactionsPage - 1)}
+                            disabled={transactionsPage <= 1}
+                            sx={{
+                              bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.main',
+                              color: transactionsPage <= 1 ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateBefore />
+                          </IconButton>
+                          <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                            {transactionsPage} / {totalTransactionsPages || 1}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setTransactionsPage(transactionsPage + 1)}
+                            disabled={transactionsPage >= (totalTransactionsPages || 1)}
+                            sx={{
+                              bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.main',
+                              color: transactionsPage >= (totalTransactionsPages || 1) ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateNext />
+                          </IconButton>
+                        </Box>
                       </Box>
-                    </Box>
-                  </>
-                ) : (
-                  <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No transactions found for this session
-                    </Typography>
-                  </Paper>
-                )}
-              </Box>
-            </TabPanel>
+                    </>
+                  ) : (
+                    <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
+                      <Typography variant="body1" color="text.secondary">
+                        No transactions found for this session
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </TabPanel>
+            )}
 
-            <TabPanel value={activeTab} index={2}>
-              <Box sx={{ p: 4 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                  Review History ({mockReviews.length})
-                </Typography>
-                {mockReviews.length > 0 ? (
-                  <>
-                    <DataTable
-                      columns={reviewColumns}
-                      data={paginatedReviews}
-                      getRowId={(row) => row.id}
-                    />
-                    {/* Pagination */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {paginatedReviews.length} of {mockReviews.length} results
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setReviewsPage(reviewsPage - 1)}
-                          disabled={reviewsPage <= 1}
-                          sx={{
-                            bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: reviewsPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {reviewsPage} / {totalReviewsPages || 1}
+            {hasPermission('sessions:review') && (
+              <TabPanel value={activeTab} index={2}>
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                    Review History ({mockReviews.length})
+                  </Typography>
+                  {mockReviews.length > 0 ? (
+                    <>
+                      <DataTable
+                        columns={reviewColumns}
+                        data={paginatedReviews}
+                        getRowId={(row) => row.id}
+                      />
+                      {/* Pagination */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Showing {paginatedReviews.length} of {mockReviews.length} results
                         </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setReviewsPage(reviewsPage + 1)}
-                          disabled={reviewsPage >= (totalReviewsPages || 1)}
-                          sx={{
-                            bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.main',
-                            color: reviewsPage >= (totalReviewsPages || 1) ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => setReviewsPage(reviewsPage - 1)}
+                            disabled={reviewsPage <= 1}
+                            sx={{
+                              bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.main',
+                              color: reviewsPage <= 1 ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateBefore />
+                          </IconButton>
+                          <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                            {reviewsPage} / {totalReviewsPages || 1}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setReviewsPage(reviewsPage + 1)}
+                            disabled={reviewsPage >= (totalReviewsPages || 1)}
+                            sx={{
+                              bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.main',
+                              color: reviewsPage >= (totalReviewsPages || 1) ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateNext />
+                          </IconButton>
+                        </Box>
                       </Box>
-                    </Box>
-                  </>
-                ) : (
-                  <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No reviews found for this session
-                    </Typography>
-                  </Paper>
-                )}
-              </Box>
-            </TabPanel>
+                    </>
+                  ) : (
+                    <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
+                      <Typography variant="body1" color="text.secondary">
+                        No reviews found for this session
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </TabPanel>
+            )}
           </Box>
         </Paper>
 

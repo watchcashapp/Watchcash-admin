@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -24,8 +25,23 @@ import {
   useDeleteRoleMutation,
   Role,
 } from "@/store/api/rbacApi";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function RbacRulesPage() {
+  const router = useRouter();
+  const { hasPermission } = usePermissions();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('rbac:manage_roles')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
   const { showSuccess, showError } = useToast();
   const { data: rolesData, isLoading, error } = useGetRolesQuery(undefined, {
     // Don't retry on error to avoid blocking the page
@@ -290,9 +306,9 @@ export default function RbacRulesPage() {
                   value={formData.code}
                   error={!!errors.code}
                   helperText={
-                    errors.code || 
-                    (editingRole 
-                      ? "Code cannot be changed after creation" 
+                    errors.code ||
+                    (editingRole
+                      ? "Code cannot be changed after creation"
                       : "Auto-generated from name")
                   }
                   required

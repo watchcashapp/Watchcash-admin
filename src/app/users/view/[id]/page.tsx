@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column } from '@/components/shared';
 import { useGetUserByIdQuery, useGetUserWalletQuery, useGetUserRedeemHistoryQuery, WalletTransaction } from '@/store/api/usersApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,6 +47,7 @@ function TabPanel(props: TabPanelProps) {
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { hasPermission } = usePermissions();
   const [tabValue, setTabValue] = useState(0);
   const [walletPage, setWalletPage] = useState(1);
 
@@ -55,6 +57,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('users:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
@@ -305,8 +313,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             }}
           >
             <Tab icon={<Person />} iconPosition="start" label="Details" />
-            <Tab icon={<AccountBalanceWallet />} iconPosition="start" label="Wallet Transactions" />
-            <Tab icon={<History />} iconPosition="start" label="Redemption History" />
+            {hasPermission('users:view_transactions') && (
+              <Tab icon={<AccountBalanceWallet />} iconPosition="start" label="Wallet Transactions" />
+            )}
+            {hasPermission('users:view_rewards') && (
+              <Tab icon={<History />} iconPosition="start" label="Redemption History" />
+            )}
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>

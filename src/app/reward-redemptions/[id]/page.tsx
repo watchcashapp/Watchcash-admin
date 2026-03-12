@@ -23,6 +23,7 @@ import {
 } from '@/store/api/rewardRedemptionsApi';
 import { useToast } from '@/components/shared';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const PREDEFINED_REASONS = [
     { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -46,6 +47,7 @@ const PREDEFINED_REASONS = [
 export default function RewardRedemptionDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const router = useRouter();
+    const { hasPermission } = usePermissions();
     const { showSuccess, showError } = useToast();
 
     const { data: response, isLoading, error } = useGetRewardRedemptionByIdQuery(resolvedParams.id);
@@ -151,18 +153,20 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         >
                             Redemption Details
                         </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<RateReview />}
-                            onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
-                            disabled={isReviewing}
-                            sx={{
-                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                                '&:hover': { background: 'linear-gradient(45deg, #5a67d8, #6a3f92)' },
-                            }}
-                        >
-                            {reviewDialogOpen ? 'Hide Review' : 'Mark Review'}
-                        </Button>
+                        {hasPermission('reward_redemptions:mark_reviewed') && redemption.status === 'PENDING' && (
+                            <Button
+                                variant="contained"
+                                startIcon={<RateReview />}
+                                onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
+                                disabled={isReviewing}
+                                sx={{
+                                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                    '&:hover': { background: 'linear-gradient(45deg, #5a67d8, #6a3f92)' },
+                                }}
+                            >
+                                {reviewDialogOpen ? 'Hide Review' : 'Mark Review'}
+                            </Button>
+                        )}
                     </Box>
                 </Box>
 
@@ -341,12 +345,14 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 borderRadius: 3,
                             }}
                         >
-                            <ReviewForm
-                                reviewForm={reviewForm}
-                                setReviewForm={setReviewForm}
-                                isReviewing={isReviewing}
-                                handleReviewSubmit={handleReviewSubmit}
-                            />
+                            {hasPermission('reward_redemptions:mark_reviewed') && (
+                                <ReviewForm
+                                    reviewForm={reviewForm}
+                                    setReviewForm={setReviewForm}
+                                    isReviewing={isReviewing}
+                                    handleReviewSubmit={handleReviewSubmit}
+                                />
+                            )}
                         </Paper>
                     </Box>
                 </Box>
@@ -365,14 +371,16 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         }
                     }}
                 >
-                    <ReviewForm
-                        mobile
-                        reviewForm={reviewForm}
-                        setReviewForm={setReviewForm}
-                        isReviewing={isReviewing}
-                        handleReviewSubmit={handleReviewSubmit}
-                        setReviewDialogOpen={setReviewDialogOpen}
-                    />
+                    {hasPermission('reward_redemptions:mark_reviewed') && (
+                        <ReviewForm
+                            mobile
+                            reviewForm={reviewForm}
+                            setReviewForm={setReviewForm}
+                            isReviewing={isReviewing}
+                            handleReviewSubmit={handleReviewSubmit}
+                            setReviewDialogOpen={setReviewDialogOpen}
+                        />
+                    )}
                 </Drawer>
             </Box>
         </DashboardLayout>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -16,11 +16,14 @@ import { IconButton } from '@mui/material';
 import { useRouter, useParams } from 'next/navigation';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DataTable } from '@/components/shared';
+import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsByUserQuery } from '@/store/api/auditLogsApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function AuditLogsUserPage() {
     const router = useRouter();
+    const { hasPermission } = usePermissions();
+    const { showError } = useToast();
     const params = useParams();
     const userId = params.userId as string;
 
@@ -33,7 +36,15 @@ export default function AuditLogsUserPage() {
     const [toDate, setToDate] = useState<string>('');
 
     const [isMounted, setIsMounted] = useState(false);
-    React.useEffect(() => setIsMounted(true), []);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted && !hasPermission('admin_audit_logs:view')) {
+            router.push('/dashboard');
+        }
+    }, [isMounted, hasPermission, router]);
 
     const queryArgs = React.useMemo(() => ({
         user_id: userId,
@@ -223,7 +234,7 @@ export default function AuditLogsUserPage() {
                 getRowId={(row: any) => row.id}
                 isLoading={isLoading}
                 emptyMessage="No audit logs found for this user"
-                onView={(row) => router.push(`/audit-logs/${userId}/details/${row.id}`)}
+                onView={hasPermission('admin_audit_logs:view') ? (row) => router.push(`/audit-logs/${userId}/details/${row.id}`) : undefined}
                 renderPagination={() => data && data.items && data.items.length > 0 ? (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">

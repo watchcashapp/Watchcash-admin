@@ -40,7 +40,7 @@ export interface AuditLogsResponse {
 export interface GetAuditLogsParams {
     page?: number;
     limit?: number;
-    userId?: string;
+    targetUser?: string;
     action?: string;
     from?: string;
     to?: string;
@@ -57,7 +57,7 @@ export const auditLogsApi = createApi({
 
                 if (params.page) queryParams.append('page', params.page.toString());
                 if (params.limit) queryParams.append('limit', params.limit.toString());
-                if (params.userId) queryParams.append('userId', params.userId);
+                if (params.targetUser) queryParams.append('targetUser', params.targetUser);
                 if (params.action) queryParams.append('action', params.action);
                 if (params.from) queryParams.append('from', params.from);
                 if (params.to) queryParams.append('to', params.to);
