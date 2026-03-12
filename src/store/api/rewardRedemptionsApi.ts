@@ -67,7 +67,7 @@ export const rewardRedemptionsApi = createApi({
             query: (id) => `/admin/reward-redemptions/${id}`,
             providesTags: ['RewardRedemptions'],
         }),
-        reviewRewardRedemption: builder.mutation<void, { id: string; data: { decision: 'approve' | 'reject' | 'hold'; admin_note?: string; admin_reason_code?: string } }>({
+        reviewRewardRedemption: builder.mutation<void, { id: string; data: { decision: 'approve' | 'reject' | 'hold'; admin_note?: string; admin_reason_code?: string; utid?: string } }>({
             query: ({ id, data }) => ({
                 url: `/admin/reward-redemptions/${id}/review`,
                 method: 'POST',

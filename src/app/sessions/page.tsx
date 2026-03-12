@@ -177,11 +177,11 @@ export default function SessionsPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Typography
-          variant="h4"
           sx={{
             fontWeight: 700,
+            fontSize: '1.1rem',
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -192,7 +192,7 @@ export default function SessionsPage() {
         </Typography>
         {hasPermission('sessions:view_live') && (
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={() => {
               // ... export logic
               const queryParams = new URLSearchParams();
@@ -229,15 +229,18 @@ export default function SessionsPage() {
                 });
             }}
             sx={{
-              borderColor: '#667eea',
-              color: '#667eea',
+              height: '30px',
+              fontSize: '0.75rem',
+              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              px: 2,
               '&:hover': {
-                borderColor: '#5a67d8',
-                backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
               },
             }}
           >
-            Export CSV
+            EXPORT CSV
           </Button>
         )}
       </Box>
@@ -245,8 +248,8 @@ export default function SessionsPage() {
       {/* Filters */}
       <Paper
         sx={{
-          p: 2.5,
-          mb: 3,
+          p: 1.5,
+          mb: 2,
           bgcolor: 'background.paper',
           boxShadow: (theme) => theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0, 0, 0, 0.3)'
@@ -254,9 +257,10 @@ export default function SessionsPage() {
           border: (theme) => theme.palette.mode === 'dark'
             ? '1px solid rgba(255, 255, 255, 0.1)'
             : '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: 1.5,
         }}
       >
-        <Grid container spacing={2} alignItems="center">
+        <Grid container spacing={1.5} alignItems="center">
           <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
             <TextField
               label="User ID"
@@ -268,6 +272,20 @@ export default function SessionsPage() {
               size="small"
               fullWidth
               placeholder="Search by user ID"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
+              }}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
@@ -281,6 +299,20 @@ export default function SessionsPage() {
               size="small"
               fullWidth
               placeholder="Search by device ID"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
+              }}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
@@ -294,9 +326,28 @@ export default function SessionsPage() {
               }}
               size="small"
               fullWidth
+              slotProps={{
+                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+                '& .MuiSelect-select': {
+                  py: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }
+              }}
             >
               {statusOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <MenuItem key={option.value} value={option.value} sx={{ fontSize: '0.75rem' }}>
                   {option.label}
                 </MenuItem>
               ))}
@@ -304,7 +355,7 @@ export default function SessionsPage() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
-              label="From Date"
+              label="From"
               type="date"
               value={fromDate}
               onChange={(e) => {
@@ -313,12 +364,25 @@ export default function SessionsPage() {
               }}
               size="small"
               fullWidth
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
+              }}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <TextField
-              label="To Date"
+              label="To"
               type="date"
               value={toDate}
               onChange={(e) => {
@@ -327,38 +391,49 @@ export default function SessionsPage() {
               }}
               size="small"
               fullWidth
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
+              }}
             />
           </Grid>
-          {hasFilters && (
-            <Grid size={{ xs: 12, sm: 6, md: 1 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setStatus('');
-                  setUserId('');
-                  setDeviceId('');
-                  setFromDate('');
-                  setToDate('');
-                  setPage(1);
-                }}
-                sx={{
-                  height: '40px',
-                  borderColor: '#667eea',
-                  color: '#667eea',
-                  '&:hover': {
-                    borderColor: '#5a67d8',
-                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                  },
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  minWidth: { xs: 'auto', md: '100px' },
-                }}
-              >
-                Clear
-              </Button>
-            </Grid>
-          )}
+          <Grid size={{ xs: 12, sm: 6, md: 1 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => {
+                setStatus('');
+                setUserId('');
+                setDeviceId('');
+                setFromDate('');
+                setToDate('');
+                setPage(1);
+              }}
+              sx={{
+                height: '32px',
+                borderColor: '#667eea',
+                color: '#667eea',
+                '&:hover': {
+                  borderColor: '#5a67d8',
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                },
+                fontSize: '0.7rem',
+                minWidth: { xs: 'auto', md: '80px' },
+              }}
+            >
+              Clear
+            </Button>
+          </Grid>
         </Grid>
       </Paper>
 

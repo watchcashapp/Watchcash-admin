@@ -167,10 +167,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       </Button>
 
       <Typography
-        variant="h4"
+        variant="h5"
         sx={{
-          mb: { xs: 2, sm: 3 },
-          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+          mb: 1.5,
+          fontSize: '1.1rem',
           fontWeight: 700,
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
           WebkitBackgroundClip: 'text',
@@ -183,17 +183,18 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
       <Paper
         sx={{
-          p: { xs: 2, sm: 3, md: 4 },
+          p: 1.5,
           bgcolor: 'background.paper',
           boxShadow: (theme) => theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
           border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 0.1)'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
             : '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: 1.5,
         }}
       >
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Input
               ref={nameRef}
@@ -204,6 +205,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               helperText={errors.name}
               required
               placeholder="e.g., Content Manager"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -214,7 +219,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
               required
               disabled
-              helperText="Code cannot be changed after creation"
+              helperText="Code cannot be changed"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -226,10 +235,14 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               onChange={handleDescriptionChange}
               error={!!errors.description}
               helperText={errors.description}
-              rows={3}
+              rows={2}
               required
               fullWidth
-              placeholder="Describe the role and its responsibilities"
+              placeholder="Describe the role..."
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -245,26 +258,32 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           <Grid size={{ xs: 12 }}>
             <Box
               display="flex"
-              gap={2}
+              gap={1}
               justifyContent="flex-end"
-              mt={2}
+              mt={1}
               flexDirection={{ xs: 'column', sm: 'row' }}
             >
               <Button
                 variant="outlined"
                 onClick={() => router.push('/staff/roles')}
                 disabled={isUpdating}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                sx={{
+                  width: { xs: '100%', sm: 'auto' },
+                  height: '32px',
+                  fontSize: '0.75rem',
+                }}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
-                startIcon={<Save />}
+                startIcon={<Save sx={{ fontSize: '1rem !important' }} />}
                 onClick={handleSubmit}
                 disabled={isUpdating}
                 sx={{
                   width: { xs: '100%', sm: 'auto' },
+                  height: '32px',
+                  fontSize: '0.75rem',
                   background: 'linear-gradient(45deg, #667eea, #764ba2)',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',

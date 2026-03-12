@@ -80,20 +80,21 @@ export default function AuditLogDetailPage() {
 
     return (
         <DashboardLayout>
-            <Box mb={4}>
+            <Box mb={2}>
                 <Button
                     startIcon={<ArrowBack />}
                     onClick={() => router.back()}
-                    sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}
+                    sx={{ mb: 1, color: 'text.secondary', fontWeight: 600, height: '28px', fontSize: '0.75rem' }}
                 >
                     BACK
                 </Button>
-                <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                     <Box>
                         <Typography
-                            variant="h4"
+                            variant="h5"
                             sx={{
                                 fontWeight: 700,
+                                fontSize: '1.1rem',
                                 background: 'linear-gradient(45deg, #667eea, #764ba2)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
@@ -107,49 +108,54 @@ export default function AuditLogDetailPage() {
                     <Chip
                         label={(log?.action || 'Unknown').toLowerCase().replace(/_/g, ' ')}
                         sx={{
+                            height: '22px',
+                            fontSize: '0.7rem',
                             background: 'linear-gradient(45deg, #667eea, #764ba2)',
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'capitalize',
-                            px: 1,
+                            px: 0.5,
                         }}
                     />
                 </Box>
             </Box>
 
-            <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 6 }}>
+            <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, md: 5 }}>
                     <Paper
+                        elevation={0}
                         sx={{
-                            p: 3,
-                            borderRadius: 3,
+                            p: 1.5,
+                            borderRadius: 1.5,
                             height: '100%',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                            border: '1px solid',
+                            borderColor: 'divider',
                         }}
                     >
-                        <Typography variant="h6" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 600 }}>
-                            <History fontSize="small" /> Basic Information
+                        <Typography variant="body2" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <History sx={{ fontSize: '1rem' }} /> Basic Information
                         </Typography>
-                        <Divider sx={{ mb: 2 }} />
+                        <Divider sx={{ mb: 1 }} />
 
                         <TableContainer>
                             <Table size="small">
                                 <TableBody>
-                                    <TableRow sx={{ '& td': { border: 0, py: 1.5 } }}>
-                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '140px' }}>Date</TableCell>
-                                        <TableCell>{new Date(log.createdAt).toLocaleString()}</TableCell>
+                                    <TableRow sx={{ '& td': { border: 0, py: 0.5 } }}>
+                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '100px', fontSize: '0.7rem' }}>Date</TableCell>
+                                        <TableCell sx={{ fontSize: '0.7rem' }}>{new Date(log.createdAt).toLocaleString()}</TableCell>
                                     </TableRow>
-                                    <TableRow sx={{ '& td': { border: 0, py: 1.5 } }}>
-                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Category</TableCell>
-                                        <TableCell>{log.category}</TableCell>
+                                    <TableRow sx={{ '& td': { border: 0, py: 0.5 } }}>
+                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.7rem' }}>Category</TableCell>
+                                        <TableCell sx={{ fontSize: '0.7rem' }}>{log.category}</TableCell>
                                     </TableRow>
-                                    <TableRow sx={{ '& td': { border: 0, py: 1.5 } }}>
-                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Resource Type</TableCell>
-                                        <TableCell>{log.resourceType}</TableCell>
+                                    <TableRow sx={{ '& td': { border: 0, py: 0.5 } }}>
+                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.7rem' }}>Resource</TableCell>
+                                        <TableCell sx={{ fontSize: '0.7rem' }}>{log.resourceType}</TableCell>
                                     </TableRow>
-                                    <TableRow sx={{ '& td': { border: 0, py: 1.5 } }}>
-                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Resource ID</TableCell>
-                                        <TableCell>{log.resourceId || '--'}</TableCell>
+                                    <TableRow sx={{ '& td': { border: 0, py: 0.5 } }}>
+                                        <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.7rem' }}>ID</TableCell>
+                                        <TableCell sx={{ fontSize: '0.7rem', fontFamily: 'monospace' }}>{log.resourceId?.split('-')[0]}...</TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>
@@ -157,56 +163,51 @@ export default function AuditLogDetailPage() {
                     </Paper>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, md: 7 }}>
                     <Paper
+                        elevation={0}
                         sx={{
-                            p: 3,
-                            borderRadius: 3,
+                            p: 1.5,
+                            borderRadius: 1.5,
                             height: '100%',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                            border: '1px solid',
+                            borderColor: 'divider',
                         }}
                     >
-                        <Typography variant="h6" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 600 }}>
-                            <AdminPanelSettings fontSize="small" /> Participants
+                        <Typography variant="body2" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <AdminPanelSettings sx={{ fontSize: '1rem' }} /> Participants
                         </Typography>
-                        <Divider sx={{ mb: 2 }} />
+                        <Divider sx={{ mb: 1 }} />
 
-                        <Box display="flex" flexDirection="column" gap={3}>
-                            <Box display="flex" alignItems="flex-start" gap={2}>
-                                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(102, 126, 234, 0.1)', color: 'primary.main' }}>
-                                    <AdminPanelSettings />
+                        <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(102, 126, 234, 0.1)', color: 'primary.main', display: 'flex' }}>
+                                    <AdminPanelSettings sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Admin / Performing User</Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{log.admin?.name || 'Unknown'}</Typography>
-                                    <Typography variant="body2" color="text.secondary">{log.admin?.email || 'N/A'}</Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.6rem', display: 'block', lineHeight: 1 }}>Admin</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{log.admin?.name || 'Unknown'}</Typography>
                                 </Box>
                             </Box>
 
-                            <Box display="flex" alignItems="flex-start" gap={2}>
-                                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(118, 75, 162, 0.1)', color: '#764ba2' }}>
-                                    <Person />
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(118, 75, 162, 0.1)', color: '#764ba2', display: 'flex' }}>
+                                    <Person sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Target User</Typography>
-                                    {log.targetUser ? (
-                                        <>
-                                            <Typography variant="body1" sx={{ fontWeight: 600 }}>{log.targetUser.name}</Typography>
-                                            <Typography variant="body2" color="text.secondary">{log.targetUser.email}</Typography>
-                                        </>
-                                    ) : (
-                                        <Typography variant="body1" color="text.secondary">System / No Target</Typography>
-                                    )}
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.6rem', display: 'block', lineHeight: 1 }}>Target</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>{log.targetUser?.name || 'System'}</Typography>
                                 </Box>
                             </Box>
 
-                            <Box display="flex" alignItems="flex-start" gap={2}>
-                                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(0, 0, 0, 0.05)', color: 'text.secondary' }}>
-                                    <Language />
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(0, 0, 0, 0.05)', color: 'text.secondary', display: 'flex' }}>
+                                    <Language sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Connection Info</Typography>
-                                    <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>{log.ip}</Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.6rem', display: 'block', lineHeight: 1 }}>IP Address</Typography>
+                                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{log.ip}</Typography>
                                 </Box>
                             </Box>
                         </Box>
@@ -215,27 +216,30 @@ export default function AuditLogDetailPage() {
 
                 <Grid size={{ xs: 12 }}>
                     <Paper
+                        elevation={0}
                         sx={{
-                            p: 3,
-                            borderRadius: 3,
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                            p: 1.5,
+                            borderRadius: 1.5,
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                            border: '1px solid',
+                            borderColor: 'divider',
                         }}
                     >
-                        <Typography variant="h6" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 600 }}>
-                            <Description fontSize="small" /> Metadata
+                        <Typography variant="body2" gutterBottom display="flex" alignItems="center" gap={1} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <Description sx={{ fontSize: '1rem' }} /> Metadata
                         </Typography>
-                        <Divider sx={{ mb: 2 }} />
+                        <Divider sx={{ mb: 1 }} />
 
                         {Object.keys(log?.metadata || {}).length > 0 ? (
                             <TableContainer>
                                 <Table size="small">
                                     <TableBody>
                                         {Object.entries(log.metadata).map(([key, value]) => (
-                                            <TableRow key={key} sx={{ '& td': { py: 1.5 } }}>
-                                                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '200px', verticalAlign: 'top' }}>
+                                            <TableRow key={key} sx={{ '& td': { py: 0.5, borderBottom: '1px solid rgba(0,0,0,0.04)' } }}>
+                                                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', width: '150px', verticalAlign: 'top', fontSize: '0.7rem' }}>
                                                     {key.replace(/_/g, ' ')}
                                                 </TableCell>
-                                                <TableCell sx={{ fontFamily: typeof value === 'object' ? 'monospace' : 'inherit' }}>
+                                                <TableCell sx={{ fontSize: '0.7rem', color: 'text.primary' }}>
                                                     {renderMetadataValue(value)}
                                                 </TableCell>
                                             </TableRow>
@@ -244,8 +248,8 @@ export default function AuditLogDetailPage() {
                                 </Table>
                             </TableContainer>
                         ) : (
-                            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-                                No additional metadata for this logs entry.
+                            <Typography variant="body2" color="text.secondary" sx={{ py: 1, textAlign: 'center', fontSize: '0.75rem' }}>
+                                No metadata entry.
                             </Typography>
                         )}
                     </Paper>

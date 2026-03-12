@@ -193,14 +193,15 @@ export default function RbacRulesPage() {
       <DashboardLayout>
         <Box>
           <Typography
-            variant="h4"
+            variant="h5"
             sx={{
               fontWeight: 700,
+              fontSize: '1.1rem',
               background: "linear-gradient(45deg, #667eea, #764ba2)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              mb: 3,
+              mb: 1,
             }}
           >
             RBAC Rules
@@ -223,11 +224,12 @@ export default function RbacRulesPage() {
   return (
     <DashboardLayout>
       <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography
-            variant="h4"
+            variant="h5"
             sx={{
               fontWeight: 700,
+              fontSize: '1.1rem',
               background: "linear-gradient(45deg, #667eea, #764ba2)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -238,9 +240,11 @@ export default function RbacRulesPage() {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<Add />}
+            startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
             onClick={() => handleOpenDialog()}
             sx={{
+              height: '32px',
+              fontSize: '0.75rem',
               background: "linear-gradient(45deg, #667eea, #764ba2)",
               boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
               "&:hover": {

@@ -7,10 +7,11 @@ import {
   Typography,
   Button,
   TextField,
+  InputAdornment,
   CircularProgress,
   IconButton,
 } from '@mui/material';
-import { Add, NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { Add, NavigateBefore, NavigateNext, Search } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/shared';
 import {
@@ -83,63 +84,83 @@ export default function RolesPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Typography
-          variant="h4"
+          variant="h5"
           sx={{
             fontWeight: 700,
+            fontSize: '1.1rem',
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}
         >
-          Roles Management
+          User Roles
         </Typography>
-        {hasPermission('rbac:create') && (
+        {hasPermission('roles:create') && (
           <Button
             variant="contained"
-            startIcon={<Add />}
+            startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
             onClick={() => router.push('/staff/roles/add')}
             sx={{
-              minWidth: { xs: 'auto', sm: 120 },
-              px: { xs: 2, sm: 3 },
+              height: '30px',
+              fontSize: '0.75rem',
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
               '&:hover': {
-                background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
               },
             }}
           >
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>ADD ROLE</Box>
-            <Box sx={{ display: { xs: 'block', sm: 'none' } }}>ADD</Box>
+            ADD ROLE
           </Button>
         )}
       </Box>
 
-      {/* Search Filter */}
-      <Paper
-        sx={{
-          p: 2.5,
-          mb: 3,
-          bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-        }}
-      >
+      <Paper sx={{
+        p: 1.5,
+        mb: 2,
+        borderRadius: 2,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        border: '1px solid',
+        borderColor: 'divider',
+      }}>
         <TextField
-          label="Search"
+          placeholder="Search roles..."
+          variant="outlined"
+          size="small"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
           }}
-          size="small"
-          sx={{ minWidth: 300 }}
-          placeholder="Search by role name or code"
+          slotProps={{
+            input: {
+              sx: { fontSize: '0.75rem', height: '32px' },
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            },
+            inputLabel: {
+              sx: { fontSize: '0.75rem' },
+              shrink: true
+            }
+          }}
+          sx={{
+            width: { xs: '100%', sm: 300 },
+            '& .MuiInputLabel-root': {
+              transform: 'translate(14px, -6px) scale(0.75)',
+              bgcolor: 'background.paper',
+              px: 0.5,
+            },
+            '& .MuiInputLabel-shrink': {
+              transform: 'translate(14px, -6px) scale(0.75)',
+            },
+          }}
         />
       </Paper>
 

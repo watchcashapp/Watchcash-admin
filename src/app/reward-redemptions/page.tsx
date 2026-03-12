@@ -12,22 +12,19 @@ import {
   Chip,
   IconButton,
   Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Select,
   Drawer,
   useTheme,
   MenuItem,
+  Alert,
 } from '@mui/material';
 import {
   Search,
-  Visibility,
   NavigateBefore,
   NavigateNext,
+  FileDownload,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
@@ -58,7 +55,6 @@ const PREDEFINED_REASONS = [
 export default function RewardRedemptionsPage() {
   const { hasPermission } = usePermissions();
   const router = useRouter();
-  const theme = useTheme();
   const { showSuccess, showError } = useToast();
 
   const [search, setSearch] = useState('');
@@ -96,7 +92,7 @@ export default function RewardRedemptionsPage() {
     setPage(1);
   }, [search, status, fromDate, toDate]);
 
-  const { data: response, isLoading } = useGetRewardRedemptionsQuery({
+  const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({
     search,
     status,
     from: fromDate,
@@ -137,6 +133,41 @@ export default function RewardRedemptionsPage() {
       return;
     }
     router.push(`/reward-redemptions/${redemption.id}`);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (status) queryParams.append("status", status);
+      if (fromDate) queryParams.append("from", fromDate);
+      if (toDate) queryParams.append("to", toDate);
+
+      const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `reward_redemptions_export_${new Date().getTime()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      showSuccess('Export started successfully');
+    } catch (err) {
+      showError('Failed to export reward redemptions');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -199,7 +230,7 @@ export default function RewardRedemptionsPage() {
       align: 'right',
       minWidth: 100,
       format: (value: number) => (
-        <Typography sx={{ fontWeight: 600, color: '#667eea' }}>
+        <Typography sx={{ fontWeight: 600, color: '#667eea', fontSize: '0.8rem' }}>
           {isMounted ? value?.toLocaleString() : ''}
         </Typography>
       ),
@@ -210,7 +241,7 @@ export default function RewardRedemptionsPage() {
       align: 'right',
       minWidth: 100,
       format: (value: number | undefined, row: RewardRedemption) => (
-        <Typography sx={{ fontWeight: 600 }}>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
           {value ? `${row.rewardCurrency} ${value}` : '-'}
         </Typography>
       ),
@@ -228,6 +259,7 @@ export default function RewardRedemptionsPage() {
             background: getStatusColor(value),
             color: 'white',
             fontWeight: 600,
+            fontSize: '0.7rem'
           }}
         />
       ),
@@ -246,24 +278,14 @@ export default function RewardRedemptionsPage() {
     },
   ];
 
-  const filteredData = redemptions.filter((redemption: RewardRedemption) => {
-    const matchesSearch = !search ||
-      redemption.id.toLowerCase().includes(search.toLowerCase()) ||
-      redemption.userId.toLowerCase().includes(search.toLowerCase());
-
-    const matchesStatus = !status || redemption.status === status;
-
-    return matchesSearch && matchesStatus;
-  });
-
   return (
     <DashboardLayout>
       <Box sx={{ width: '100%', overflow: 'hidden' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography
-            variant="h4"
             sx={{
               fontWeight: 700,
+              fontSize: '1.1rem',
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -274,86 +296,92 @@ export default function RewardRedemptionsPage() {
           </Typography>
           {hasPermission('reward_redemptions:list') && (
             <Button
-              variant="outlined"
-              onClick={() => {
-                const queryParams = new URLSearchParams();
-                if (search) queryParams.append("search", search);
-                if (status) queryParams.append("status", status);
-                if (fromDate) queryParams.append("from", fromDate);
-                if (toDate) queryParams.append("to", toDate);
-
-                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-                const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
-
-                fetch(url, {
-                  headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'ngrok-skip-browser-warning': 'true'
-                  }
-                })
-                  .then(response => response.blob())
-                  .then(blob => {
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `reward_redemptions_export_${new Date().getTime()}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(downloadUrl);
-                  })
-                  .catch(() => { });
-              }}
+              variant="contained"
+              size="small"
+              startIcon={<FileDownload sx={{ fontSize: '1rem !important' }} />}
+              onClick={handleExportCSV}
               sx={{
-                borderColor: '#667eea',
-                color: '#667eea',
+                height: '30px',
+                fontSize: '0.75rem',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                px: 2,
                 '&:hover': {
-                  borderColor: '#5a67d8',
-                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                 },
               }}
             >
-              Export CSV
+              EXPORT
             </Button>
           )}
         </Box>
 
         {/* Filters */}
-        <Box
+        <Paper
           sx={{
-            mb: 3,
-            p: { xs: 1.5, sm: 2 },
+            p: 1.5,
+            mb: 2,
             bgcolor: 'background.paper',
-            backdropFilter: 'blur(20px)',
             boxShadow: (theme) => theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
             border: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(0, 0, 0, 0.05)',
-            borderRadius: 3,
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
           }}
         >
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, md: 4 }}>
+          <Grid container spacing={1.5} alignItems="center">
+            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Search by ID or user ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                type="date"
+                label="From"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
                 slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search sx={{ color: '#667eea', fontSize: '1.25rem' }} />
-                      </InputAdornment>
-                    ),
-                  }
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                label="To"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <TextField
                 select
                 fullWidth
@@ -361,97 +389,132 @@ export default function RewardRedemptionsPage() {
                 label="Status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
+                slotProps={{
+                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                  '& .MuiSelect-select': {
+                    py: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }
+                }}
               >
-                <MenuItem value="">All Status</MenuItem>
-                <MenuItem value="PENDING">Pending</MenuItem>
-                <MenuItem value="APPROVED">Approved</MenuItem>
-                <MenuItem value="REJECTED">Rejected</MenuItem>
-                <MenuItem value="PROCESSED">Processed</MenuItem>
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
+                <MenuItem value="PENDING" sx={{ fontSize: '0.75rem' }}>Pending</MenuItem>
+                <MenuItem value="APPROVED" sx={{ fontSize: '0.75rem' }}>Approved</MenuItem>
+                <MenuItem value="REJECTED" sx={{ fontSize: '0.75rem' }}>Rejected</MenuItem>
+                <MenuItem value="PROCESSED" sx={{ fontSize: '0.75rem' }}>Processed</MenuItem>
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <TextField
                 fullWidth
                 size="small"
-                label="From Date"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                label="Search"
+                placeholder="ID or User ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                slotProps={{
+                  input: {
+                    sx: { fontSize: '0.75rem', height: '32px' },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
-              <TextField
+            <Grid size={{ xs: 12, md: 1 }}>
+              <Button
                 fullWidth
-                size="small"
-                label="To Date"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
+                variant="outlined"
+                onClick={() => {
+                  setSearch('');
+                  setStatus('');
+                  setFromDate('');
+                  setToDate('');
+                }}
+                disabled={!hasFilters}
+                sx={{
+                  height: '32px',
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  fontSize: '0.7rem',
+                  '&:hover': {
+                    borderColor: '#5a67d8',
+                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  },
+                }}
+              >
+                Clear
+              </Button>
             </Grid>
-            {hasFilters && (
-              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => {
-                    setSearch('');
-                    setStatus('');
-                    setFromDate('');
-                    setToDate('');
-                  }}
-                  sx={{
-                    height: '40px',
-                    borderColor: '#667eea',
-                    color: '#667eea',
-                  }}
-                >
-                  Clear
-                </Button>
-              </Grid>
-            )}
           </Grid>
-        </Box>
+        </Paper>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
+            Failed to load redemptions. Please try again.
+          </Alert>
+        )}
 
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={redemptions}
+          isLoading={isLoading}
           getRowId={(row) => row.id}
           emptyMessage="No reward redemptions found. Try adjusting your filters."
           onView={hasPermission('reward_redemptions:view') ? handleView : undefined}
-          onMarkReview={hasPermission('reward_redemptions:mark_reviewed') ? handleReviewClick : undefined}
-          isLoading={isLoading}
-        />
-
-        {/* Pagination */}
-        {pagination && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Showing {redemptions.length} of {pagination.total} results
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <IconButton
-                size="small"
-                onClick={() => setPage(page - 1)}
-                disabled={page <= 1}
-              >
-                <NavigateBefore />
-              </IconButton>
-              <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                {page} / {calculatedTotalPages || 1}
+          renderPagination={() => pagination ? (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                Showing {redemptions.length} of {pagination.total} results
               </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setPage(page + 1)}
-                disabled={page >= (calculatedTotalPages || 1)}
-              >
-                <NavigateNext />
-              </IconButton>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page <= 1}
+                >
+                  <NavigateBefore fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', fontSize: '0.75rem' }}>
+                  {page} / {calculatedTotalPages || 1}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page >= calculatedTotalPages}
+                >
+                  <NavigateNext fontSize="small" />
+                </IconButton>
+              </Box>
             </Box>
-          </Box>
-        )}
+          ) : null}
+        />
 
         {/* Review Drawer */}
         <Drawer
@@ -472,7 +535,7 @@ export default function RewardRedemptionsPage() {
             </Box>
             <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
               <Box mb={3}>
-                <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} InputLabelProps={{ shrink: true, required: true }}>
+                <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} slotProps={{ inputLabel: { shrink: true, required: true } }}>
                   <MenuItem value="approve">Approve</MenuItem>
                   <MenuItem value="reject">Reject</MenuItem>
                   <MenuItem value="hold">Hold</MenuItem>
@@ -495,7 +558,7 @@ export default function RewardRedemptionsPage() {
                 </Box>
               </Box>
               <Box mb={3}>
-                <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." InputLabelProps={{ shrink: true }} />
+                <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." slotProps={{ inputLabel: { shrink: true } }} />
               </Box>
             </Box>
             <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">

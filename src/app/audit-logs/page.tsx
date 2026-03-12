@@ -8,21 +8,21 @@ import {
     Grid,
     TextField,
     InputAdornment,
+    Button,
 } from '@mui/material';
-import { Search, NavigateBefore, NavigateNext } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
-
-import { useRouter } from 'next/navigation';
-
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { config } from '@/config/env';
+import { Search, NavigateBefore, NavigateNext, FileDownload } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
+import { useRouter } from 'next/navigation';
 
 export default function AuditLogsPage() {
     const router = useRouter();
     const { hasPermission } = usePermissions();
-    const { showError } = useToast();
+    const { showSuccess, showError } = useToast();
     const [page, setPage] = useState(1);
     const rowsPerPage = 6;
     const [isMounted, setIsMounted] = useState(false);
@@ -58,6 +58,41 @@ export default function AuditLogsPage() {
     const { data, isLoading } = useGetAuditLogsQuery(queryArgs, {
         refetchOnMountOrArgChange: true,
     });
+
+    const handleExportCSV = async () => {
+        try {
+            const queryParams = new URLSearchParams();
+            if (actionSearch) queryParams.append("action", actionSearch);
+            if (targetUserSearch) queryParams.append("targetUser", targetUserSearch);
+            if (fromDate) queryParams.append("from", fromDate);
+            if (toDate) queryParams.append("to", toDate);
+
+            const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+            const url = `${config.apiUrl}/admin/audit-logs/export?${queryParams.toString()}`;
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            });
+
+            if (!response.ok) throw new Error('Export failed');
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `audit_logs_export_${new Date().getTime()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+            showSuccess('Export started successfully');
+        } catch (err) {
+            showError('Failed to export audit logs');
+        }
+    };
 
     const columns = [
         {
@@ -157,11 +192,11 @@ export default function AuditLogsPage() {
 
     return (
         <DashboardLayout>
-            <Box mb={4}>
+            <Box mb={1} display="flex" justifyContent="space-between" alignItems="center">
                 <Typography
-                    variant="h4"
                     sx={{
                         fontWeight: 700,
+                        fontSize: '1.1rem',
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -170,69 +205,119 @@ export default function AuditLogsPage() {
                 >
                     Audit Logs
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-                    View administrative actions across the system.
-                </Typography>
+                <Box display="flex" gap={1}>
+                    {hasPermission('admin_audit_logs:export') && (
+                        <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<FileDownload sx={{ fontSize: '1rem !important' }} />}
+                            onClick={handleExportCSV}
+                            sx={{
+                                height: '30px',
+                                fontSize: '0.75rem',
+                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                                px: 2,
+                                '&:hover': {
+                                    background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                                },
+                            }}
+                        >
+                            EXPORT
+                        </Button>
+                    )}
+                </Box>
             </Box>
 
             {/* Filters */}
             <Paper
                 sx={{
-                    p: 2.5,
-                    mb: 3,
+                    p: 1.5,
+                    mb: 2,
                     bgcolor: 'background.paper',
-                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                    boxShadow: (theme: any) => theme.palette.mode === 'dark'
                         ? '0 4px 12px rgba(0, 0, 0, 0.3)'
                         : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                    border: (theme) => theme.palette.mode === 'dark'
+                    border: (theme: any) => theme.palette.mode === 'dark'
                         ? '1px solid rgba(255, 255, 255, 0.1)'
                         : '1px solid rgba(0, 0, 0, 0.08)',
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                 }}
             >
-                <Grid container spacing={2} alignItems="center">
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid container spacing={1.5} alignItems="center">
+                    <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
                         <TextField
                             fullWidth
                             size="small"
-                            placeholder="Filter by Action..."
+                            placeholder="Action..."
+                            label="Action"
                             value={actionSearch}
                             onChange={(e) => {
                                 setActionSearch(e.target.value);
                                 setPage(1);
                             }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Search fontSize="small" />
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { fontSize: '0.75rem', height: '32px' }
+                                },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
                             }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
                         <TextField
                             fullWidth
                             size="small"
-                            placeholder="Filter by Target User..."
+                            placeholder="Target User..."
+                            label="Target User"
                             value={targetUserSearch}
                             onChange={(e) => {
                                 setTargetUserSearch(e.target.value);
                                 setPage(1);
                             }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Search fontSize="small" />
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { fontSize: '0.75rem', height: '32px' }
+                                },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
                             }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
                         <TextField
-                            label="From Date"
                             type="date"
+                            label="From"
                             value={fromDate}
                             onChange={(e) => {
                                 setFromDate(e.target.value);
@@ -240,13 +325,26 @@ export default function AuditLogsPage() {
                             }}
                             size="small"
                             fullWidth
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{
+                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
+                            }}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
                         <TextField
-                            label="To Date"
                             type="date"
+                            label="To"
                             value={toDate}
                             onChange={(e) => {
                                 setToDate(e.target.value);
@@ -254,8 +352,48 @@ export default function AuditLogsPage() {
                             }}
                             size="small"
                             fullWidth
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{
+                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
+                            }}
                         />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 1 }}>
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                                setActionSearch('');
+                                setTargetUserSearch('');
+                                setFromDate('');
+                                setToDate('');
+                                setPage(1);
+                            }}
+                            disabled={!actionSearch && !targetUserSearch && !fromDate && !toDate}
+                            sx={{
+                                height: '32px',
+                                fontSize: '0.7rem',
+                                borderColor: '#667eea',
+                                color: '#667eea',
+                                '&:hover': {
+                                    borderColor: '#5a67d8',
+                                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                                },
+                            }}
+                        >
+                            Clear
+                        </Button>
                     </Grid>
                 </Grid>
             </Paper>

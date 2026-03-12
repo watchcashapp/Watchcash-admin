@@ -40,7 +40,7 @@ function TabPanel(props: TabPanelProps) {
       style={{ minHeight: 'auto' }}
       {...other}
     >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ pt: 1.5 }}>{children}</Box>}
     </div>
   );
 }
@@ -254,32 +254,36 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <DashboardLayout>
       <Box>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => router.push('/users')}
-          sx={{
-            mb: 2,
-            '&:hover': {
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
-            },
-          }}
-        >
-          Back to User Management
-        </Button>
-
-        <Typography
-          variant="h4"
-          sx={{
-            mb: 3,
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          User Details
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Button
+              startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
+              onClick={() => router.push('/users')}
+              sx={{
+                height: '28px',
+                fontSize: '0.7rem',
+                px: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                },
+              }}
+            >
+              Back
+            </Button>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              User Details
+            </Typography>
+          </Box>
+        </Box>
 
         <Paper
           sx={{
@@ -297,13 +301,16 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             value={tabValue}
             onChange={handleTabChange}
             sx={{
+              minHeight: '32px',
               borderBottom: 1,
               borderColor: 'divider',
-              px: 2,
+              px: 1,
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                fontSize: '1rem',
+                fontSize: '0.85rem',
+                minHeight: '32px',
+                py: 0.5,
               },
               '& .Mui-selected': {
                 color: '#667eea',
@@ -323,8 +330,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
+            <Box sx={{ p: 1.5 }}>
+              <Grid container spacing={1.5}>
                 {/* User Information */}
                 <Grid size={{ xs: 12 }}>
                   <Card
@@ -337,7 +344,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     }}
                   >
                     <CardContent>
-                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                         User Information
                       </Typography>
                       <Grid container spacing={2}>
@@ -414,7 +421,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ p: 1.5 }}>
               {/* Wallet Balance */}
               {walletData && (
                 <Card
@@ -525,7 +532,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ p: 1.5 }}>
               {loadingHistory ? (
                 <Box display="flex" justifyContent="center" alignItems="center" style={{ minHeight: '200px' }}>
                   <CircularProgress />

@@ -145,34 +145,35 @@ export default function SettingsPage() {
         <DashboardLayout>
             <Box sx={{ width: '100%', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 <Typography
-                    variant="h4"
-                    gutterBottom
                     sx={{
                         fontWeight: 700,
+                        fontSize: '1.1rem',
+                        mb: 2,
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
-                        mb: 4,
                     }}
                 >
-                    Settings
+                    Meta Settings
                 </Typography>
 
                 <Paper
                     elevation={0}
                     sx={{
-                        p: { xs: 2, md: 5 },
-                        borderRadius: 4,
-                        bgcolor: 'background.paper',
-                        backdropFilter: 'blur(20px)',
-                        boxShadow: (theme) => theme.palette.mode === 'dark'
-                            ? '0 12px 48px rgba(0, 0, 0, 0.6)'
-                            : '0 12px 48px rgba(0, 0, 0, 0.08)',
-                        border: (theme) => theme.palette.mode === 'dark'
-                            ? '1px solid rgba(255, 255, 255, 0.1)'
-                            : '1px solid rgba(0, 0, 0, 0.05)',
-                        transition: 'all 0.3s ease-in-out',
+                        p: 1.5,
+                        background: (theme) =>
+                            theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.6)' : '#ffffff',
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: (theme) =>
+                            theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.1)'
+                                : 'rgba(102, 126, 234, 0.1)',
+                        boxShadow: (theme) =>
+                            theme.palette.mode === 'dark'
+                                ? '0 4px 20px rgba(0, 0, 0, 0.4)'
+                                : '0 4px 20px rgba(102, 126, 234, 0.05)',
                         flexGrow: 1,
                         display: 'flex',
                         flexDirection: 'column',
@@ -223,6 +224,10 @@ export default function SettingsPage() {
                                         size="small"
                                         disabled={isUpdating || isExisting}
                                         required
+                                        slotProps={{
+                                            input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                                        }}
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
@@ -246,7 +251,19 @@ export default function SettingsPage() {
                                         size="small"
                                         disabled={isDisabled}
                                         required
+                                        slotProps={{
+                                            input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                                        }}
                                         sx={{
+                                            '& .MuiInputLabel-root': {
+                                                transform: 'translate(14px, -6px) scale(0.75)',
+                                                bgcolor: 'background.paper',
+                                                px: 0.5,
+                                            },
+                                            '& .MuiInputLabel-shrink': {
+                                                transform: 'translate(14px, -6px) scale(0.75)',
+                                            },
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
                                                     borderColor: '#667eea',
@@ -256,7 +273,7 @@ export default function SettingsPage() {
                                                 },
                                             },
                                             '& .MuiInputBase-input.Mui-disabled': {
-                                                WebkitTextFillColor: (theme) => theme.palette.text.primary,
+                                                WebkitTextFillColor: (theme: any) => theme.palette.text.primary,
                                                 opacity: 0.7,
                                             }
                                         }}
@@ -312,16 +329,14 @@ export default function SettingsPage() {
                             onClick={handleSubmit}
                             disabled={isUpdating}
                             sx={{
+                                height: '32px',
+                                fontSize: '0.75rem',
+                                px: 3,
                                 background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                                px: 4,
-                                py: 1,
-                                fontSize: '1rem',
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                boxShadow: '0 4px 14px 0 rgba(102, 126, 234, 0.39)',
+                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                                 '&:hover': {
-                                    background: 'linear-gradient(45deg, #5a67d8, #6b46c1)',
-                                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.23)',
+                                    background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+                                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
                                 },
                                 '&.Mui-disabled': {
                                     background: 'rgba(102, 126, 234, 0.5)',
@@ -329,7 +344,7 @@ export default function SettingsPage() {
                                 }
                             }}
                         >
-                            {isUpdating ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit'}
+                            {isUpdating ? <CircularProgress size={16} color="inherit" /> : 'Submit'}
                         </Button>
                     </Box>
                 </Paper>

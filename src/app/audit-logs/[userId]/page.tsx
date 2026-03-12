@@ -137,18 +137,24 @@ export default function AuditLogsUserPage() {
 
     return (
         <DashboardLayout>
-            <Box mb={4}>
+            <Box mb={1.5}>
                 <Button
                     startIcon={<ArrowBack />}
                     onClick={() => router.push('/audit-logs')}
-                    sx={{ mb: 2, color: 'text.secondary' }}
+                    sx={{
+                        mb: 1,
+                        color: 'text.secondary',
+                        height: '28px',
+                        fontSize: '0.7rem',
+                        '& .MuiButton-startIcon': { mr: 0.5, '& svg': { fontSize: '1rem' } }
+                    }}
                 >
                     BACK TO AUDIT LOGS
                 </Button>
                 <Typography
-                    variant="h4"
                     sx={{
                         fontWeight: 700,
+                        fontSize: '1.1rem',
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -157,16 +163,16 @@ export default function AuditLogsUserPage() {
                 >
                     User Audit Logs
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-                    View administrative actions targeted at User ID: <strong>{userId}</strong>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                    Actions for User ID: <strong>{userId}</strong>
                 </Typography>
             </Box>
 
             {/* Filters */}
             <Paper
                 sx={{
-                    p: 2.5,
-                    mb: 3,
+                    p: 1.5,
+                    mb: 2,
                     bgcolor: 'background.paper',
                     boxShadow: (theme) => theme.palette.mode === 'dark'
                         ? '0 4px 12px rgba(0, 0, 0, 0.3)'
@@ -174,10 +180,10 @@ export default function AuditLogsUserPage() {
                     border: (theme) => theme.palette.mode === 'dark'
                         ? '1px solid rgba(255, 255, 255, 0.1)'
                         : '1px solid rgba(0, 0, 0, 0.08)',
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                 }}
             >
-                <Grid container spacing={2} alignItems="center">
+                <Grid container spacing={1.5} alignItems="center">
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <TextField
                             fullWidth
@@ -188,18 +194,32 @@ export default function AuditLogsUserPage() {
                                 setActionSearch(e.target.value);
                                 setPage(1);
                             }}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Search fontSize="small" />
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { fontSize: '0.75rem', height: '32px' }
+                                },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
                             }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <TextField
-                            label="From Date"
+                            label="From"
                             type="date"
                             value={fromDate}
                             onChange={(e) => {
@@ -208,12 +228,25 @@ export default function AuditLogsUserPage() {
                             }}
                             size="small"
                             fullWidth
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{
+                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
+                            }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <TextField
-                            label="To Date"
+                            label="To"
                             type="date"
                             value={toDate}
                             onChange={(e) => {
@@ -222,7 +255,20 @@ export default function AuditLogsUserPage() {
                             }}
                             size="small"
                             fullWidth
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{
+                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                            }}
+                            sx={{
+                                '& .MuiInputLabel-root': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                    bgcolor: 'background.paper',
+                                    px: 0.5,
+                                },
+                                '& .MuiInputLabel-shrink': {
+                                    transform: 'translate(14px, -6px) scale(0.75)',
+                                }
+                            }}
                         />
                     </Grid>
                 </Grid>
