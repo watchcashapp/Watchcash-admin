@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -14,15 +14,16 @@ import { useRouter } from 'next/navigation';
 import { Input, Textarea, GroupedPermissionsSelect, useToast } from '@/components/shared';
 import { useCreateRoleMutation } from '@/store/api/rbacApi';
 import { useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function AddRolePage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  
+
   // Refs for form fields
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -37,6 +38,18 @@ export default function AddRolePage() {
 
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
+  const { hasPermission } = usePermissions();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('rbac:manage_roles')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   // Auto-generate code from name
   const generateCode = (name: string): string => {
@@ -70,22 +83,22 @@ export default function AddRolePage() {
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Role name is required';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     setErrors(newErrors);
     return { isValid: Object.keys(newErrors).length === 0, errors: newErrors };
   };
 
   const handleSubmit = async () => {
     const validation = validateForm();
-    
+
     if (!validation.isValid) {
       // Scroll to first error field
       if (validation.errors.name && nameRef.current) {
@@ -124,7 +137,7 @@ export default function AddRolePage() {
       <Button
         startIcon={<ArrowBack />}
         onClick={() => router.push('/staff/roles')}
-        sx={{ 
+        sx={{
           mb: { xs: 2, sm: 3 },
           '&:hover': {
             backgroundColor: 'rgba(102, 126, 234, 0.08)',
@@ -134,9 +147,9 @@ export default function AddRolePage() {
         Back to Roles
       </Button>
 
-      <Typography 
-        variant="h4" 
-        sx={{ 
+      <Typography
+        variant="h4"
+        sx={{
           mb: { xs: 2, sm: 3 },
           fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
           fontWeight: 700,
@@ -153,8 +166,8 @@ export default function AddRolePage() {
         sx={{
           p: { xs: 2, sm: 3, md: 4 },
           bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark' 
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
           border: (theme) => theme.palette.mode === 'dark'
             ? '1px solid rgba(255, 255, 255, 0.1)'
@@ -211,10 +224,10 @@ export default function AddRolePage() {
           </Grid>
 
           <Grid size={{ xs: 12 }}>
-            <Box 
-              display="flex" 
-              gap={2} 
-              justifyContent="flex-end" 
+            <Box
+              display="flex"
+              gap={2}
+              justifyContent="flex-end"
               mt={2}
               flexDirection={{ xs: 'column', sm: 'row' }}
             >

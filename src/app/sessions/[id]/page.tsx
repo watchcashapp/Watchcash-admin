@@ -289,16 +289,18 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Button
           startIcon={<ArrowBack />}
           onClick={() => router.push('/sessions')}
           sx={{
+            height: '28px',
+            fontSize: '0.75rem',
             '&:hover': {
               backgroundColor: 'rgba(102, 126, 234, 0.08)',
             },
             '& .MuiButton-startIcon': {
-              mr: { xs: 0, sm: 1 },
+              mr: { xs: 0, sm: 0.5 },
               ml: { xs: 0, sm: -0.5 }
             }
           }}
@@ -310,19 +312,21 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
         {hasPermission('sessions:review') && (
           <Button
             variant="contained"
-            startIcon={<RateReview />}
+            startIcon={<RateReview sx={{ fontSize: '1rem !important' }} />}
             onClick={() => setReviewDialogOpen(true)}
             sx={{
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-              minWidth: { xs: 'auto', sm: '160px' },
-              px: { xs: 2, sm: 3 },
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              minWidth: { xs: 'auto', sm: '120px' },
+              px: { xs: 1.5, sm: 2 },
+              height: '28px',
+              fontSize: '0.75rem',
               '&:hover': {
                 background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
               },
               '& .MuiButton-startIcon': {
-                mr: { xs: 0, sm: 1 },
+                mr: { xs: 0, sm: 0.5 },
                 ml: { xs: 0, sm: -0.5 }
               }
             }}
@@ -335,10 +339,11 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       </Box>
 
       <Typography
-        variant="h4"
+        variant="h5"
         sx={{
-          mb: 3,
+          mb: 1.5,
           fontWeight: 700,
+          fontSize: '1.1rem',
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -348,7 +353,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
         Session Details
       </Typography>
 
-      <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={3}>
+      <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={2}>
         <Paper
           sx={{
             flex: 1,
@@ -372,11 +377,17 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               flexShrink: 0,
               borderBottom: 1,
               borderColor: 'divider',
-              px: 4,
+              px: 2,
+              minHeight: '36px',
+              '& .MuiTabs-flexContainer': {
+                height: '36px',
+              },
               '& .MuiTab-root': {
                 textTransform: 'none',
-                fontSize: '1rem',
+                fontSize: '0.8rem',
                 fontWeight: 600,
+                minHeight: '36px',
+                py: 0.5,
               },
             }}
           >
@@ -388,40 +399,41 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           <Box sx={{ flexGrow: 1, minHeight: 0 }}>
 
             <TabPanel value={activeTab} index={0}>
-              <Box sx={{ p: 4 }}>
+              <Box sx={{ p: 2 }}>
                 {/* Status Badge */}
-                <Box display="flex" alignItems="center" gap={2} mb={3}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Box display="flex" alignItems="center" gap={1} mb={1}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Status:
                   </Typography>
                   <Chip
                     label={session.status}
                     color={getStatusColor(session.status)}
-                    sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.875rem' }}
+                    sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.65rem', height: '20px' }}
                   />
                 </Box>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 1 }} />
 
                 {/* Session Information */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem' }}>
                   Session Information
                 </Typography>
-                <Grid container spacing={3} mb={4}>
+                <Grid container spacing={1} mb={1}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Session ID
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
                           fontFamily: 'monospace',
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
-                          fontSize: '0.875rem',
+                          borderRadius: 0.5,
+                          fontSize: '0.7rem',
                         }}
                       >
                         {session.session_id}
@@ -430,19 +442,20 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Device ID
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
                           fontFamily: 'monospace',
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
-                          fontSize: '0.875rem',
+                          borderRadius: 0.5,
+                          fontSize: '0.7rem',
                         }}
                       >
                         {session.device_id}
@@ -451,68 +464,43 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Duration
                       </Typography>
-                      <Typography variant="body1" sx={{ mt: 0.5, fontWeight: 600 }}>
+                      <Typography variant="body2" sx={{ mt: 0.1, fontWeight: 600, fontSize: '0.75rem' }}>
                         {formatDuration(session.duration_seconds)}
                       </Typography>
                     </Box>
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Created At
                       </Typography>
-                      <Typography variant="body1" sx={{ mt: 0.5 }}>
+                      <Typography variant="body2" sx={{ mt: 0.1, fontSize: '0.75rem' }}>
                         {isMounted ? new Date(session.created_at).toLocaleString() : ''}
                       </Typography>
                     </Box>
                   </Grid>
 
-                  {session.metadata?.start_time && (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Box mb={2}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                          Start Time
-                        </Typography>
-                        <Typography variant="body1" sx={{ mt: 0.5 }}>
-                          {isMounted ? new Date(session.metadata.start_time).toLocaleString() : ''}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {session.metadata?.end_time && (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Box mb={2}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                          End Time
-                        </Typography>
-                        <Typography variant="body1" sx={{ mt: 0.5 }}>
-                          {isMounted ? new Date(session.metadata.end_time).toLocaleString() : ''}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  )}
-
                   {session.metadata?.app_name && (
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <Box mb={2}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      <Box mb={1}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                           App Name
                         </Typography>
                         <Typography
-                          variant="body1"
+                          variant="body2"
                           sx={{
-                            mt: 0.5,
-                            p: 1,
+                            mt: 0.1,
+                            p: 0.25,
+                            px: 0.5,
                             bgcolor: 'action.hover',
-                            borderRadius: 1,
+                            borderRadius: 0.5,
                             fontFamily: 'monospace',
-                            fontSize: '0.875rem',
+                            fontSize: '0.7rem',
                           }}
                         >
                           {session.metadata.app_name}
@@ -523,15 +511,15 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
                   {session.metadata?.risk_rating && (
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <Box mb={2}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      <Box mb={1}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                           Risk Rating
                         </Typography>
-                        <Box mt={0.5}>
+                        <Box mt={0.1}>
                           <Chip
                             label={session.metadata.risk_rating}
                             color={session.metadata.risk_rating === 'low' ? 'success' : session.metadata.risk_rating === 'medium' ? 'warning' : 'error'}
-                            sx={{ textTransform: 'capitalize', fontWeight: 600 }}
+                            sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.65rem', height: '20px' }}
                           />
                         </Box>
                       </Box>
@@ -540,42 +528,43 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
                   {session.metadata?.lat && session.metadata?.lng && (
                     <Grid size={{ xs: 12 }}>
-                      <Box mb={2}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                      <Box mb={1}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5, display: 'block', fontSize: '0.7rem' }}>
                           Location
                         </Typography>
                         <LocationMap
                           lat={session.metadata.lat}
                           lng={session.metadata.lng}
-                          height={250}
+                          height={200}
                         />
                       </Box>
                     </Grid>
                   )}
                 </Grid>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 1 }} />
 
                 {/* User Information */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem' }}>
                   User Information
                 </Typography>
-                <Grid container spacing={3} mb={4}>
+                <Grid container spacing={1} mb={1}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         User ID
                       </Typography>
                       <Typography
                         onClick={() => router.push(`/users/view/${user.id}`)}
-                        variant="body1"
+                        variant="body2"
                         sx={{
                           fontFamily: 'monospace',
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
-                          fontSize: '0.875rem',
+                          borderRadius: 0.5,
+                          fontSize: '0.7rem',
                           cursor: 'pointer',
                           color: 'primary.main',
                           '&:hover': {
@@ -589,18 +578,20 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Name
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
+                          borderRadius: 0.5,
                           fontWeight: 600,
+                          fontSize: '0.75rem',
                         }}
                       >
                         {user.name}
@@ -609,17 +600,19 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Email
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
+                          borderRadius: 0.5,
+                          fontSize: '0.75rem',
                         }}
                       >
                         {user.email}
@@ -628,27 +621,28 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
                 </Grid>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 1 }} />
 
                 {/* Reward Information */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem' }}>
                   Reward Information
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={1}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Reward ID
                       </Typography>
                       <Typography
-                        variant="body1"
+                        variant="body2"
                         sx={{
                           fontFamily: 'monospace',
-                          mt: 0.5,
-                          p: 1,
+                          mt: 0.1,
+                          p: 0.25,
+                          px: 0.5,
                           bgcolor: 'action.hover',
-                          borderRadius: 1,
-                          fontSize: '0.875rem',
+                          borderRadius: 0.5,
+                          fontSize: '0.7rem',
                         }}
                       >
                         {reward.id}
@@ -657,16 +651,17 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Points Earned
                       </Typography>
                       <Typography
-                        variant="h5"
+                        variant="h6"
                         sx={{
-                          mt: 0.5,
+                          mt: 0.1,
                           fontWeight: 700,
                           color: 'success.main',
+                          fontSize: '1rem',
                         }}
                       >
                         {reward.points_earned}
@@ -675,11 +670,11 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Box mb={1}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
                         Calculated At
                       </Typography>
-                      <Typography variant="body1" sx={{ mt: 0.5 }}>
+                      <Typography variant="body2" sx={{ mt: 0.1, fontSize: '0.75rem' }}>
                         {isMounted ? new Date(reward.calculated_at).toLocaleString() : ''}
                       </Typography>
                     </Box>
@@ -688,129 +683,133 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               </Box>
             </TabPanel>
 
-            <TabPanel value={activeTab} index={1}>
-              <Box sx={{ px: 4, pb: 4 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                  Wallet Transactions ({wallet_transactions.length})
-                </Typography>
-                {wallet_transactions.length > 0 ? (
-                  <>
-                    <DataTable
-                      columns={transactionColumns}
-                      data={paginatedTransactions}
-                      getRowId={(row: any) => row.id}
-                    />
-                    {/* Pagination */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {paginatedTransactions.length} of {wallet_transactions.length} results
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setTransactionsPage(transactionsPage - 1)}
-                          disabled={transactionsPage <= 1}
-                          sx={{
-                            bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: transactionsPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {transactionsPage} / {totalTransactionsPages || 1}
+            {hasPermission('users:view_transactions') && (
+              <TabPanel value={activeTab} index={1}>
+                <Box sx={{ px: 2, pb: 2 }}>
+                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 700, fontSize: '0.9rem' }}>
+                    Wallet Transactions ({wallet_transactions.length})
+                  </Typography>
+                  {wallet_transactions.length > 0 ? (
+                    <>
+                      <DataTable
+                        columns={transactionColumns}
+                        data={paginatedTransactions}
+                        getRowId={(row: any) => row.id}
+                      />
+                      {/* Pagination */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Showing {paginatedTransactions.length} of {wallet_transactions.length} results
                         </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setTransactionsPage(transactionsPage + 1)}
-                          disabled={transactionsPage >= (totalTransactionsPages || 1)}
-                          sx={{
-                            bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.main',
-                            color: transactionsPage >= (totalTransactionsPages || 1) ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => setTransactionsPage(transactionsPage - 1)}
+                            disabled={transactionsPage <= 1}
+                            sx={{
+                              bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.main',
+                              color: transactionsPage <= 1 ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: transactionsPage <= 1 ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateBefore />
+                          </IconButton>
+                          <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                            {transactionsPage} / {totalTransactionsPages || 1}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setTransactionsPage(transactionsPage + 1)}
+                            disabled={transactionsPage >= (totalTransactionsPages || 1)}
+                            sx={{
+                              bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.main',
+                              color: transactionsPage >= (totalTransactionsPages || 1) ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: transactionsPage >= (totalTransactionsPages || 1) ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateNext />
+                          </IconButton>
+                        </Box>
                       </Box>
-                    </Box>
-                  </>
-                ) : (
-                  <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No transactions found for this session
-                    </Typography>
-                  </Paper>
-                )}
-              </Box>
-            </TabPanel>
+                    </>
+                  ) : (
+                    <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
+                      <Typography variant="body1" color="text.secondary">
+                        No transactions found for this session
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </TabPanel>
+            )}
 
-            <TabPanel value={activeTab} index={2}>
-              <Box sx={{ p: 4 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                  Review History ({mockReviews.length})
-                </Typography>
-                {mockReviews.length > 0 ? (
-                  <>
-                    <DataTable
-                      columns={reviewColumns}
-                      data={paginatedReviews}
-                      getRowId={(row) => row.id}
-                    />
-                    {/* Pagination */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Showing {paginatedReviews.length} of {mockReviews.length} results
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => setReviewsPage(reviewsPage - 1)}
-                          disabled={reviewsPage <= 1}
-                          sx={{
-                            bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.main',
-                            color: reviewsPage <= 1 ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateBefore />
-                        </IconButton>
-                        <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
-                          {reviewsPage} / {totalReviewsPages || 1}
+            {hasPermission('sessions:review') && (
+              <TabPanel value={activeTab} index={2}>
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 700, fontSize: '0.9rem' }}>
+                    Review History ({mockReviews.length})
+                  </Typography>
+                  {mockReviews.length > 0 ? (
+                    <>
+                      <DataTable
+                        columns={reviewColumns}
+                        data={paginatedReviews}
+                        getRowId={(row) => row.id}
+                      />
+                      {/* Pagination */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Showing {paginatedReviews.length} of {mockReviews.length} results
                         </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => setReviewsPage(reviewsPage + 1)}
-                          disabled={reviewsPage >= (totalReviewsPages || 1)}
-                          sx={{
-                            bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.main',
-                            color: reviewsPage >= (totalReviewsPages || 1) ? 'text.disabled' : 'white',
-                            '&:hover': {
-                              bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.dark',
-                            },
-                          }}
-                        >
-                          <NavigateNext />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => setReviewsPage(reviewsPage - 1)}
+                            disabled={reviewsPage <= 1}
+                            sx={{
+                              bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.main',
+                              color: reviewsPage <= 1 ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: reviewsPage <= 1 ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateBefore />
+                          </IconButton>
+                          <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                            {reviewsPage} / {totalReviewsPages || 1}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setReviewsPage(reviewsPage + 1)}
+                            disabled={reviewsPage >= (totalReviewsPages || 1)}
+                            sx={{
+                              bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.main',
+                              color: reviewsPage >= (totalReviewsPages || 1) ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                bgcolor: reviewsPage >= (totalReviewsPages || 1) ? 'action.disabled' : 'primary.dark',
+                              },
+                            }}
+                          >
+                            <NavigateNext />
+                          </IconButton>
+                        </Box>
                       </Box>
-                    </Box>
-                  </>
-                ) : (
-                  <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No reviews found for this session
-                    </Typography>
-                  </Paper>
-                )}
-              </Box>
-            </TabPanel>
+                    </>
+                  ) : (
+                    <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'action.hover' }}>
+                      <Typography variant="body1" color="text.secondary">
+                        No reviews found for this session
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </TabPanel>
+            )}
           </Box>
         </Paper>
 

@@ -13,7 +13,7 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import { Edit, Delete, ToggleOn, ToggleOff, Visibility } from '@mui/icons-material';
+import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview } from '@mui/icons-material';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -31,6 +31,7 @@ export interface DataTableProps<T> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onToggle?: (row: T) => void;
+  onMarkReview?: (row: T) => void;
   getRowId: (row: T) => string;
   emptyMessage?: string;
   renderPagination?: () => React.ReactNode;
@@ -44,6 +45,7 @@ export default function DataTable<T extends Record<string, any>>({
   onEdit,
   onDelete,
   onToggle,
+  onMarkReview,
   getRowId,
   emptyMessage = 'No data available',
   renderPagination,
@@ -114,13 +116,14 @@ export default function DataTable<T extends Record<string, any>>({
                       ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
                       : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
                     color: 'text.primary',
-                    fontSize: '0.75rem',
+                    fontSize: '0.65rem',
+                    whiteSpace: 'nowrap',
                     borderBottom: (theme) => theme.palette.mode === 'dark'
                       ? '2px solid rgba(102, 126, 234, 0.3)'
                       : '2px solid rgba(102, 126, 234, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
-                    py: 1.5,
+                    py: 0.75,
                   }}
                 >
                   {column.label}
@@ -135,13 +138,14 @@ export default function DataTable<T extends Record<string, any>>({
                       ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
                       : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
                     color: 'text.primary',
-                    fontSize: '0.75rem',
+                    fontSize: '0.65rem',
+                    whiteSpace: 'nowrap',
                     borderBottom: (theme) => theme.palette.mode === 'dark'
                       ? '2px solid rgba(102, 126, 234, 0.3)'
                       : '2px solid rgba(102, 126, 234, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
-                    py: 1.5,
+                    py: 0.75,
                   }}
                 >
                   Actions
@@ -178,9 +182,9 @@ export default function DataTable<T extends Record<string, any>>({
                       key={String(column.id)}
                       align={column.align || 'left'}
                       sx={{
-                        fontSize: '0.8125rem',
+                        fontSize: '0.7rem',
                         color: 'text.primary',
-                        py: 1.5,
+                        py: 0.5,
                         borderBottom: (theme) => theme.palette.mode === 'dark'
                           ? '1px solid rgba(255, 255, 255, 0.08)'
                           : '1px solid rgba(0, 0, 0, 0.06)',
@@ -190,17 +194,34 @@ export default function DataTable<T extends Record<string, any>>({
                     </TableCell>
                   );
                 })}
-                {(onView || onEdit || onDelete || onToggle) && (
+                {(onView || onEdit || onDelete || onToggle || onMarkReview) && (
                   <TableCell
                     align="center"
                     sx={{
-                      borderBottom: (theme) => theme.palette.mode === 'dark'
-                        ? '1px solid rgba(255, 255, 255, 0.08)'
-                        : '1px solid rgba(0, 0, 0, 0.06)',
-                      py: 1.5,
+                      borderBottom: '1px solid',
+                      borderBottomColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.08)'
+                        : 'rgba(0, 0, 0, 0.06)',
+                      py: 0.5,
                     }}
                   >
                     <Box display="flex" gap={1} justifyContent="center">
+                      {onMarkReview && (
+                        <IconButton
+                          size="small"
+                          onClick={() => onMarkReview(row)}
+                          sx={{
+                            color: '#f59e0b',
+                            '&:hover': {
+                              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                              transform: 'scale(1.1)',
+                            },
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <RateReview fontSize="small" />
+                        </IconButton>
+                      )}
                       {onView && (
                         <IconButton
                           size="small"
@@ -273,11 +294,13 @@ export default function DataTable<T extends Record<string, any>>({
           </TableBody>
         </Table>
       </TableContainer>
-      {renderPagination && (
-        <Box sx={{ p: 2, borderTop: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)' }}>
-          {renderPagination()}
-        </Box>
-      )}
+      {
+        renderPagination && (
+          <Box sx={{ p: 2, borderTop: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)' }}>
+            {renderPagination()}
+          </Box>
+        )
+      }
     </Paper>
   );
 }

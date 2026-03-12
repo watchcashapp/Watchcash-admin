@@ -148,12 +148,12 @@ export default function DashboardPage() {
     <DashboardLayout>
       <Box>
         {/* Welcome Message */}
-        <Box mb={4}>
+        <Box mb={2}>
           <Typography
-            variant="h4"
             sx={{
               fontWeight: 700,
-              mb: 1,
+              fontSize: '1.25rem',
+              mb: 0.25,
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -163,9 +163,9 @@ export default function DashboardPage() {
             Welcome back{user?.name ? `, ${user.name}` : ''}!
           </Typography>
           <Typography
-            variant="body1"
+            variant="caption"
             color="text.secondary"
-            sx={{ fontWeight: 400 }}
+            sx={{ fontWeight: 400, display: 'block' }}
           >
             Here's what's happening with your platform today.
           </Typography>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={1.5}>
             {filteredStats.map((stat, index) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                 <Card
@@ -203,21 +203,22 @@ export default function DashboardPage() {
                   }}
                   onClick={() => handleCardClick(stat.title)}
                 >
-                  <CardContent sx={{ p: 3 }}>
+                  <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box>
                         <Typography
-                          variant="body2"
+                          variant="caption"
                           color="text.secondary"
-                          sx={{ mb: 1, fontWeight: 500 }}
+                          sx={{ mb: 0.5, fontWeight: 500, display: 'block' }}
                         >
                           {stat.title}
                         </Typography>
                         <Typography
-                          variant="h3"
                           sx={{
                             fontWeight: 700,
+                            fontSize: '1.5rem',
                             color: stat.color,
+                            lineHeight: 1,
                           }}
                         >
                           {stat.value}
@@ -225,15 +226,15 @@ export default function DashboardPage() {
                       </Box>
                       <Box
                         sx={{
-                          p: 1.5,
-                          borderRadius: 2,
+                          p: 1,
+                          borderRadius: 1.5,
                           backgroundColor: stat.bgColor,
                           color: stat.color,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           '& svg': {
-                            fontSize: 32,
+                            fontSize: 24,
                           },
                         }}
                       >
@@ -248,7 +249,7 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Data Cards */}
-        <Grid container spacing={3} sx={{ mt: 2 }}>
+        <Grid container spacing={1.5} sx={{ mt: 1 }}>
           {/* Flagged Sessions Card */}
           {hasPermission('dashboard:view_flagged_sessions_widget') && (
             <Grid size={{ xs: 12, lg: 6 }}>
@@ -299,10 +300,10 @@ export default function DashboardPage() {
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>User</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Risk Rating</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Duration</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>User</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Risk Rating</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Duration</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Status</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -419,11 +420,12 @@ export default function DashboardPage() {
               >
                 <CardContent sx={{ p: 3 }}>
                   <Typography
-                    variant="h6"
+                    variant="subtitle2"
                     sx={{
                       fontWeight: 600,
-                      mb: 2,
+                      mb: 1.5,
                       color: 'text.primary',
+                      fontSize: '0.9rem',
                     }}
                   >
                     High Risk Sessions
@@ -443,36 +445,36 @@ export default function DashboardPage() {
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>User</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Risk Reason</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Points</TableCell>
-                            <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem' }}>Created</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>User</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Risk Reason</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Points</TableCell>
+                            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Created</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {paginatedHighRiskSessions.map((session: any) => (
                             <TableRow key={session.id} hover>
-                              <TableCell sx={{ fontSize: '0.875rem' }}>
+                              <TableCell sx={{ fontSize: '0.75rem', py: 0.5 }}>
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
                                     {session.user_name}
                                   </Typography>
-                                  <Typography variant="caption" color="text.secondary">
+                                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                                     {session.user_email}
                                   </Typography>
                                 </Box>
                               </TableCell>
-                              <TableCell sx={{ fontSize: '0.875rem' }}>
-                                <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <TableCell sx={{ fontSize: '0.7rem', py: 0.5 }}>
+                                <Typography variant="caption" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
                                   {session.metadata.risk_reason}
                                 </Typography>
                               </TableCell>
-                              <TableCell sx={{ fontSize: '0.875rem' }}>
-                                <Typography variant="body2" color="primary.main">
+                              <TableCell sx={{ fontSize: '0.7rem', py: 0.5 }}>
+                                <Typography variant="caption" color="primary.main" sx={{ fontWeight: 600 }}>
                                   {session.points_earned}
                                 </Typography>
                               </TableCell>
-                              <TableCell sx={{ fontSize: '0.875rem' }}>
+                              <TableCell sx={{ fontSize: '0.7rem', py: 0.5 }}>
                                 <Typography variant="caption" color="text.secondary">
                                   {new Date(session.created_at).toLocaleDateString()}
                                 </Typography>

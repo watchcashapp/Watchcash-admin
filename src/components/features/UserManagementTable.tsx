@@ -12,8 +12,12 @@ import {
   Alert,
   Button,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  Paper,
 } from "@mui/material";
-import { Search, Add, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { config } from "@/config/env";
 import DataTable, { Column } from "@/components/shared/DataTable";
@@ -200,6 +204,51 @@ export default function UserManagementTable({
     },
   ];
 
+  const handleClearFilters = () => {
+    setSearch("");
+    setIsActive("");
+    setUserType(defaultUserType);
+    setFromDate("");
+    setToDate("");
+    setPage(1); // Reset to first page when filters are cleared
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (isActive !== "") queryParams.append("isActive", isActive);
+      if (effectiveUserType) queryParams.append("userType", effectiveUserType);
+      if (fromDate) queryParams.append("from", fromDate);
+      if (toDate) queryParams.append("to", toDate);
+
+      const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const url = `${config.apiUrl}/admin/users/export?${queryParams.toString()}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `users_export_${new Date().getTime()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      showSuccess('Export started successfully');
+    } catch (err) {
+      showError('Failed to export users');
+    }
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1);
@@ -207,11 +256,11 @@ export default function UserManagementTable({
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
         <Typography
-          variant="h4"
           sx={{
             fontWeight: 700,
+            fontSize: '1.1rem',
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -220,123 +269,90 @@ export default function UserManagementTable({
         >
           {title}
         </Typography>
-        <Box display="flex" gap={2}>
-          {hasPermission('users:list') && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                // ... (rest of the export logic)
-                const queryParams = new URLSearchParams();
-                if (search) queryParams.append("search", search);
-                if (isActive !== "") queryParams.append("isActive", isActive);
-                if (effectiveUserType) queryParams.append("userType", effectiveUserType);
-                if (fromDate) queryParams.append("from", fromDate);
-                if (toDate) queryParams.append("to", toDate);
-
-                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-                const url = `${config.apiUrl}/admin/users/export?${queryParams.toString()}`;
-
-                // Trigger download using fetch to avoid opening new tab and handle token
-                fetch(url, {
-                  headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'ngrok-skip-browser-warning': 'true'
-                  }
-                })
-                  .then(response => response.blob())
-                  .then(blob => {
-                    const downloadUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `users_export_${new Date().getTime()}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(downloadUrl);
-                  })
-                  .catch(err => {
-
-                    showError('Failed to export users');
-                  });
-              }}
-              sx={{
-                minWidth: { xs: 'auto', sm: 120 },
-                px: { xs: 2, sm: 3 },
-                borderColor: '#667eea',
-                color: '#667eea',
-                '&:hover': {
-                  borderColor: '#5a67d8',
-                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                },
-              }}
-            >
-              Export CSV
-            </Button>
-          )}
-          {showAddButton && hasPermission('users:create') && (
+        <Box display="flex" gap={1}>
+          {hasPermission('users:export') && (
             <Button
               variant="contained"
-              startIcon={<Add sx={{ fontSize: '1rem' }} />}
-              onClick={() => router.push(addRoute)}
+              size="small"
+              startIcon={<FileDownload sx={{ fontSize: '1rem !important' }} />}
+              onClick={handleExportCSV}
               sx={{
-                minWidth: { xs: 'auto', sm: 120 },
-                px: { xs: 2, sm: 3 },
+                height: '30px',
+                fontSize: '0.75rem',
                 background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                px: 2,
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                 },
               }}
             >
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add User</Box>
-              <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-                <Add fontSize="small" />
-                Add
-              </Box>
+              EXPORT
+            </Button>
+          )}
+          {hasPermission('users:create') && showAddButton && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+              onClick={() => router.push(addRoute)}
+              sx={{
+                height: '32px',
+                fontSize: '0.75rem',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              }}
+            >
+              ADD USER
             </Button>
           )}
         </Box>
       </Box>
 
       {/* Filters */}
-      <Box
+      <Paper
         sx={{
+          p: 1.5,
           mb: 2,
-          p: { xs: 1.5, sm: 2 },
           bgcolor: 'background.paper',
-          backdropFilter: 'blur(20px)',
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-            : '0 8px 32px rgba(0, 0, 0, 0.1)',
-          border: (theme) => theme.palette.mode === 'dark'
+          boxShadow: (theme: any) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+            : '0 4px 12px rgba(0, 0, 0, 0.05)',
+          border: (theme: any) => theme.palette.mode === 'dark'
             ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.05)',
-          borderRadius: 3,
+            : '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: 1.5,
         }}
       >
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: hideUserTypeFilter ? 4 : 4 }}>
+        <Grid container spacing={1.5} alignItems="center">
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
             <TextField
               fullWidth
               size="small"
-              placeholder="Search by name or email..."
+              label="Search"
+              placeholder="Name or Email"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search sx={{ color: '#667eea', fontSize: '1.25rem' }} />
-                  </InputAdornment>
-                ),
+              onChange={handleSearchChange}
+              slotProps={{
+                input: {
+                  sx: { fontSize: '0.75rem', height: '32px' },
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
               }}
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                  },
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
               }}
             />
           </Grid>
@@ -350,26 +366,35 @@ export default function UserManagementTable({
                 label="User Type"
                 value={userType}
                 onChange={(e) => setUserType(e.target.value)}
+                slotProps={{
+                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
                   },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                  '& .MuiSelect-select': {
+                    py: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }
                 }}
               >
-                <MenuItem value="">All Types</MenuItem>
-                <MenuItem value="APP">APP</MenuItem>
-                <MenuItem value="ADMIN">ADMIN</MenuItem>
-                <MenuItem value="STAFF">STAFF</MenuItem>
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Types</MenuItem>
+                <MenuItem value="APP" sx={{ fontSize: '0.75rem' }}>APP</MenuItem>
+                <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>ADMIN</MenuItem>
+                <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>STAFF</MenuItem>
               </TextField>
             </Grid>
           )}
 
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 1.5 }}>
             <TextField
               select
               fullWidth
@@ -377,20 +402,29 @@ export default function UserManagementTable({
               label="Status"
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
+              slotProps={{
+                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                  },
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+                '& .MuiSelect-select': {
+                  py: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }
               }}
             >
-              <MenuItem value="">All Status</MenuItem>
-              <MenuItem value="true">Active</MenuItem>
-              <MenuItem value="false">Inactive</MenuItem>
+              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
+              <MenuItem value="true" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
+              <MenuItem value="false" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
             </TextField>
           </Grid>
 
@@ -398,20 +432,23 @@ export default function UserManagementTable({
             <TextField
               fullWidth
               size="small"
-              label="From Date"
+              label="From"
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                  },
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
               }}
             />
           </Grid>
@@ -420,59 +457,52 @@ export default function UserManagementTable({
             <TextField
               fullWidth
               size="small"
-              label="To Date"
+              label="To"
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: '#667eea',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                  },
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
               }}
             />
           </Grid>
 
-          {hasFilters && (
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setSearch("");
-                  setIsActive("");
-                  setUserType(defaultUserType);
-                  setFromDate("");
-                  setToDate("");
-                  setPage(1);
-                }}
-                sx={{
-                  height: '40px',
-                  borderColor: '#667eea',
-                  color: '#667eea',
-                  '&:hover': {
-                    borderColor: '#5a67d8',
-                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                  },
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  minWidth: { xs: 'auto', md: '100px' },
-                }}
-              >
-                Clear
-              </Button>
-            </Grid>
-          )}
+          <Grid size={{ xs: 12, sm: 6, md: 1 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleClearFilters}
+              disabled={!hasFilters}
+              sx={{
+                height: '32px',
+                borderColor: '#667eea',
+                color: '#667eea',
+                fontSize: '0.7rem',
+                '&:hover': {
+                  borderColor: '#5a67d8',
+                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                },
+              }}
+            >
+              Clear
+            </Button>
+          </Grid>
         </Grid>
-      </Box>
-
+      </Paper>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
           Failed to load users. Please try again.
         </Alert>
       )}
@@ -487,8 +517,8 @@ export default function UserManagementTable({
         onEdit={showAddButton && hasPermission('users:update') ? handleEdit : undefined}
         onDelete={showAddButton && hasPermission('users:delete') ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
         renderPagination={() => data ? (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
               Showing {data.users?.length || 0} of {(data as any).pagination?.total || (data as any).total || 0} results
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -498,9 +528,9 @@ export default function UserManagementTable({
                 disabled={page <= 1}
                 sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
               >
-                <NavigateBefore />
+                <NavigateBefore fontSize="small" />
               </IconButton>
-              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary', fontSize: '0.75rem' }}>
                 {page} / {(data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1}
               </Typography>
               <IconButton
@@ -509,7 +539,7 @@ export default function UserManagementTable({
                 disabled={page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1)}
                 sx={{ color: page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1) ? 'text.disabled' : 'text.secondary' }}
               >
-                <NavigateNext />
+                <NavigateNext fontSize="small" />
               </IconButton>
             </Box>
           </Box>

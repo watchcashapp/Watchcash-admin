@@ -8,6 +8,7 @@ import { staffApi } from './api/staffApi';
 import { sessionsApi } from './api/sessionsApi';
 import { rolesApi } from './api/rolesApi';
 import { rewardRedemptionsApi } from './api/rewardRedemptionsApi';
+import { rewardCatalogsApi } from './api/rewardCatalogsApi';
 import { settingsApi } from './api/settingsApi';
 import { dashboardApi } from './api/dashboardApi';
 import { auditLogsApi } from './api/auditLogsApi';
@@ -26,6 +27,7 @@ export const store = configureStore({
     [sessionsApi.reducerPath]: sessionsApi.reducer,
     [rolesApi.reducerPath]: rolesApi.reducer,
     [rewardRedemptionsApi.reducerPath]: rewardRedemptionsApi.reducer,
+    [rewardCatalogsApi.reducerPath]: rewardCatalogsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     [auditLogsApi.reducerPath]: auditLogsApi.reducer,
@@ -42,6 +44,7 @@ export const store = configureStore({
       .concat(sessionsApi.middleware)
       .concat(rolesApi.middleware)
       .concat(rewardRedemptionsApi.middleware)
+      .concat(rewardCatalogsApi.middleware)
       .concat(settingsApi.middleware)
       .concat(dashboardApi.middleware)
       .concat(auditLogsApi.middleware)

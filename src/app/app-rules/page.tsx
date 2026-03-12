@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
+  Paper,
   Typography,
   Button,
   Dialog,
@@ -16,8 +18,9 @@ import {
   FormControlLabel,
   Alert,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
-import { Add, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { Add, NavigateBefore, NavigateNext, Search } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
@@ -49,13 +52,27 @@ const initialFormData: FormData = {
 };
 
 export default function AppRulesPage() {
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
   const hasFilters = fromDate || toDate;
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('app_rules:list')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
     from: fromDate,
     to: toDate,
@@ -278,131 +295,166 @@ export default function AppRulesPage() {
   return (
     <DashboardLayout>
       <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography
-            variant="h4"
+            variant="h5"
             sx={{
               fontWeight: 700,
+              fontSize: '1.1rem',
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}
           >
-            App Rules Management
+            App Rules
           </Typography>
           {hasPermission('app_rules:create') && (
             <Button
               variant="contained"
-              startIcon={<Add sx={{ fontSize: '1rem' }} />}
-              onClick={() => handleOpenDialog()}
+              startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+              onClick={() => {
+                setEditingRule(null);
+                setOpenDialog(true);
+              }}
               sx={{
-                minWidth: { xs: 'auto', sm: 140 },
-                px: { xs: 2, sm: 3 },
+                height: '30px',
+                fontSize: '0.75rem',
                 background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                px: 2,
                 '&:hover': {
                   background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                  boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                 },
               }}
             >
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Add New Rule</Box>
-              <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-                <Add fontSize="small" />
-                Add
-              </Box>
+              Add New Rule
             </Button>
           )}
         </Box>
 
-        {/* Date Range Filters */}
-        <Box
+        <Paper
           sx={{
-            mb: 3,
-            p: { xs: 1.5, sm: 2 },
+            p: 1.5,
+            mb: 2,
             bgcolor: 'background.paper',
-            backdropFilter: 'blur(20px)',
-            boxShadow: (theme) => theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
-            border: (theme) => theme.palette.mode === 'dark'
+            boxShadow: (theme: any) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme: any) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(0, 0, 0, 0.05)',
-            borderRadius: 3,
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
           }}
         >
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <Grid container spacing={1.5} alignItems="center">
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 fullWidth
                 size="small"
-                label="From Date"
                 type="date"
+                label="From"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
                   },
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
                 fullWidth
                 size="small"
-                label="To Date"
                 type="date"
+                label="To"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: '#667eea',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                    },
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
                   },
                 }}
               />
             </Grid>
-            {hasFilters && (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => {
-                    setFromDate('');
-                    setToDate('');
-                    setPage(1);
-                  }}
-                  sx={{
-                    height: '40px',
-                    borderColor: '#667eea',
-                    color: '#667eea',
-                    '&:hover': {
-                      borderColor: '#5a67d8',
-                      backgroundColor: 'rgba(102, 126, 234, 0.04)',
-                    },
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    minWidth: { xs: 'auto', md: '100px' },
-                  }}
-                >
-                  Clear
-                </Button>
-              </Grid>
-            )}
+            <Grid size={{ xs: 12, sm: 12, md: 5 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Search"
+                placeholder="Search by Rule Name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                slotProps={{
+                  input: {
+                    sx: { fontSize: '0.75rem', height: '32px' },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 1 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                  setSearchQuery('');
+                  setPage(1);
+                }}
+                disabled={!fromDate && !toDate && !searchQuery}
+                sx={{
+                  height: '32px',
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  fontSize: '0.7rem',
+                  '&:hover': {
+                    borderColor: '#5a67d8',
+                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  },
+                }}
+              >
+                Clear
+              </Button>
+            </Grid>
           </Grid>
-        </Box>
+        </Paper>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -639,7 +691,6 @@ export default function AppRulesPage() {
           </DialogActions>
         </Dialog>
 
-        {/* Confirmation Dialog */}
         <ConfirmDialog
           open={confirmDialog.open}
           title="Delete App Rule"

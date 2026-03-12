@@ -21,8 +21,10 @@ import {
     useGetRewardRedemptionByIdQuery,
     useReviewRewardRedemptionMutation,
 } from '@/store/api/rewardRedemptionsApi';
+import { useGetRewardCatalogsQuery } from '@/store/api/rewardCatalogsApi';
 import { useToast } from '@/components/shared';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const PREDEFINED_REASONS = [
     { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -46,6 +48,7 @@ const PREDEFINED_REASONS = [
 export default function RewardRedemptionDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const router = useRouter();
+    const { hasPermission } = usePermissions();
     const { showSuccess, showError } = useToast();
 
     const { data: response, isLoading, error } = useGetRewardRedemptionByIdQuery(resolvedParams.id);
@@ -57,10 +60,12 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
         decision: 'approve' | 'reject' | 'hold';
         admin_reason_code: string;
         admin_note: string;
+        utid: string;
     }>({
         decision: 'approve',
         admin_reason_code: '',
         admin_note: '',
+        utid: '',
     });
     const [isMounted, setIsMounted] = useState(false);
 
@@ -72,7 +77,12 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
         try {
             await reviewRewardRedemption({
                 id: resolvedParams.id,
-                data: reviewForm,
+                data: {
+                    decision: reviewForm.decision,
+                    admin_note: reviewForm.admin_note,
+                    admin_reason_code: reviewForm.admin_reason_code,
+                    utid: reviewForm.utid
+                },
             }).unwrap();
             showSuccess('Reward redemption reviewed successfully');
             setReviewDialogOpen(false);
@@ -119,7 +129,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
 
     return (
         <DashboardLayout>
-            <Box sx={{ p: { xs: 2, md: 4 }, display: 'flex', flexDirection: 'column', gap: 3, height: '100%' }}>
+            <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'hidden' }}>
                 {/* Header */}
                 <Box>
                     <Box
@@ -128,21 +138,22 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         gap={0.5}
                         sx={{
                             cursor: 'pointer',
-                            mb: 1,
+                            mb: 0.5,
                             color: 'text.secondary',
                             '&:hover': { color: 'primary.main' },
                             width: 'fit-content'
                         }}
                         onClick={() => router.push('/reward-redemptions')}
                     >
-                        <ArrowBack sx={{ fontSize: 16 }} />
-                        <Typography variant="body2" fontWeight={500}>Back to reward redemptions</Typography>
+                        <ArrowBack sx={{ fontSize: 14 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>Back</Typography>
                     </Box>
                     <Box display="flex" alignItems="center" justifyContent="space-between">
                         <Typography
-                            variant="h4"
+                            variant="h5"
                             sx={{
                                 fontWeight: 700,
+                                fontSize: '1.1rem',
                                 background: 'linear-gradient(45deg, #667eea, #764ba2)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
@@ -151,18 +162,22 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         >
                             Redemption Details
                         </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<RateReview />}
-                            onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
-                            disabled={isReviewing}
-                            sx={{
-                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                                '&:hover': { background: 'linear-gradient(45deg, #5a67d8, #6a3f92)' },
-                            }}
-                        >
-                            {reviewDialogOpen ? 'Hide Review' : 'Mark Review'}
-                        </Button>
+                        {hasPermission('reward_redemptions:mark_reviewed') && redemption.status === 'PENDING' && (
+                            <Button
+                                variant="contained"
+                                startIcon={<RateReview sx={{ fontSize: '1rem !important' }} />}
+                                onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
+                                disabled={isReviewing}
+                                sx={{
+                                    height: '30px',
+                                    fontSize: '0.75rem',
+                                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                    '&:hover': { background: 'linear-gradient(45deg, #5a67d8, #6a3f92)' },
+                                }}
+                            >
+                                {reviewDialogOpen ? 'Hide' : 'Review'}
+                            </Button>
+                        )}
                     </Box>
                 </Box>
 
@@ -171,52 +186,53 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                     <Box sx={{ flex: 1, width: '100%' }}>
                         <Paper
                             sx={{
-                                p: 4,
+                                p: 2,
                                 bgcolor: 'background.paper',
-                                backdropFilter: 'blur(20px)',
                                 boxShadow: (theme) => theme.palette.mode === 'dark'
-                                    ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-                                    : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                                    : '0 4px 12px rgba(0, 0, 0, 0.05)',
                                 border: (theme) => theme.palette.mode === 'dark'
                                     ? '1px solid rgba(255, 255, 255, 0.1)'
                                     : '1px solid rgba(0, 0, 0, 0.05)',
-                                borderRadius: 3,
+                                borderRadius: 1.5,
                             }}
                         >
-                            <Box display="flex" alignItems="center" gap={2} mb={4}>
-                                <Typography variant="h6" fontWeight={600}>Status:</Typography>
+                            <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Status:</Typography>
                                 <Chip
                                     label={redemption.status || 'UNKNOWN'}
                                     sx={{
                                         background: getStatusColor(redemption.status),
                                         color: 'white',
-                                        fontWeight: 600,
+                                        fontWeight: 700,
+                                        fontSize: '0.65rem',
+                                        height: '20px',
                                     }}
                                 />
                             </Box>
 
-                            <Divider sx={{ my: 3 }} />
+                            <Divider sx={{ my: 1.5 }} />
 
-                            <Grid container spacing={4}>
+                            <Grid container spacing={2}>
                                 <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight={600} color="primary">
+                                    <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
                                         User Information
                                     </Typography>
-                                    <Box display="flex" flexDirection="column" gap={2}>
+                                    <Box display="flex" flexDirection="column" gap={1}>
                                         <Box>
-                                            <Typography variant="caption" color="text.secondary">User ID</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>User ID</Typography>
                                             <Box
                                                 onClick={() => router.push(`/users/view/${redemption.userId}`)}
-                                                sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1, cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
+                                                sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
                                             >
                                                 {redemption.userId}
                                             </Box>
                                         </Box>
                                         <Box>
-                                            <Typography variant="caption" color="text.secondary">Session ID</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Session ID</Typography>
                                             <Box
                                                 onClick={() => router.push(`/sessions/${redemption.sessionId}`)}
-                                                sx={{ fontFamily: 'monospace', p: 1, bgcolor: 'action.hover', borderRadius: 1, cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
+                                                sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
                                             >
                                                 {redemption.sessionId}
                                             </Box>
@@ -225,28 +241,28 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 </Grid>
 
                                 <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight={600} color="primary">
+                                    <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
                                         Redemption Information
                                     </Typography>
-                                    <Box display="flex" flexDirection="column" gap={2}>
+                                    <Box display="flex" flexDirection="column" gap={1}>
                                         <Box>
-                                            <Typography variant="caption" color="text.secondary">Reward Type & Value</Typography>
-                                            <Typography variant="body1" fontWeight={500}>{redemption.rewardType} - {redemption.rewardValue} {redemption.rewardCurrency}</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Reward Type & Value</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.rewardType} - {redemption.rewardValue} {redemption.rewardCurrency}</Typography>
                                         </Box>
                                         <Box>
-                                            <Typography variant="caption" color="text.secondary">Points Deducted</Typography>
-                                            <Typography variant="body1" fontWeight={600} color="error.main">-{redemption.points}</Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Points Deducted</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>-{redemption.points}</Typography>
                                         </Box>
                                         <Box>
-                                            <Typography variant="caption" color="text.secondary">Requested At</Typography>
-                                            <Typography variant="body1" fontWeight={500}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Requested At</Typography>
+                                            <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
                                                 {redemption.createdAt && isMounted ? new Date(redemption.createdAt).toLocaleString() : (redemption.createdAt ? 'Loading...' : 'N/A')}
                                             </Typography>
                                         </Box>
                                         {redemption.decidedAt && (
                                             <Box>
-                                                <Typography variant="caption" color="text.secondary">Decided At</Typography>
-                                                <Typography variant="body1" fontWeight={500}>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Decided At</Typography>
+                                                <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
                                                     {isMounted ? new Date(redemption.decidedAt).toLocaleString() : 'Loading...'}
                                                 </Typography>
                                             </Box>
@@ -257,50 +273,50 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 {(redemption.adminReasonCode || redemption.adminNote || redemption.tangoErrorMessage) && (
                                     <Grid size={{ xs: 12 }}>
                                         <Divider sx={{ my: 1 }} />
-                                        <Typography variant="h6" gutterBottom fontWeight={600} color="primary" mt={2}>
+                                        <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mt: 1, mb: 1.5 }}>
                                             Additional Context
                                         </Typography>
-                                        <Grid container spacing={4}>
+                                        <Grid container spacing={2}>
                                             <Grid size={{ xs: 12, md: 6 }}>
-                                                <Box display="flex" flexDirection="column" gap={2}>
+                                                <Box display="flex" flexDirection="column" gap={1}>
                                                     {redemption.adminReasonCode && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Admin Reason Code</Typography>
-                                                            <Typography variant="body1">{redemption.adminReasonCode}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Reason Code</Typography>
+                                                            <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>{redemption.adminReasonCode}</Typography>
                                                         </Box>
                                                     )}
                                                     {redemption.adminNote && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Admin Note</Typography>
-                                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-line', fontWeight: 500 }}>{redemption.adminNote}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Note</Typography>
+                                                            <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.adminNote}</Typography>
                                                         </Box>
                                                     )}
                                                 </Box>
                                             </Grid>
                                             <Grid size={{ xs: 12, md: 6 }}>
-                                                <Box display="flex" flexDirection="column" gap={2}>
+                                                <Box display="flex" flexDirection="column" gap={1}>
                                                     {redemption.tangoOrderId && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Tango Order ID</Typography>
-                                                            <Typography variant="body1">{redemption.tangoOrderId}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Order ID</Typography>
+                                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoOrderId}</Typography>
                                                         </Box>
                                                     )}
                                                     {redemption.tangoReferenceId && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Tango Reference ID</Typography>
-                                                            <Typography variant="body1">{redemption.tangoReferenceId}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Reference ID</Typography>
+                                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoReferenceId}</Typography>
                                                         </Box>
                                                     )}
                                                     {redemption.tangoErrorCode && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Tango Error Code</Typography>
-                                                            <Typography variant="body1" color="error.main">{redemption.tangoErrorCode}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Code</Typography>
+                                                            <Typography variant="body2" color="error.main" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorCode}</Typography>
                                                         </Box>
                                                     )}
                                                     {redemption.tangoErrorMessage && (
                                                         <Box>
-                                                            <Typography variant="caption" color="text.secondary">Tango Error Message</Typography>
-                                                            <Typography variant="body1" color="error.main" sx={{ fontStyle: 'italic' }}>{redemption.tangoErrorMessage}</Typography>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Message</Typography>
+                                                            <Typography variant="body2" color="error.main" sx={{ fontStyle: 'italic', fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorMessage}</Typography>
                                                         </Box>
                                                     )}
                                                 </Box>
@@ -308,7 +324,6 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                         </Grid>
                                     </Grid>
                                 )}
-
                             </Grid>
                         </Paper>
                     </Box>
@@ -341,12 +356,14 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 borderRadius: 3,
                             }}
                         >
-                            <ReviewForm
-                                reviewForm={reviewForm}
-                                setReviewForm={setReviewForm}
-                                isReviewing={isReviewing}
-                                handleReviewSubmit={handleReviewSubmit}
-                            />
+                            {hasPermission('reward_redemptions:mark_reviewed') && (
+                                <ReviewForm
+                                    reviewForm={reviewForm}
+                                    setReviewForm={setReviewForm}
+                                    isReviewing={isReviewing}
+                                    handleReviewSubmit={handleReviewSubmit}
+                                />
+                            )}
                         </Paper>
                     </Box>
                 </Box>
@@ -365,14 +382,16 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         }
                     }}
                 >
-                    <ReviewForm
-                        mobile
-                        reviewForm={reviewForm}
-                        setReviewForm={setReviewForm}
-                        isReviewing={isReviewing}
-                        handleReviewSubmit={handleReviewSubmit}
-                        setReviewDialogOpen={setReviewDialogOpen}
-                    />
+                    {hasPermission('reward_redemptions:mark_reviewed') && (
+                        <ReviewForm
+                            mobile
+                            reviewForm={reviewForm}
+                            setReviewForm={setReviewForm}
+                            isReviewing={isReviewing}
+                            handleReviewSubmit={handleReviewSubmit}
+                            setReviewDialogOpen={setReviewDialogOpen}
+                        />
+                    )}
                 </Drawer>
             </Box>
         </DashboardLayout>
@@ -385,6 +404,7 @@ interface ReviewFormProps {
         decision: 'approve' | 'reject' | 'hold';
         admin_reason_code: string;
         admin_note: string;
+        utid: string;
     };
     setReviewForm: (form: any) => void;
     isReviewing: boolean;
@@ -402,71 +422,119 @@ function ReviewForm({
 }: ReviewFormProps) {
     return (
         <Box display="flex" flexDirection="column" flex={1} minHeight={0} sx={{ overflow: 'hidden' }}>
-            <Box p={2} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>Mark Review</Typography>
+            <Box p={1.5} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
+                <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Mark Review</Typography>
                 {mobile && setReviewDialogOpen && (
-                    <Button size="small" onClick={() => setReviewDialogOpen(false)} disabled={isReviewing} sx={{ minWidth: 'auto', p: 1 }}>✕</Button>
+                    <Button size="small" onClick={() => setReviewDialogOpen(false)} disabled={isReviewing} sx={{ minWidth: 'auto', p: 0.5 }}>✕</Button>
                 )}
             </Box>
-            <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
-                <Box mb={3}>
+            <Box flex={1} sx={{ overflowY: 'auto' }} p={2}>
+                <Box mb={2}>
                     <TextField
                         select
                         fullWidth
+                        size="small"
                         label="Decision"
                         value={reviewForm.decision}
                         onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })}
                         disabled={isReviewing}
-                        InputLabelProps={{ shrink: true, required: true }}
+                        slotProps={{
+                            input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
+                        }}
                     >
-                        <MenuItem value="approve">Approve</MenuItem>
-                        <MenuItem value="reject">Reject</MenuItem>
-                        <MenuItem value="hold">Hold</MenuItem>
+                        <MenuItem value="approve" sx={{ fontSize: '0.75rem' }}>Approve</MenuItem>
+                        <MenuItem value="reject" sx={{ fontSize: '0.75rem' }}>Reject</MenuItem>
+                        <MenuItem value="hold" sx={{ fontSize: '0.75rem' }}>Hold</MenuItem>
                     </TextField>
                 </Box>
-                <Box mb={3}>
+                <Box mb={2}>
                     <TextField
                         select
                         fullWidth
+                        size="small"
                         label="Reason Code"
                         value={reviewForm.admin_reason_code}
                         onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })}
                         disabled={isReviewing}
-                        placeholder="Select a reason..."
-                        InputLabelProps={{ shrink: true, required: true }}
+                        placeholder="Select..."
+                        slotProps={{
+                            input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
+                        }}
                     >
                         {PREDEFINED_REASONS.map((reason) => (
-                            <MenuItem key={reason.value} value={reason.value}>
+                            <MenuItem key={reason.value} value={reason.value} sx={{ fontSize: '0.75rem' }}>
                                 {reason.label}
                             </MenuItem>
                         ))}
                     </TextField>
                 </Box>
-                <Box mb={3}>
+                <RewardCatalogField reviewForm={reviewForm} setReviewForm={setReviewForm} isReviewing={isReviewing} />
+                <Box mb={2}>
                     <TextField
                         fullWidth
+                        size="small"
                         multiline
-                        rows={3}
+                        rows={2}
                         label="Internal Note"
                         value={reviewForm.admin_note}
                         onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })}
                         disabled={isReviewing}
-                        placeholder="Add admin note..."
-                        InputLabelProps={{ shrink: true }}
+                        placeholder="Add note..."
+                        slotProps={{
+                            input: { sx: { fontSize: '0.75rem' } },
+                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                        }}
                     />
                 </Box>
             </Box>
-            <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
+            <Box p={1.5} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
                 <Button
                     fullWidth
                     variant="contained"
+                    size="small"
                     onClick={handleReviewSubmit}
-                    disabled={isReviewing || !reviewForm.admin_reason_code}
-                    sx={{ background: 'linear-gradient(45deg, #667eea, #764ba2)' }}
+                    disabled={isReviewing || !reviewForm.admin_reason_code || !reviewForm.utid}
+                    sx={{
+                        background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        height: '32px',
+                        fontSize: '0.75rem',
+                    }}
                 >
-                    {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
+                    {isReviewing ? <CircularProgress size={18} color="inherit" /> : 'Submit Review'}
                 </Button>
             </Box>
+        </Box>
+    );
+}
+
+function RewardCatalogField({ reviewForm, setReviewForm, isReviewing }: { reviewForm: any, setReviewForm: any, isReviewing: boolean }) {
+    const { data: catalogResponse, isLoading } = useGetRewardCatalogsQuery({ status: 'ACTIVE', limit: 100 });
+    const catalogs = catalogResponse?.items || [];
+
+    return (
+        <Box mb={2}>
+            <TextField
+                select
+                fullWidth
+                size="small"
+                label="Reward Catalog"
+                value={reviewForm.utid}
+                onChange={(e) => setReviewForm({ ...reviewForm, utid: e.target.value })}
+                disabled={isReviewing || isLoading}
+                placeholder={isLoading ? "Loading..." : "Select catalog item..."}
+                slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
+                }}
+            >
+                {catalogs.map((item: any) => (
+                    <MenuItem key={item.id} value={item.utid} sx={{ fontSize: '0.75rem' }}>
+                        {item.brandName} - {item.rewardName} ({item.currencyCode || item.currency})
+                    </MenuItem>
+                ))}
+            </TextField>
         </Box>
     );
 }

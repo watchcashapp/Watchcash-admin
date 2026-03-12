@@ -13,16 +13,17 @@ import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { Input, Textarea, GroupedPermissionsSelect, useToast } from '@/components/shared';
 import { useGetRoleByIdQuery, useUpdateRoleMutation, useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  
+
   // Refs for form fields
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -38,6 +39,18 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   const { data: roleResponse, isLoading: loadingRole } = useGetRoleByIdQuery(resolvedParams.id);
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
+  const { hasPermission } = usePermissions();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('rbac:manage_roles')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   const role = roleResponse?.data;
 
@@ -70,22 +83,22 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Role name is required';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
-    
+
     setErrors(newErrors);
     return { isValid: Object.keys(newErrors).length === 0, errors: newErrors };
   };
 
   const handleSubmit = async () => {
     const validation = validateForm();
-    
+
     if (!validation.isValid) {
       // Scroll to first error field
       if (validation.errors.name && nameRef.current) {
@@ -143,7 +156,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       <Button
         startIcon={<ArrowBack />}
         onClick={() => router.push('/staff/roles')}
-        sx={{ 
+        sx={{
           mb: { xs: 2, sm: 3 },
           '&:hover': {
             backgroundColor: 'rgba(102, 126, 234, 0.08)',
@@ -153,11 +166,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         Back to Roles
       </Button>
 
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          mb: { xs: 2, sm: 3 },
-          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+      <Typography
+        variant="h5"
+        sx={{
+          mb: 1.5,
+          fontSize: '1.1rem',
           fontWeight: 700,
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
           WebkitBackgroundClip: 'text',
@@ -170,17 +183,18 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
       <Paper
         sx={{
-          p: { xs: 2, sm: 3, md: 4 },
+          p: 1.5,
           bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark' 
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
           border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 0.1)'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
             : '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: 1.5,
         }}
       >
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Input
               ref={nameRef}
@@ -191,6 +205,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               helperText={errors.name}
               required
               placeholder="e.g., Content Manager"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -201,7 +219,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
               required
               disabled
-              helperText="Code cannot be changed after creation"
+              helperText="Code cannot be changed"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -213,10 +235,14 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               onChange={handleDescriptionChange}
               error={!!errors.description}
               helperText={errors.description}
-              rows={3}
+              rows={2}
               required
               fullWidth
-              placeholder="Describe the role and its responsibilities"
+              placeholder="Describe the role..."
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem' } },
+                inputLabel: { sx: { fontSize: '0.75rem' } }
+              }}
             />
           </Grid>
 
@@ -230,28 +256,34 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           </Grid>
 
           <Grid size={{ xs: 12 }}>
-            <Box 
-              display="flex" 
-              gap={2} 
-              justifyContent="flex-end" 
-              mt={2}
+            <Box
+              display="flex"
+              gap={1}
+              justifyContent="flex-end"
+              mt={1}
               flexDirection={{ xs: 'column', sm: 'row' }}
             >
               <Button
                 variant="outlined"
                 onClick={() => router.push('/staff/roles')}
                 disabled={isUpdating}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                sx={{
+                  width: { xs: '100%', sm: 'auto' },
+                  height: '32px',
+                  fontSize: '0.75rem',
+                }}
               >
                 Cancel
               </Button>
               <Button
                 variant="contained"
-                startIcon={<Save />}
+                startIcon={<Save sx={{ fontSize: '1rem !important' }} />}
                 onClick={handleSubmit}
                 disabled={isUpdating}
                 sx={{
                   width: { xs: '100%', sm: 'auto' },
+                  height: '32px',
+                  fontSize: '0.75rem',
                   background: 'linear-gradient(45deg, #667eea, #764ba2)',
                   '&:hover': {
                     background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',

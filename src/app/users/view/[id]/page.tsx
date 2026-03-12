@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column } from '@/components/shared';
 import { useGetUserByIdQuery, useGetUserWalletQuery, useGetUserRedeemHistoryQuery, WalletTransaction } from '@/store/api/usersApi';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,6 +47,7 @@ function TabPanel(props: TabPanelProps) {
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { hasPermission } = usePermissions();
   const [tabValue, setTabValue] = useState(0);
   const [walletPage, setWalletPage] = useState(1);
 
@@ -55,6 +57,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('users:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
@@ -247,10 +255,12 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     <DashboardLayout>
       <Box>
         <Button
-          startIcon={<ArrowBack />}
+          startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
           onClick={() => router.push('/users')}
           sx={{
-            mb: 2,
+            mb: 1,
+            height: '28px',
+            fontSize: '0.75rem',
             '&:hover': {
               backgroundColor: 'rgba(102, 126, 234, 0.08)',
             },
@@ -260,10 +270,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </Button>
 
         <Typography
-          variant="h4"
+          variant="h5"
           sx={{
-            mb: 3,
+            mb: 1,
             fontWeight: 700,
+            fontSize: '1.1rem',
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -275,6 +286,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         <Paper
           sx={{
+            p: 1.5,
             bgcolor: 'background.paper',
             boxShadow: (theme) => theme.palette.mode === 'dark'
               ? '0 4px 12px rgba(0, 0, 0, 0.3)'
@@ -282,6 +294,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             border: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
               : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
           }}
         >
           <Tabs
@@ -291,10 +304,16 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               borderBottom: 1,
               borderColor: 'divider',
               px: 2,
+              minHeight: '36px',
+              '& .MuiTabs-flexContainer': {
+                height: '36px',
+              },
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                fontSize: '1rem',
+                fontSize: '0.8rem',
+                minHeight: '36px',
+                py: 0.5,
               },
               '& .Mui-selected': {
                 color: '#667eea',
@@ -304,87 +323,99 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               },
             }}
           >
-            <Tab icon={<Person />} iconPosition="start" label="Details" />
-            <Tab icon={<AccountBalanceWallet />} iconPosition="start" label="Wallet Transactions" />
-            <Tab icon={<History />} iconPosition="start" label="Redemption History" />
+            <Tab icon={<Person sx={{ fontSize: '1.2rem !important' }} />} iconPosition="start" label="Details" />
+            {hasPermission('users:view_transactions') && (
+              <Tab icon={<AccountBalanceWallet sx={{ fontSize: '1.2rem !important' }} />} iconPosition="start" label="Wallet" />
+            )}
+            {hasPermission('users:view_rewards') && (
+              <Tab icon={<History sx={{ fontSize: '1.2rem !important' }} />} iconPosition="start" label="Redeem History" />
+            )}
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
-            <Box sx={{ p: 3 }}>
-              <Grid container spacing={3}>
+            <Box sx={{ p: 1.5 }}>
+              <Grid container spacing={1.5}>
                 {/* User Information */}
                 <Grid size={{ xs: 12 }}>
                   <Card
+                    elevation={0}
                     sx={{
-                      bgcolor: 'background.paper',
+                      bgcolor: 'action.hover',
                       border: (theme) => theme.palette.mode === 'dark'
                         ? '1px solid rgba(255, 255, 255, 0.1)'
                         : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: 1,
                     }}
                   >
-                    <CardContent>
-                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
+                      <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
                         User Information
                       </Typography>
-                      <Grid container spacing={2}>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
+                      <Grid container spacing={1}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                             Name
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                             {userResponse.name}
                           </Typography>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                             Email
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                             {userResponse.email}
                           </Typography>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                             User Type
                           </Typography>
-                          <Chip
-                            label={userResponse.userType}
-                            size="small"
-                            sx={{
-                              mt: 0.5,
-                              background: userResponse.userType === 'ADMIN'
-                                ? 'linear-gradient(45deg, #667eea, #764ba2)'
-                                : 'linear-gradient(45deg, #10b981, #059669)',
-                              color: 'white',
-                              fontWeight: 600,
-                            }}
-                          />
+                          <Box mt={0.1}>
+                            <Chip
+                              label={userResponse.userType}
+                              size="small"
+                              sx={{
+                                height: '18px',
+                                fontSize: '0.65rem',
+                                background: userResponse.userType === 'ADMIN'
+                                  ? 'linear-gradient(45deg, #667eea, #764ba2)'
+                                  : 'linear-gradient(45deg, #10b981, #059669)',
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Box>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                             Status
                           </Typography>
-                          <Chip
-                            label={userResponse.isActive ? 'Active' : 'Inactive'}
-                            size="small"
-                            sx={{
-                              mt: 0.5,
-                              background: userResponse.isActive
-                                ? 'linear-gradient(45deg, #10b981, #059669)'
-                                : 'linear-gradient(45deg, #6b7280, #4b5563)',
-                              color: 'white',
-                              fontWeight: 600,
-                            }}
-                          />
+                          <Box mt={0.1}>
+                            <Chip
+                              label={userResponse.isActive ? 'Active' : 'Inactive'}
+                              size="small"
+                              sx={{
+                                height: '18px',
+                                fontSize: '0.65rem',
+                                background: userResponse.isActive
+                                  ? 'linear-gradient(45deg, #10b981, #059669)'
+                                  : 'linear-gradient(45deg, #6b7280, #4b5563)',
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
+                            />
+                          </Box>
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
                             Created At
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                             {isMounted ? new Date(userResponse.createdAt).toLocaleString('en-US', {
                               year: 'numeric',
-                              month: 'long',
+                              month: 'short',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit',
@@ -412,14 +443,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                       : '1px solid rgba(0, 0, 0, 0.08)',
                   }}
                 >
-                  <CardContent>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>
                       Current Balance
                     </Typography>
                     <Typography
-                      variant="h5"
+                      variant="h6"
                       sx={{
                         fontWeight: 700,
+                        fontSize: '1.25rem',
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -447,8 +479,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   />
 
                   {/* Pagination */}
-                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
                       Showing {walletData.transactions.length} of {walletData.total} results
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -456,32 +488,20 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         size="small"
                         onClick={() => setWalletPage(walletPage - 1)}
                         disabled={walletPage <= 1}
-                        sx={{
-                          bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.main',
-                          color: walletPage <= 1 ? 'text.disabled' : 'white',
-                          '&:hover': {
-                            bgcolor: walletPage <= 1 ? 'action.disabled' : 'primary.dark',
-                          },
-                        }}
+                        sx={{ color: walletPage <= 1 ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
-                        <NavigateBefore />
+                        <NavigateBefore fontSize="small" />
                       </IconButton>
-                      <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                      <Typography variant="caption" sx={{ mx: 0.5, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
                         {walletPage} / {walletData.totalPages}
                       </Typography>
                       <IconButton
                         size="small"
                         onClick={() => setWalletPage(walletPage + 1)}
                         disabled={walletPage >= walletData.totalPages}
-                        sx={{
-                          bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.main',
-                          color: walletPage >= walletData.totalPages ? 'text.disabled' : 'white',
-                          '&:hover': {
-                            bgcolor: walletPage >= walletData.totalPages ? 'action.disabled' : 'primary.dark',
-                          },
-                        }}
+                        sx={{ color: walletPage >= walletData.totalPages ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
-                        <NavigateNext />
+                        <NavigateNext fontSize="small" />
                       </IconButton>
                     </Box>
                   </Box>
@@ -524,8 +544,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   />
 
                   {/* Pagination */}
-                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
                       Showing {historyData.items.length} of {historyData.total} results
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -533,32 +553,20 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         size="small"
                         onClick={() => setHistoryPage(historyPage - 1)}
                         disabled={historyPage <= 1}
-                        sx={{
-                          bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.main',
-                          color: historyPage <= 1 ? 'text.disabled' : 'white',
-                          '&:hover': {
-                            bgcolor: historyPage <= 1 ? 'action.disabled' : 'primary.dark',
-                          },
-                        }}
+                        sx={{ color: historyPage <= 1 ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
-                        <NavigateBefore />
+                        <NavigateBefore fontSize="small" />
                       </IconButton>
-                      <Typography variant="body2" sx={{ mx: 1, minWidth: '60px', textAlign: 'center' }}>
+                      <Typography variant="caption" sx={{ mx: 0.5, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
                         {historyPage} / {historyData.totalPages}
                       </Typography>
                       <IconButton
                         size="small"
                         onClick={() => setHistoryPage(historyPage + 1)}
                         disabled={historyPage >= historyData.totalPages}
-                        sx={{
-                          bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.main',
-                          color: historyPage >= historyData.totalPages ? 'text.disabled' : 'white',
-                          '&:hover': {
-                            bgcolor: historyPage >= historyData.totalPages ? 'action.disabled' : 'primary.dark',
-                          },
-                        }}
+                        sx={{ color: historyPage >= historyData.totalPages ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
-                        <NavigateNext />
+                        <NavigateNext fontSize="small" />
                       </IconButton>
                     </Box>
                   </Box>

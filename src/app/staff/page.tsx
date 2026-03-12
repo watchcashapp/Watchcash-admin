@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -15,6 +16,7 @@ import {
   CircularProgress,
   Alert,
   Chip,
+  Paper,
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
 import { DataTable, ConfirmDialog, useToast } from "@/components/shared";
@@ -26,6 +28,7 @@ import {
   useToggleStaffStatusMutation,
   Staff,
 } from "@/store/api/staffApi";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface StaffFormData {
   name: string;
@@ -42,12 +45,26 @@ const initialFormData: StaffFormData = {
 };
 
 export default function StaffPage() {
+  const router = useRouter();
+  const { hasPermission } = usePermissions();
   const { showSuccess, showError } = useToast();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('staff:list')) {
+      showError("You don't have permission to view staff");
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router, showError]);
 
   const { data, isLoading, error } = useGetStaffQuery({
     page,
@@ -212,11 +229,11 @@ export default function StaffPage() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
         <Typography
-          variant="h4"
           sx={{
             fontWeight: 700,
+            fontSize: '1.1rem',
             background: "linear-gradient(45deg, #667eea, #764ba2)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -225,40 +242,43 @@ export default function StaffPage() {
         >
           Staff Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpenDialog()}
-          sx={{
-            background: "linear-gradient(45deg, #667eea, #764ba2)",
-            boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
-            "&:hover": {
-              background: "linear-gradient(45deg, #5a67d8, #764ba2)",
-              boxShadow: "0 6px 16px rgba(102, 126, 234, 0.5)",
-            },
-          }}
-        >
-          Add Staff
-        </Button>
+        {hasPermission('staff:create') && (
+          <Button
+            variant="contained"
+            startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+            onClick={() => handleOpenDialog()}
+            sx={{
+              height: '32px',
+              fontSize: '0.75rem',
+              background: "linear-gradient(45deg, #667eea, #764ba2)",
+              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(45deg, #5a67d8, #764ba2)",
+                boxShadow: "0 6px 16px rgba(102, 126, 234, 0.5)",
+              },
+            }}
+          >
+            Add Staff
+          </Button>
+        )}
       </Box>
 
       {/* Filters */}
-      <Box
+      <Paper
         sx={{
-          mb: 3,
-          p: 2.5,
+          mb: 2,
+          p: 1.5,
           bgcolor: "background.paper",
-          backdropFilter: "blur(20px)",
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? "0 8px 32px rgba(0, 0, 0, 0.6)"
-            : "0 8px 32px rgba(0, 0, 0, 0.1)",
-          border: (theme) => theme.palette.mode === 'dark'
+          boxShadow: (theme: any) => theme.palette.mode === 'dark'
+            ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+            : "0 4px 12px rgba(0, 0, 0, 0.05)",
+          border: (theme: any) => theme.palette.mode === 'dark'
             ? "1px solid rgba(255, 255, 255, 0.1)"
-            : "1px solid rgba(0, 0, 0, 0.05)",
-          borderRadius: 3,
+            : "1px solid rgba(0, 0, 0, 0.08)",
+          borderRadius: 1.5,
         }}
       >
-        <Grid container spacing={2}>
+        <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <TextField
               label="Search"
@@ -267,10 +287,19 @@ export default function StaffPage() {
               onChange={(e) => setSearch(e.target.value)}
               fullWidth
               size="small"
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                "& .MuiInputBase-input": {
-                  fontSize: "0.875rem",
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                }
               }}
             />
           </Grid>
@@ -282,16 +311,30 @@ export default function StaffPage() {
               onChange={(e) => setRoleFilter(e.target.value)}
               fullWidth
               size="small"
+              slotProps={{
+                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                "& .MuiInputBase-input": {
-                  fontSize: "0.875rem",
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+                '& .MuiSelect-select': {
+                  py: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }
               }}
             >
-              <MenuItem value="">All Roles</MenuItem>
-              <MenuItem value="ADMIN">Admin</MenuItem>
-              <MenuItem value="MANAGER">Manager</MenuItem>
-              <MenuItem value="STAFF">Staff</MenuItem>
+              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Roles</MenuItem>
+              <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>Admin</MenuItem>
+              <MenuItem value="MANAGER" sx={{ fontSize: '0.75rem' }}>Manager</MenuItem>
+              <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>Staff</MenuItem>
             </TextField>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -302,19 +345,33 @@ export default function StaffPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               fullWidth
               size="small"
+              slotProps={{
+                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
               sx={{
-                "& .MuiInputBase-input": {
-                  fontSize: "0.875rem",
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
                 },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+                '& .MuiSelect-select': {
+                  py: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }
               }}
             >
-              <MenuItem value="">All Status</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
+              <MenuItem value="active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
+              <MenuItem value="inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
             </TextField>
           </Grid>
         </Grid>
-      </Box>
+      </Paper>
 
       {/* Data Table */}
       {isLoading ? (
@@ -327,9 +384,9 @@ export default function StaffPage() {
             columns={columns}
             data={data?.data.staff || []}
             getRowId={(row) => row.id}
-            onEdit={(staff) => handleOpenDialog(staff as Staff)}
-            onDelete={(staff) => setDeleteConfirm(staff as Staff)}
-            onToggle={(staff) => handleToggleStatus(staff as Staff)}
+            onEdit={hasPermission('staff:update') ? (staff) => handleOpenDialog(staff as Staff) : undefined}
+            onDelete={hasPermission('staff:delete') ? (staff) => setDeleteConfirm(staff as Staff) : undefined}
+            onToggle={hasPermission('staff:toggle_status') ? (staff) => handleToggleStatus(staff as Staff) : undefined}
             emptyMessage="No staff found. Try adjusting your filters."
           />
 

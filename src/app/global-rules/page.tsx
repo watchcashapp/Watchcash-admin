@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Save, Edit } from "@mui/icons-material";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
@@ -23,12 +24,25 @@ import {
 } from "@/store/api/globalRulesApi";
 
 export default function GlobalRulesPage() {
+  const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
   const { data: globalRules, isLoading, error } = useGetGlobalRulesQuery();
   const [updateGlobalRules, { isLoading: isUpdating }] = useUpdateGlobalRulesMutation();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !hasPermission('global_rules:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router]);
+
   const [formData, setFormData] = useState<GlobalRules>({
     defaultPointsPerMinute: 0,
     dailyHardCap: 0,
@@ -161,11 +175,11 @@ export default function GlobalRulesPage() {
   return (
     <DashboardLayout>
       <Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography
-            variant="h4"
             sx={{
               fontWeight: 700,
+              fontSize: '1.1rem',
               background: 'linear-gradient(45deg, #667eea, #764ba2)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -176,8 +190,8 @@ export default function GlobalRulesPage() {
           </Typography>
           {!isEditing && (
             <Button
-              variant="outlined"
-              startIcon={<Edit />}
+              variant="contained"
+              startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
               onClick={() => {
                 if (hasPermission('global_rules:update')) {
                   setIsEditing(true);
@@ -186,11 +200,14 @@ export default function GlobalRulesPage() {
                 }
               }}
               sx={{
-                borderColor: '#667eea',
-                color: '#667eea',
+                height: '30px',
+                fontSize: '0.75rem',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                px: 2,
                 '&:hover': {
-                  borderColor: '#5a67d8',
-                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                 },
               }}
             >
@@ -203,21 +220,21 @@ export default function GlobalRulesPage() {
           sx={{
             bgcolor: 'background.paper',
             backdropFilter: 'blur(20px)',
-            boxShadow: (theme) => theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.6)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
-            border: (theme) => theme.palette.mode === 'dark'
+            boxShadow: (theme: any) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme: any) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(0, 0, 0, 0.05)',
-            borderRadius: 3,
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
           }}
         >
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+          <CardContent sx={{ p: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, fontSize: '0.85rem' }}>
               Default Settings for All Apps
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={1.5}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Default Points Per Minute"
@@ -232,6 +249,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -249,6 +281,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -266,6 +313,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -283,6 +345,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 0.1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -300,6 +377,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 1, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -317,6 +409,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 1, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -334,11 +441,26 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 1, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
-              <Grid size={{ xs: 12 }} sx={{ mt: 2, mb: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Grid size={{ xs: 12 }} sx={{ mt: 1, mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
                   Risk Management Settings
                 </Typography>
               </Grid>
@@ -357,6 +479,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, max: 100, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -374,6 +511,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, max: 100, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -391,6 +543,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, max: 100, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -408,6 +575,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -425,6 +607,21 @@ export default function GlobalRulesPage() {
                   required
                   fullWidth
                   inputProps={{ min: 0, step: 1 }}
+                  size="small"
+                  slotProps={{
+                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                  }}
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -435,16 +632,22 @@ export default function GlobalRulesPage() {
                       variant="outlined"
                       onClick={handleCancel}
                       disabled={isUpdating}
-                      sx={{ minWidth: 120 }}
+                      sx={{
+                        height: '32px',
+                        fontSize: '0.75rem',
+                        minWidth: 100,
+                      }}
                     >
                       Cancel
                     </Button>
                     <Button
                       variant="contained"
-                      startIcon={isUpdating ? null : <Save />}
+                      startIcon={isUpdating ? null : <Save sx={{ fontSize: '1rem' }} />}
                       onClick={handleSave}
                       disabled={isUpdating}
                       sx={{
+                        height: '32px',
+                        fontSize: '0.75rem',
                         minWidth: 120,
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
@@ -457,7 +660,7 @@ export default function GlobalRulesPage() {
                         },
                       }}
                     >
-                      {isUpdating ? <CircularProgress size={20} color="inherit" /> : 'Save Changes'}
+                      {isUpdating ? <CircularProgress size={16} color="inherit" /> : 'Save Changes'}
                     </Button>
                   </Box>
                 </Grid>

@@ -54,7 +54,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useNotifications } from '@/components/notifications/NotificationsProvider';
 
-const drawerWidth = 280;
+const drawerWidth = 240;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -73,16 +73,16 @@ const menuItems: MenuItem[] = [
   { text: 'User Management', icon: <People />, path: '/users', permission: 'users:list' },
   {
     text: 'Staff Management',
-    icon: <BadgeIcon />,
-    permission: 'rbac:manage_roles',
+    icon: <Badge />,
+    permission: 'staff:list',
     subItems: [
-      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'dashboard:view_total_staff' },
+      { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'staff:list' },
       { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'rbac:manage_roles' },
     ]
   },
-  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:view' },
-  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'dashboard:view_total_device_sessions' },
-  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:update' },
+  { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:list' },
+  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
+  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:list' },
   { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
@@ -145,6 +145,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Permission check for Audit Logs page
+  React.useEffect(() => {
+    if (isMounted && pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, hasPermission, router, pathname]);
 
   // Auto-expand submenus when their child routes are active
   React.useEffect(() => {
@@ -363,6 +370,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         : 'text.primary',
                       fontWeight: isMenuItemActive(item) ? 600 : 400,
                       transition: 'all 0.2s ease',
+                      fontSize: '0.8rem',
                     }
                   }}
                 />
@@ -414,7 +422,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             color: pathname === subItem.path || pathname.startsWith(subItem.path + '/') ? 'white' : 'text.primary',
                             fontWeight: pathname === subItem.path || pathname.startsWith(subItem.path + '/') ? 600 : 400,
                             transition: 'all 0.2s ease',
-                            fontSize: '0.9rem',
+                            fontSize: '0.75rem',
                           }
                         }}
                       />
@@ -450,7 +458,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           zIndex: 1200,
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: '48px !important', height: 48 }}>
           <IconButton
             suppressHydrationWarning
             color="inherit"
@@ -586,14 +594,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
                   <Typography
-                    variant="body2"
+                    variant="caption"
                     sx={{
-                      fontWeight: 600,
+                      fontWeight: 700,
                       background: 'linear-gradient(45deg, #667eea, #764ba2)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
-                      lineHeight: 1.2,
+                      lineHeight: 1,
                     }}
                   >
                     {user.name}
@@ -794,18 +802,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 3 },
+          p: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           maxWidth: '100%',
           overflow: 'auto',
           backgroundColor: 'background.default',
-          height: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          '&::-webkit-scrollbar': { width: '4px' },
+          '&::-webkit-scrollbar-track': { background: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { background: 'rgba(102, 126, 234, 0.2)', borderRadius: '4px' },
+          '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(102, 126, 234, 0.3)' },
         }}
       >
-        <Toolbar />
-        {children}
+        <Toolbar sx={{ minHeight: '48px !important', height: 48 }} />
+        <Box sx={{ flexGrow: 1, p: 1 }}>
+          {children}
+        </Box>
       </Box>
 
       {/* Theme Switcher Dialog */}

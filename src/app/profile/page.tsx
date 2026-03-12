@@ -233,11 +233,10 @@ export default function ProfilePage() {
     <DashboardLayout>
       <Box>
         <Typography
-          variant="h4"
-          gutterBottom
           sx={{
             fontWeight: 700,
-            mb: 4,
+            fontSize: '1.1rem',
+            mb: 2,
             background: 'linear-gradient(45deg, #667eea, #764ba2)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -259,27 +258,27 @@ export default function ProfilePage() {
                 border: (theme) => theme.palette.mode === 'dark'
                   ? '1px solid rgba(255, 255, 255, 0.1)'
                   : '1px solid rgba(0, 0, 0, 0.05)',
-                borderRadius: 3,
+                borderRadius: 1.5,
               }}
             >
-              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+              <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Avatar
                   sx={{
-                    width: 120,
-                    height: 120,
+                    width: 80,
+                    height: 80,
                     mx: 'auto',
-                    mb: 2,
+                    mb: 1.5,
                     background: 'linear-gradient(45deg, #667eea, #764ba2)',
                     boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                    fontSize: '3rem',
+                    fontSize: '2rem',
                   }}
                 >
                   {formData.name?.[0]?.toUpperCase() || 'U'}
                 </Avatar>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
                   {formData.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
                   {formData.email}
                 </Typography>
                 {profileData?.userType && (
@@ -314,12 +313,12 @@ export default function ProfilePage() {
                 border: (theme) => theme.palette.mode === 'dark'
                   ? '1px solid rgba(255, 255, 255, 0.1)'
                   : '1px solid rgba(0, 0, 0, 0.05)',
-                borderRadius: 3,
+                borderRadius: 1.5,
               }}
             >
-              <CardContent sx={{ p: 4 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Personal Information
                   </Typography>
                   {!isEditing && (
@@ -327,8 +326,10 @@ export default function ProfilePage() {
                       variant="outlined"
                       onClick={() => setIsEditing(true)}
                       sx={{
-                        minWidth: { xs: 'auto', sm: 120 },
-                        px: { xs: 2, sm: 3 },
+                        height: '32px',
+                        fontSize: '0.75rem',
+                        minWidth: { xs: 'auto', sm: 100 },
+                        px: { xs: 1.5, sm: 2 },
                         borderColor: '#667eea',
                         color: '#667eea',
                         display: 'flex',
@@ -340,7 +341,7 @@ export default function ProfilePage() {
                         },
                       }}
                     >
-                      <Edit fontSize="small" />
+                      <Edit sx={{ fontSize: '1rem' }} />
                       <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                         EDIT PROFILE
                       </Box>
@@ -362,22 +363,20 @@ export default function ProfilePage() {
                       helperText={errors.name}
                       required
                       fullWidth
+                      size="small"
+                      slotProps={{
+                        input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                        inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                      }}
                       sx={{
                         '& .MuiInputLabel-root': {
-                          color: 'text.secondary',
-                          fontSize: '0.875rem',
-                          transform: 'translate(20px, -8px) scale(0.8)',
-                          fontWeight: 500,
+                          transform: 'translate(14px, -6px) scale(0.75)',
                           bgcolor: 'background.paper',
-                          padding: '0 4px',
-                          borderRadius: '4px',
+                          px: 0.5,
                         },
-                        '& .MuiInputBase-input': {
-                          fontSize: '0.875rem',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                          color: 'error.main',
-                        },
+                        '& .MuiInputLabel-shrink': {
+                          transform: 'translate(14px, -6px) scale(0.75)',
+                        }
                       }}
                     />
                   </Grid>
@@ -393,22 +392,20 @@ export default function ProfilePage() {
                       required
                       fullWidth
                       type="email"
+                      size="small"
+                      slotProps={{
+                        input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                        inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                      }}
                       sx={{
                         '& .MuiInputLabel-root': {
-                          color: 'text.secondary',
-                          fontSize: '0.875rem',
-                          transform: 'translate(20px, -8px) scale(0.8)',
-                          fontWeight: 500,
+                          transform: 'translate(14px, -6px) scale(0.75)',
                           bgcolor: 'background.paper',
-                          padding: '0 4px',
-                          borderRadius: '4px',
+                          px: 0.5,
                         },
-                        '& .MuiInputBase-input': {
-                          fontSize: '0.875rem',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                          color: 'error.main',
-                        },
+                        '& .MuiInputLabel-shrink': {
+                          transform: 'translate(14px, -6px) scale(0.75)',
+                        }
                       }}
                     />
                   </Grid>
@@ -421,20 +418,24 @@ export default function ProfilePage() {
                           onClick={handleCancel}
                           disabled={isUpdating}
                           sx={{
-                            minWidth: { xs: 'auto', sm: 120 },
-                            px: { xs: 2, sm: 3 },
+                            height: '32px',
+                            fontSize: '0.75rem',
+                            minWidth: { xs: 'auto', sm: 100 },
+                            px: { xs: 1.5, sm: 2 },
                           }}
                         >
                           Cancel
                         </Button>
                         <Button
                           variant="contained"
-                          startIcon={isUpdating ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Save /></Box>}
+                          startIcon={isUpdating ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Save sx={{ fontSize: '1rem' }} /></Box>}
                           onClick={handleSave}
                           disabled={isUpdating}
                           sx={{
-                            minWidth: { xs: 'auto', sm: 120 },
-                            px: { xs: 2, sm: 3 },
+                            height: '32px',
+                            fontSize: '0.75rem',
+                            minWidth: { xs: 'auto', sm: 100 },
+                            px: { xs: 1.5, sm: 2 },
                             background: 'linear-gradient(45deg, #667eea, #764ba2)',
                             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                             '&:hover': {
@@ -447,12 +448,12 @@ export default function ProfilePage() {
                           }}
                         >
                           {isUpdating ? (
-                            <CircularProgress size={20} color="inherit" />
+                            <CircularProgress size={16} color="inherit" />
                           ) : (
                             <>
                               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Save Changes</Box>
                               <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-                                <Save fontSize="small" />
+                                <Save sx={{ fontSize: '1rem' }} />
                                 Save
                               </Box>
                             </>
@@ -477,13 +478,13 @@ export default function ProfilePage() {
                 border: (theme) => theme.palette.mode === 'dark'
                   ? '1px solid rgba(255, 255, 255, 0.1)'
                   : '1px solid rgba(0, 0, 0, 0.05)',
-                borderRadius: 3,
+                borderRadius: 1.5,
               }}
             >
-              <CardContent sx={{ p: 4 }}>
-                <Box display="flex" alignItems="center" gap={1.5} mb={3}>
-                  <Lock sx={{ color: '#667eea' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                  <Lock sx={{ color: '#667eea', fontSize: '1.2rem' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Change Password
                   </Typography>
                 </Box>
@@ -502,24 +503,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.currentPassword}
                       required
                       fullWidth
-                      size="medium"
-                      sx={{
-                        '& .MuiInputLabel-root': {
-                          color: 'text.secondary',
-                          fontSize: '0.875rem',
-                          transform: 'translate(20px, -8px) scale(0.8)',
-                          fontWeight: 500,
-                          bgcolor: 'background.paper',
-                          padding: '0 4px',
-                          borderRadius: '4px',
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: '0.875rem',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                          color: 'error.main',
-                        },
-                      }}
+                      size="small"
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
@@ -533,24 +517,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.newPassword}
                       required
                       fullWidth
-                      size="medium"
-                      sx={{
-                        '& .MuiInputLabel-root': {
-                          color: 'text.secondary',
-                          fontSize: '0.875rem',
-                          transform: 'translate(20px, -8px) scale(0.8)',
-                          fontWeight: 500,
-                          bgcolor: 'background.paper',
-                          padding: '0 4px',
-                          borderRadius: '4px',
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: '0.875rem',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                          color: 'error.main',
-                        },
-                      }}
+                      size="small"
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
@@ -564,24 +531,7 @@ export default function ProfilePage() {
                       helperText={passwordErrors.confirmPassword}
                       required
                       fullWidth
-                      size="medium"
-                      sx={{
-                        '& .MuiInputLabel-root': {
-                          color: 'text.secondary',
-                          fontSize: '0.875rem',
-                          transform: 'translate(20px, -8px) scale(0.8)',
-                          fontWeight: 500,
-                          bgcolor: 'background.paper',
-                          padding: '0 4px',
-                          borderRadius: '4px',
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: '0.875rem',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                          color: 'error.main',
-                        },
-                      }}
+                      size="small"
                     />
                   </Grid>
 
@@ -589,12 +539,14 @@ export default function ProfilePage() {
                     <Box display="flex" gap={2} justifyContent="flex-end" mt={2}>
                       <Button
                         variant="contained"
-                        startIcon={isChangingPassword ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Lock /></Box>}
+                        startIcon={isChangingPassword ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Lock sx={{ fontSize: '1rem' }} /></Box>}
                         onClick={handleChangePassword}
                         disabled={isChangingPassword}
                         sx={{
-                          minWidth: { xs: 'auto', sm: 150 },
-                          px: { xs: 2, sm: 3 },
+                          height: '32px',
+                          fontSize: '0.75rem',
+                          minWidth: { xs: 'auto', sm: 120 },
+                          px: { xs: 1.5, sm: 2 },
                           background: 'linear-gradient(45deg, #667eea, #764ba2)',
                           boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                           '&:hover': {
@@ -607,12 +559,12 @@ export default function ProfilePage() {
                         }}
                       >
                         {isChangingPassword ? (
-                          <CircularProgress size={20} color="inherit" />
+                          <CircularProgress size={16} color="inherit" />
                         ) : (
                           <>
                             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>Change Password</Box>
                             <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 0.5 }}>
-                              <Lock fontSize="small" />
+                              <Lock sx={{ fontSize: '1rem' }} />
                               Change
                             </Box>
                           </>
