@@ -346,8 +346,17 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
 
       if (rolesChanged) {
         showWarning('Your roles have been updated. Please log in again.');
+
+        // Clear local storage/state
         dispatch(clearAuth());
-        router.push('/auth/login');
+
+        // Clear cookies
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        document.cookie = 'agency_owner_gs_authtoken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+
+        // Force hard redirect to login
+        window.location.href = '/auth/login';
         return;
       }
 
