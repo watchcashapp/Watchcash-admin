@@ -43,6 +43,7 @@ import {
   History,
   NotificationsNone,
   DoneAll,
+  Close,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -140,6 +141,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     unreadCount,
     markAllAsRead,
     markOneAsRead,
+    deleteNotification,
     isMarkingAllRead: isMarkingAllNotificationsRead,
   } = useNotifications();
 
@@ -539,27 +541,53 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       py: 1.25,
                       backgroundColor: notification.is_read ? 'transparent' : 'rgba(102, 126, 234, 0.08)',
                       whiteSpace: 'normal',
+                      '&:hover .delete-btn': {
+                        opacity: 1,
+                      },
                     }}
                   >
-                    <Box sx={{ width: '100%' }}>
-                      <Typography variant="body2" sx={{ fontWeight: notification.is_read ? 500 : 700 }}>
-                        {notification.title}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
+                    <Box sx={{ width: '100%', position: 'relative' }}>
+                      <Box sx={{ pr: 3 }}>
+                        <Typography variant="body2" sx={{ fontWeight: notification.is_read ? 500 : 700 }}>
+                          {notification.title}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {notification.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                          {formatNotificationTime(notification.created_at)}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        className="delete-btn"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void deleteNotification(notification.id);
+                        }}
                         sx={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
+                          position: 'absolute',
+                          top: -4,
+                          right: -4,
+                          opacity: 0.5,
+                          transition: 'opacity 0.2s',
+                          '&:hover': {
+                            color: 'error.main',
+                            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                          },
                         }}
                       >
-                        {notification.message}
-                      </Typography>
-                      <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
-                        {formatNotificationTime(notification.created_at)}
-                      </Typography>
+                        <Close sx={{ fontSize: '1rem' }} />
+                      </IconButton>
                     </Box>
                   </MenuItem>
                 ))

@@ -8,6 +8,9 @@ import {
   useLazyGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteMultipleNotificationsMutation,
+  useDeleteAllNotificationsMutation,
 } from '@/store/api/notificationsApi';
 import {
   NotificationsSocketStatus,
@@ -39,6 +42,9 @@ interface NotificationsContextValue {
   setUnreadOnly: (value: boolean) => void;
   markAllAsRead: () => Promise<void>;
   markOneAsRead: (notificationId: string) => Promise<void>;
+  deleteNotification: (notificationId: string) => Promise<void>;
+  deleteMultipleNotifications: (notificationIds: string[]) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
   emitTestPing: () => void;
 }
 
@@ -112,6 +118,9 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const [fetchNotifications] = useLazyGetNotificationsQuery();
   const [markAllNotificationsRead, { isLoading: isMarkingAllRead }] = useMarkAllNotificationsReadMutation();
   const [markNotificationRead, { isLoading: isMarkingOneRead }] = useMarkNotificationReadMutation();
+  const [deleteNotificationMutation] = useDeleteNotificationMutation();
+  const [deleteMultipleNotificationsMutation] = useDeleteMultipleNotificationsMutation();
+  const [deleteAllNotificationsMutation] = useDeleteAllNotificationsMutation();
 
   const pullNotifications = useCallback(
     async (params: { reset?: boolean; cursor?: string; asRefresh?: boolean } = {}) => {
@@ -208,6 +217,44 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
     setUnreadCount(0);
   }, [markAllNotificationsRead, unreadOnly]);
+
+  const deleteNotification = useCallback(
+    async (notificationId: string) => {
+      const target = items.find((item) => item.id === notificationId);
+      if (!target) return;
+
+      await deleteNotificationMutation({ notificationId }).unwrap();
+
+      setItems((prev) => prev.filter((item) => item.id !== notificationId));
+      if (!target.is_read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    },
+    [deleteNotificationMutation, items]
+  );
+
+  const deleteMultipleNotifications = useCallback(
+    async (notificationIds: string[]) => {
+      if (notificationIds.length === 0) return;
+
+      const deletedItems = items.filter((item) => notificationIds.includes(item.id));
+      const unreadDeletedCount = deletedItems.filter((item) => !item.is_read).length;
+
+      await deleteMultipleNotificationsMutation({ notificationIds }).unwrap();
+
+      setItems((prev) => prev.filter((item) => !notificationIds.includes(item.id)));
+      setUnreadCount((prev) => Math.max(0, prev - unreadDeletedCount));
+    },
+    [deleteMultipleNotificationsMutation, items]
+  );
+
+  const deleteAllNotifications = useCallback(async () => {
+    await deleteAllNotificationsMutation().unwrap();
+
+    setItems([]);
+    setUnreadCount(0);
+    setNextCursor(null);
+  }, [deleteAllNotificationsMutation]);
 
   const refresh = useCallback(async () => {
     await pullNotifications({ reset: true, asRefresh: true });
@@ -309,6 +356,9 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       setUnreadOnly,
       markAllAsRead,
       markOneAsRead,
+      deleteNotification,
+      deleteMultipleNotifications,
+      deleteAllNotifications,
       emitTestPing: emitSocketTestPing,
     }),
     [

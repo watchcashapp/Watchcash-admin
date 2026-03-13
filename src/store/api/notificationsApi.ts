@@ -172,6 +172,31 @@ export const notificationsApi = createApi({
         { type: 'Notifications', id: 'LIST' },
       ],
     }),
+    deleteNotification: builder.mutation<{ status?: string; message?: string }, { notificationId: string }>({
+      query: ({ notificationId }) => ({
+        url: `/notifications/${notificationId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { notificationId }) => [
+        { type: 'Notifications', id: notificationId },
+        { type: 'Notifications', id: 'LIST' },
+      ],
+    }),
+    deleteMultipleNotifications: builder.mutation<{ status?: string; message?: string }, { notificationIds: string[] }>({
+      query: ({ notificationIds }) => ({
+        url: '/notifications/bulk',
+        method: 'DELETE',
+        body: { ids: notificationIds },
+      }),
+      invalidatesTags: [{ type: 'Notifications', id: 'LIST' }],
+    }),
+    deleteAllNotifications: builder.mutation<{ status?: string; message?: string }, void>({
+      query: () => ({
+        url: '/notifications/all',
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Notifications', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -180,4 +205,7 @@ export const {
   useLazyGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteMultipleNotificationsMutation,
+  useDeleteAllNotificationsMutation,
 } = notificationsApi;
