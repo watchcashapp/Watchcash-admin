@@ -12,6 +12,7 @@ import { rewardCatalogsApi } from './api/rewardCatalogsApi';
 import { settingsApi } from './api/settingsApi';
 import { dashboardApi } from './api/dashboardApi';
 import { auditLogsApi } from './api/auditLogsApi';
+import { notificationsApi } from './api/notificationsApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -30,6 +31,7 @@ export const store = configureStore({
     [settingsApi.reducerPath]: settingsApi.reducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     [auditLogsApi.reducerPath]: auditLogsApi.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -45,7 +47,8 @@ export const store = configureStore({
       .concat(rewardCatalogsApi.middleware)
       .concat(settingsApi.middleware)
       .concat(dashboardApi.middleware)
-      .concat(auditLogsApi.middleware),
+      .concat(auditLogsApi.middleware)
+      .concat(notificationsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

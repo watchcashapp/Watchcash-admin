@@ -106,7 +106,8 @@ export interface GetSessionsParams {
 export const sessionsApi = createApi({
   reducerPath: 'sessionsApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Sessions', 'Users'],
+  tagTypes: ['Sessions', 'Users'] as const,
+
   endpoints: (builder) => ({
     getSessions: builder.query<SessionsResponse, GetSessionsParams>({
       query: (params) => {

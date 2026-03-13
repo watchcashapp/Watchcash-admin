@@ -6,12 +6,13 @@ import { store } from '@/store';
 import { ToastProvider } from '@/components/shared';
 import AuthInitializer from '@/components/AuthInitializer';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { NotificationsProvider } from '@/components/notifications/NotificationsProvider';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}) { 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -22,7 +23,9 @@ export default function RootLayout({
           <Provider store={store}>
             <AuthInitializer />
             <ToastProvider>
-              <ThemeRegistry>{children}</ThemeRegistry>
+              <NotificationsProvider>
+                <ThemeRegistry>{children}</ThemeRegistry>
+              </NotificationsProvider>
             </ToastProvider>
           </Provider>
         </ThemeProvider>

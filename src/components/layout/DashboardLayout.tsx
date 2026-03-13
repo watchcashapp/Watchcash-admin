@@ -17,6 +17,7 @@ import {
   Avatar,
   Menu,
   MenuItem,
+  Badge,
   useTheme,
   useMediaQuery,
   Collapse,
@@ -34,12 +35,14 @@ import {
   People,
   Security,
   Brightness4,
-  Badge,
+  Badge as BadgeIcon,
   ExpandLess,
   ExpandMore,
   PersonOutline,
   AdminPanelSettings,
   History,
+  NotificationsNone,
+  DoneAll,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -49,6 +52,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useNotifications } from '@/components/notifications/NotificationsProvider';
 
 const drawerWidth = 240;
 
@@ -69,8 +73,9 @@ const menuItems: MenuItem[] = [
   { text: 'User Management', icon: <People />, path: '/users', permission: 'users:list' },
   {
     text: 'Staff Management',
-    icon: <Badge />,
+    icon: <BadgeIcon />,
     permission: 'staff:list',
+
     subItems: [
       { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'staff:list' },
       { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'rbac:manage_roles' },
@@ -82,6 +87,7 @@ const menuItems: MenuItem[] = [
   { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
+  { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
   { text: 'Settings', icon: <Settings />, path: '/settings', permission: 'admin:full_access' },
 ];
 
@@ -123,11 +129,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
   const [isMounted, setIsMounted] = useState(false);
+  const {
+    bellItems,
+    unreadCount,
+    markAllAsRead,
+    markOneAsRead,
+    isMarkingAllRead: isMarkingAllNotificationsRead,
+  } = useNotifications();
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -180,6 +194,52 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleNotificationMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await markAllAsRead();
+      showSuccess('All notifications marked as read');
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || error?.message || 'Failed to mark all notifications as read';
+      showError(errorMessage);
+    }
+  };
+
+  const handleNotificationClick = async (notificationId: string, isRead: boolean) => {
+    try {
+      if (!isRead) {
+        await markOneAsRead(notificationId);
+      }
+    } catch (_error) {
+      // Keep navigation responsive even if marking read fails.
+    } finally {
+      handleNotificationMenuClose();
+      router.push('/notifications');
+    }
+  };
+
+  const formatNotificationTime = (dateValue: string) => {
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   };
 
   const handleLogoutClick = () => {
@@ -414,6 +474,123 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              suppressHydrationWarning
+              size="large"
+              aria-label="notifications"
+              aria-controls="notifications-menu"
+              aria-haspopup="true"
+              onClick={handleNotificationMenuOpen}
+              color="inherit"
+              sx={{
+                color: unreadCount > 0 ? 'primary.main' : 'text.secondary',
+              }}
+            >
+              <Badge badgeContent={unreadCount} color="error" max={99}>
+                <NotificationsNone />
+              </Badge>
+            </IconButton>
+
+            <Menu
+              id="notifications-menu"
+              anchorEl={notificationAnchorEl}
+              open={Boolean(notificationAnchorEl)}
+              onClose={handleNotificationMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    minWidth: 360,
+                    maxWidth: 400,
+                    maxHeight: 460,
+                    bgcolor: 'background.paper',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(0, 0, 0, 0.08)',
+                  },
+                },
+              }}
+            >
+              <Box sx={{ px: 2, py: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Notifications
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {unreadCount} unread
+                </Typography>
+              </Box>
+              <Divider />
+
+              {bellItems.length === 0 ? (
+                <Box sx={{ px: 2, py: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    You are all caught up.
+                  </Typography>
+                </Box>
+              ) : (
+                bellItems.map((notification) => (
+                  <MenuItem
+                    key={notification.id}
+                    suppressHydrationWarning
+                    onClick={() => handleNotificationClick(notification.id, notification.is_read)}
+                    sx={{
+                      alignItems: 'flex-start',
+                      py: 1.25,
+                      backgroundColor: notification.is_read ? 'transparent' : 'rgba(102, 126, 234, 0.08)',
+                      whiteSpace: 'normal',
+                    }}
+                  >
+                    <Box sx={{ width: '100%' }}>
+                      <Typography variant="body2" sx={{ fontWeight: notification.is_read ? 500 : 700 }}>
+                        {notification.title}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {notification.message}
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                        {formatNotificationTime(notification.created_at)}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))
+              )}
+
+              <Divider />
+              <Box sx={{ px: 1, py: 0.5, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                <MenuItem
+                  suppressHydrationWarning
+                  onClick={() => {
+                    handleNotificationMenuClose();
+                    router.push('/notifications');
+                  }}
+                  sx={{ flex: 1, borderRadius: 1 }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>View all</Typography>
+                </MenuItem>
+                <MenuItem
+                  suppressHydrationWarning
+                  onClick={handleMarkAllNotificationsRead}
+                  disabled={isMarkingAllNotificationsRead || unreadCount === 0}
+                  sx={{ flex: 1, borderRadius: 1 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 28 }}>
+                    <DoneAll fontSize="small" />
+                  </ListItemIcon>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>Read all</Typography>
+                </MenuItem>
+              </Box>
+            </Menu>
+
             {user && (
               <>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>

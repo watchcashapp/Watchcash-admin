@@ -7,8 +7,6 @@ import {
   Typography,
   Button,
   CircularProgress,
-  Tabs,
-  Tab,
   Grid,
   Chip,
   Card,
@@ -142,8 +140,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
       <Paper
         sx={{
-          p: 1.5,
           bgcolor: 'background.paper',
+          p: 3,
+
           boxShadow: (theme) => theme.palette.mode === 'dark'
             ? '0 4px 12px rgba(0, 0, 0, 0.3)'
             : '0 4px 12px rgba(0, 0, 0, 0.05)',
