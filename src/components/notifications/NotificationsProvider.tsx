@@ -18,8 +18,15 @@ import {
   disconnectNotificationsSocket,
   emitSocketTestPing,
   subscribeToNotificationEvents,
+  subscribeToPermissionEvents,
   subscribeToSocketStatus,
 } from '@/lib/socket/notificationsSocketClient';
+import { useDispatch } from 'react-redux';
+import { clearAuth, updatePermissionsAndRoles, Permission, Role } from '@/store/slices/authSlice';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/shared';
+import { rbacApi } from '@/store/api/rbacApi';
+import { usersApi } from '@/store/api/usersApi';
 
 const DEFAULT_LIMIT = 20;
 
@@ -114,6 +121,16 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const [socketMessage, setSocketMessage] = useState<string | undefined>(undefined);
   const [apiError, setApiError] = useState<string | undefined>(undefined);
   const unreadOnlyRef = useRef(unreadOnly);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { showSuccess, showWarning, showError } = useToast();
+
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const currentRolesRef = useRef<Role[]>(currentUser?.roles || []);
+
+  useEffect(() => {
+    currentRolesRef.current = currentUser?.roles || [];
+  }, [currentUser?.roles]);
 
   const [fetchNotifications] = useLazyGetNotificationsQuery();
   const [markAllNotificationsRead, { isLoading: isMarkingAllRead }] = useMarkAllNotificationsReadMutation();
@@ -313,6 +330,37 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       }
     });
 
+    const unsubscribePermissions = subscribeToPermissionEvents((payload: any) => {
+      console.log('Socket - permissions:updated received:', payload);
+      const newPermissions = payload.permissions as Permission[];
+      const newRoles = payload.roles as Role[];
+
+      if (!newPermissions || !newRoles) return;
+
+      // Check if roles have changed to determine if logout is needed
+      const currentRoleIds = currentRolesRef.current.map(r => r.id).sort();
+      const newRoleIds = newRoles.map(r => r.id).sort();
+
+      const rolesChanged = currentRoleIds.length !== newRoleIds.length ||
+        currentRoleIds.some((id, index) => id !== newRoleIds[index]);
+
+      if (rolesChanged) {
+        showWarning('Your roles have been updated. Please log in again.');
+        dispatch(clearAuth());
+        router.push('/auth/login');
+        return;
+      }
+
+      // Update permissions and roles without logout
+      dispatch(updatePermissionsAndRoles({ permissions: newPermissions, roles: newRoles }));
+
+      // Invalidate tags to force re-fetch of relevant data
+      dispatch(rbacApi.util.invalidateTags(['Roles', 'Permissions']));
+      dispatch(usersApi.util.invalidateTags(['Users']));
+
+      showSuccess('Your permissions have been updated in real-time.');
+    });
+
     const handleOnline = () => {
       if (resolvedToken) {
         connectNotificationsSocket(resolvedToken);
@@ -330,6 +378,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     return () => {
       unsubscribeStatus();
       unsubscribeEvents();
+      unsubscribePermissions();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       disconnectNotificationsSocket();

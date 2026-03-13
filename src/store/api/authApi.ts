@@ -131,12 +131,20 @@ export interface Permission {
   description: string;
 }
 
+export interface Role {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+}
+
 export interface LoginResponse {
   status: string;
   data: {
     accessToken: string;
     refreshToken: string;
     permissions?: Permission[];
+    roles?: Role[];
     agency_owner_gs_authtoken?: string; // Optional token for agency owners
   };
 }
@@ -148,6 +156,7 @@ export interface User {
   userType: string;
   isActive: boolean;
   permissions?: Permission[];
+  roles?: Role[];
   createdAt: string;
   updatedAt: string;
 }

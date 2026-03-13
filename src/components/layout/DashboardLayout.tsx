@@ -104,26 +104,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { hasPermission } = usePermissions();
 
   const filteredMenuItems = React.useMemo(() => {
-    return menuItems.filter(item => {
-      // If item has a permission, check it
-      if (item.permission && !hasPermission(item.permission)) {
-        return false;
-      }
+    return menuItems
+      .filter(item => !item.permission || hasPermission(item.permission))
+      .map(item => {
+        if (!item.subItems) return item;
 
-      // If it has subItems, filter them too
-      if (item.subItems) {
         const visibleSubItems = item.subItems.filter(subItem =>
           !subItem.permission || hasPermission(subItem.permission)
         );
-        // If no subItems are visible, hide the parent too (unless it has its own path)
-        if (visibleSubItems.length === 0 && !item.path) {
+
+        return {
+          ...item,
+          subItems: visibleSubItems
+        };
+      })
+      .filter(item => {
+        // Hide parent if it has no path AND no visible sub-items
+        if (item.subItems && item.subItems.length === 0 && !item.path) {
           return false;
         }
-        item.subItems = visibleSubItems;
-      }
-
-      return true;
-    });
+        return true;
+      });
   }, [hasPermission]);
 
   console.log('DashboardLayout - user from Redux:', user);

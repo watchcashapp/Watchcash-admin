@@ -6,12 +6,20 @@ export interface Permission {
   description: string;
 }
 
+export interface Role {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+}
+
 export interface User {
   id: string;
   email: string;
   name: string;
   userType: string;
   permissions?: Permission[];
+  roles?: Role[];
 }
 
 export interface AuthState {
@@ -44,8 +52,14 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.user = null;
     },
+    updatePermissionsAndRoles: (state, action: PayloadAction<{ permissions: Permission[]; roles: Role[] }>) => {
+      if (state.user) {
+        state.user.permissions = action.payload.permissions;
+        state.user.roles = action.payload.roles;
+      }
+    },
   },
 });
 
-export const { setUser, clearAuth } = authSlice.actions;
+export const { setUser, clearAuth, updatePermissionsAndRoles } = authSlice.actions;
 export default authSlice.reducer;

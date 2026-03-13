@@ -22,6 +22,7 @@ let currentStatus: NotificationsSocketStatus = 'idle';
 let currentStatusMessage: string | undefined;
 
 const notificationListeners = new Set<NotificationListener>();
+const permissionListeners = new Set<NotificationListener>();
 const statusListeners = new Set<StatusListener>();
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -38,7 +39,7 @@ const notifyStatus = (status: NotificationsSocketStatus, message?: string) => {
 const getSocketBaseUrl = () => {
   if (!isBrowser()) {
     return '';
-  }    
+  }
   return config.socketUrl;
 };
 
@@ -106,7 +107,7 @@ export const connectNotificationsSocket = (token: string) => {
   currentToken = token;
   currentDeviceId = deviceId;
 
-  notifyStatus('connecting');  
+  notifyStatus('connecting');
   socket = io(getSocketBaseUrl(), {
     autoConnect: false,
     reconnection: true,
@@ -168,6 +169,12 @@ export const connectNotificationsSocket = (token: string) => {
     }
   });
 
+  socket.on('permissions:updated', (payload) => {
+    for (const listener of permissionListeners) {
+      listener(payload);
+    }
+  });
+
   socket.on('test:pong', () => {
     // Optional smoke test event support.
   });
@@ -185,6 +192,13 @@ export const subscribeToNotificationEvents = (listener: NotificationListener) =>
   notificationListeners.add(listener);
   return () => {
     notificationListeners.delete(listener);
+  };
+};
+
+export const subscribeToPermissionEvents = (listener: NotificationListener) => {
+  permissionListeners.add(listener);
+  return () => {
+    permissionListeners.delete(listener);
   };
 };
 
