@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -74,6 +74,24 @@ export default function EditUserPage() {
       });
     }
   }, [user]);
+
+  const enrichedGroupedPermissions = useMemo(() => {
+    if (!permissionsResponse?.data || !user?.permissions) return permissionsResponse?.data;
+
+    const userPermissionsMap = new Map(user.permissions.map(p => [p.id, p]));
+
+    const enriched: { [key: string]: any[] } = {};
+    Object.keys(permissionsResponse.data).forEach(category => {
+      enriched[category] = permissionsResponse.data[category].map(p => {
+        const userP = userPermissionsMap.get(p.id);
+        if (userP) {
+          return { ...p, isDirect: userP.isDirect };
+        }
+        return p;
+      });
+    });
+    return enriched;
+  }, [permissionsResponse?.data, user?.permissions]);
 
   const handleRoleToggle = (roleId: string) => {
     setFormData(prev => ({
@@ -357,7 +375,7 @@ export default function EditUserPage() {
                 Permissions
               </Typography>
               <GroupedPermissionsSelect
-                groupedPermissions={permissionsResponse?.data || {}}
+                groupedPermissions={enrichedGroupedPermissions || {}}
                 value={formData.permissions}
                 onChange={(value) => setFormData({ ...formData, permissions: value })}
               />

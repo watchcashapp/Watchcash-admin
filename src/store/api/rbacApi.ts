@@ -16,6 +16,7 @@ export interface Permission {
   name: string;
   code: string;
   description: string;
+  isDirect?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -19,6 +19,7 @@ interface Permission {
   name: string;
   code: string;
   description: string;
+  isDirect?: boolean;
 }
 
 interface GroupedPermissionsSelectProps {
@@ -204,7 +205,11 @@ export default function GroupedPermissionsSelect({
                       label={
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8125rem' }}>
-                            {permission.name}
+                            {permission.name} {permission.isDirect === false && (
+                              <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ml: 0.5, fontWeight: 400 }}>
+                                (assigned by role)
+                              </Typography>
+                            )}
                           </Typography>
                           <Typography
                             variant="caption"

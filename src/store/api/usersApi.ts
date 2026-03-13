@@ -13,6 +13,7 @@ export interface User {
     id: string;
     name: string;
     code: string;
+    isDirect?: boolean;
   }>;
   roles?: Array<{
     id: string;
@@ -74,6 +75,7 @@ export interface UserDetailResponse {
       id: string;
       code: string;
       description: string;
+      isDirect?: boolean;
     }>;
     roles: Array<{
       id: string;
@@ -176,6 +178,7 @@ export const usersApi = createApi({
             id: p.id,
             code: p.code,
             name: p.description, // Use description as name
+            isDirect: p.isDirect,
           })),
           roles: response.data.roles.map(r => ({
             id: r.id,
