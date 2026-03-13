@@ -59,24 +59,36 @@ async function proxyRequest(
 
     const finalUrl = url.toString();
 
-
-    let body = undefined;
-    if (method !== 'GET' && method !== 'DELETE') {
+    // Forward body for all non-GET/HEAD methods (including DELETE)
+    let body: string | undefined = undefined;
+    if (method !== 'GET' && method !== 'HEAD') {
       try {
-        const text = await request.text();
-        if (text) {
-          body = text;
-
+        // Try JSON first, fall back to raw text
+        const contentType = request.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const json = await request.json();
+          if (json !== undefined && json !== null) {
+            body = JSON.stringify(json);
+          }
+        } else {
+          const text = await request.text();
+          if (text) {
+            body = text;
+          }
         }
-      } catch (e) {
-
+      } catch {
+        // Ignore body parse errors – send no body
       }
     }
 
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
       'ngrok-skip-browser-warning': 'true',
     };
+
+    // Only set Content-Type when we actually have a body
+    if (body) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const authHeader = request.headers.get('authorization');
     if (authHeader) {
