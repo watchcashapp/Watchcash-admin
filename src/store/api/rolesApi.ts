@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+  appendCursorPagination,
+  CursorPaginationMeta,
+  CursorPaginationParams,
+  getResponseDataRoot,
+  normalizeCursorPaginationMeta,
+  readCollection,
+} from './pagination';
 
 export interface Role {
   id: string;
@@ -12,12 +20,7 @@ export interface Role {
 
 export interface RolesResponse {
   data: Role[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: CursorPaginationMeta;
 }
 
 export const rolesApi = createApi({
@@ -26,19 +29,27 @@ export const rolesApi = createApi({
   tagTypes: ['Roles'],
   endpoints: (builder) => ({
     getRoles: builder.query<RolesResponse, {
-      page?: number;
+      cursor?: string;
       limit?: number;
       search?: string;
-    }>({
+    } & CursorPaginationParams>({
       query: (params) => {
         const queryParams = new URLSearchParams();
-        if (params.page) queryParams.append('page', params.page.toString());
-        if (params.limit) queryParams.append('limit', params.limit.toString());
+        appendCursorPagination(queryParams, params);
         if (params.search) queryParams.append('search', params.search);
         
-        return `/admin/roles?${queryParams.toString()}`;
+        const queryString = queryParams.toString();
+        return queryString ? `/admin/roles?${queryString}` : '/admin/roles';
       },
       providesTags: ['Roles'],
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          data: readCollection<Role>(root, ['data', 'roles', 'items', 'results']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
     getRoleById: builder.query<{ data: Role }, string>({
       query: (id) => `/admin/roles/${id}`,

@@ -27,6 +27,7 @@ import { useRefreshTokenMutation } from "@/store/api/authApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 interface UserManagementTableProps {
   title?: string;
@@ -51,13 +52,13 @@ export default function UserManagementTable({
   const { showSuccess, showError } = useToast();
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const { hasPermission } = usePermissions();
-  const [page, setPage] = useState(1);
   const [limit] = useState(6);
   const [search, setSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("");
   const [userType, setUserType] = useState<string>(defaultUserType);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const hasFilters = search || isActive !== "" || userType !== defaultUserType || fromDate || toDate;
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; user: User | null }>({
     open: false,
@@ -85,14 +86,14 @@ export default function UserManagementTable({
   // Build query params
   const effectiveUserType = hideUserTypeFilter ? defaultUserType : userType;
   const queryParams = React.useMemo(() => {
-    const params: any = { page, limit };
+    const params: any = { cursor, limit };
     if (search) params.search = search;
     if (isActive !== "") params.isActive = isActive === "true";
     if (effectiveUserType) params.userType = effectiveUserType;
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
     return params;
-  }, [page, limit, search, isActive, effectiveUserType, fromDate, toDate]);
+  }, [cursor, limit, search, isActive, effectiveUserType, fromDate, toDate]);
 
   const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams, {
     refetchOnMountOrArgChange: true,
@@ -101,8 +102,8 @@ export default function UserManagementTable({
 
   // Reset page when filters change
   useEffect(() => {
-    setPage(1);
-  }, [search, isActive, userType, fromDate, toDate]);
+    reset();
+  }, [search, isActive, userType, fromDate, toDate, reset]);
 
   const handleView = (user: User) => {
     if (!hasPermission('users:view')) {
@@ -210,7 +211,7 @@ export default function UserManagementTable({
     setUserType(defaultUserType);
     setFromDate("");
     setToDate("");
-    setPage(1); // Reset to first page when filters are cleared
+    reset();
   };
 
   const handleExportCSV = async () => {
@@ -251,7 +252,6 @@ export default function UserManagementTable({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPage(1);
   };
 
   return (
@@ -519,25 +519,25 @@ export default function UserManagementTable({
         renderPagination={() => data ? (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              Showing {data.users?.length || 0} of {(data as any).pagination?.total || (data as any).total || 0} results
+              Showing {data.users?.length || 0}{typeof data.pagination?.total === 'number' ? ` of ${data.pagination.total}` : ''} results
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <IconButton
                 size="small"
-                onClick={() => setPage(page - 1)}
-                disabled={page <= 1}
-                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
+                onClick={goPrevious}
+                disabled={!canGoBack}
+                sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
               >
                 <NavigateBefore fontSize="small" />
               </IconButton>
               <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary', fontSize: '0.75rem' }}>
-                {page} / {(data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1}
+                Page {pageNumber}
               </Typography>
               <IconButton
                 size="small"
-                onClick={() => setPage(page + 1)}
-                disabled={page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1)}
-                sx={{ color: page >= ((data as any).pagination?.totalPages || (data as any).totalPages || Math.ceil(((data as any).pagination?.total || (data as any).total || data.users?.length || 0) / limit) || 1) ? 'text.disabled' : 'text.secondary' }}
+                onClick={() => goNext(data.pagination?.nextCursor)}
+                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
+                sx={{ color: !data.pagination?.hasMore || !data.pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
               >
                 <NavigateNext fontSize="small" />
               </IconButton>

@@ -14,6 +14,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 import { config } from '@/config/env';
 import { Search, NavigateBefore, NavigateNext, FileDownload } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
@@ -23,9 +24,9 @@ export default function AuditLogsPage() {
     const router = useRouter();
     const { hasPermission } = usePermissions();
     const { showSuccess, showError } = useToast();
-    const [page, setPage] = useState(1);
     const rowsPerPage = 6;
     const [isMounted, setIsMounted] = useState(false);
+    const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     useEffect(() => {
         setIsMounted(true);
     }, []);
@@ -43,17 +44,17 @@ export default function AuditLogsPage() {
     }, [isMounted, hasPermission, router]);
 
     React.useEffect(() => {
-        setPage(1);
-    }, [actionSearch, targetUserSearch, fromDate, toDate]);
+        reset();
+    }, [actionSearch, targetUserSearch, fromDate, toDate, reset]);
 
     const queryArgs = React.useMemo(() => ({
-        page,
+        cursor,
         limit: rowsPerPage,
         action: actionSearch || undefined,
         targetUser: targetUserSearch || undefined,
         from: fromDate ? new Date(fromDate).toISOString() : undefined,
         to: toDate ? new Date(toDate).toISOString() : undefined,
-    }), [page, rowsPerPage, actionSearch, targetUserSearch, fromDate, toDate]);
+    }), [cursor, rowsPerPage, actionSearch, targetUserSearch, fromDate, toDate]);
 
     const { data, isLoading } = useGetAuditLogsQuery(queryArgs, {
         refetchOnMountOrArgChange: true,
@@ -255,7 +256,6 @@ export default function AuditLogsPage() {
                             value={actionSearch}
                             onChange={(e) => {
                                 setActionSearch(e.target.value);
-                                setPage(1);
                             }}
                             slotProps={{
                                 input: {
@@ -289,7 +289,6 @@ export default function AuditLogsPage() {
                             value={targetUserSearch}
                             onChange={(e) => {
                                 setTargetUserSearch(e.target.value);
-                                setPage(1);
                             }}
                             slotProps={{
                                 input: {
@@ -321,7 +320,6 @@ export default function AuditLogsPage() {
                             value={fromDate}
                             onChange={(e) => {
                                 setFromDate(e.target.value);
-                                setPage(1);
                             }}
                             size="small"
                             fullWidth
@@ -348,7 +346,6 @@ export default function AuditLogsPage() {
                             value={toDate}
                             onChange={(e) => {
                                 setToDate(e.target.value);
-                                setPage(1);
                             }}
                             size="small"
                             fullWidth
@@ -378,7 +375,7 @@ export default function AuditLogsPage() {
                                 setTargetUserSearch('');
                                 setFromDate('');
                                 setToDate('');
-                                setPage(1);
+                                reset();
                             }}
                             disabled={!actionSearch && !targetUserSearch && !fromDate && !toDate}
                             sx={{
@@ -408,25 +405,25 @@ export default function AuditLogsPage() {
                 renderPagination={() => data && data.items && data.items.length > 0 ? (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">
-                            Showing {((page - 1) * rowsPerPage) + 1} to {Math.min(page * rowsPerPage, (data as any).total || (data as any).pagination?.total || 0)} of {(data as any).total || (data as any).pagination?.total || 0} entries
+                            Showing {data.items.length}{typeof data.pagination?.total === 'number' ? ` of ${data.pagination.total}` : ''} entries
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                             <IconButton
                                 size="small"
-                                onClick={() => setPage(page - 1)}
-                                disabled={page <= 1}
-                                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
+                                onClick={goPrevious}
+                                disabled={!canGoBack}
+                                sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
                             >
                                 <NavigateBefore />
                             </IconButton>
                             <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                                {page} / {(data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1}
+                                Page {pageNumber}
                             </Typography>
                             <IconButton
                                 size="small"
-                                onClick={() => setPage(page + 1)}
-                                disabled={page >= ((data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1)}
-                                sx={{ color: page >= ((data as any).totalPages || (data as any).pagination?.totalPages || Math.ceil(((data as any).total || (data as any).pagination?.total || 0) / rowsPerPage) || 1) ? 'text.disabled' : 'text.secondary' }}
+                                onClick={() => goNext(data.pagination?.nextCursor)}
+                                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
+                                sx={{ color: !data.pagination?.hasMore || !data.pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
                             >
                                 <NavigateNext />
                             </IconButton>

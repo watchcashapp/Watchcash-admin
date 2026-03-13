@@ -32,6 +32,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column, useToast } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 const PREDEFINED_REASONS = [
   { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -61,10 +62,10 @@ export default function RewardRedemptionsPage() {
   const [status, setStatus] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [page, setPage] = useState(1);
   const [limit] = useState(6);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<{
     decision: 'approve' | 'reject' | 'hold';
@@ -89,23 +90,22 @@ export default function RewardRedemptionsPage() {
   }, [isMounted, hasPermission, router]);
 
   useEffect(() => {
-    setPage(1);
-  }, [search, status, fromDate, toDate]);
+    reset();
+  }, [search, status, fromDate, toDate, reset]);
 
   const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({
     search,
     status,
     from: fromDate,
     to: toDate,
-    page,
+    cursor,
     limit,
   });
 
   const [reviewRewardRedemption, { isLoading: isReviewing }] = useReviewRewardRedemptionMutation();
 
-  const redemptions = response?.data?.items || [];
-  const pagination = response?.data;
-  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
+  const redemptions = response?.items || [];
+  const pagination = response?.pagination;
 
   const handleReviewSubmit = async () => {
     if (!selectedRedemption) return;
@@ -456,6 +456,7 @@ export default function RewardRedemptionsPage() {
                   setStatus('');
                   setFromDate('');
                   setToDate('');
+                  reset();
                 }}
                 disabled={!hasFilters}
                 sx={{
@@ -491,23 +492,23 @@ export default function RewardRedemptionsPage() {
           renderPagination={() => pagination ? (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                Showing {redemptions.length} of {pagination.total} results
+                Showing {redemptions.length}{typeof pagination.total === 'number' ? ` of ${pagination.total}` : ''} results
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <IconButton
                   size="small"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page <= 1}
+                  onClick={goPrevious}
+                  disabled={!canGoBack}
                 >
                   <NavigateBefore fontSize="small" />
                 </IconButton>
                 <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', fontSize: '0.75rem' }}>
-                  {page} / {calculatedTotalPages || 1}
+                  Page {pageNumber}
                 </Typography>
                 <IconButton
                   size="small"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= calculatedTotalPages}
+                  onClick={() => goNext(pagination.nextCursor)}
+                  disabled={!pagination.hasMore || !pagination.nextCursor}
                 >
                   <NavigateNext fontSize="small" />
                 </IconButton>

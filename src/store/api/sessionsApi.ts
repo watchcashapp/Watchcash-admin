@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+  appendCursorPagination,
+  CursorPaginationMeta,
+  CursorPaginationParams,
+  getResponseDataRoot,
+  normalizeCursorPaginationMeta,
+  readCollection,
+} from './pagination';
 
 export interface Session {
   id: string;
@@ -72,14 +80,8 @@ export interface SessionDetailResponse {
 }
 
 export interface SessionsResponse {
-  status: string;
-  data: {
-    sessions: Session[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  sessions: Session[];
+  pagination: CursorPaginationMeta;
 }
 
 export interface ReviewSessionRequest {
@@ -93,9 +95,7 @@ export interface ReviewSessionRequest {
   block_minutes?: number;
 }
 
-export interface GetSessionsParams {
-  page?: number;
-  limit?: number;
+export interface GetSessionsParams extends CursorPaginationParams {
   status?: string;
   userId?: string;
   deviceId?: string;
@@ -112,17 +112,25 @@ export const sessionsApi = createApi({
     getSessions: builder.query<SessionsResponse, GetSessionsParams>({
       query: (params) => {
         const queryParams = new URLSearchParams();
-        if (params.page) queryParams.append('page', params.page.toString());
-        if (params.limit) queryParams.append('limit', params.limit.toString());
+        appendCursorPagination(queryParams, params);
         if (params.status) queryParams.append('status', params.status);
         if (params.userId) queryParams.append('userId', params.userId);
         if (params.deviceId) queryParams.append('deviceId', params.deviceId);
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);
 
-        return `/admin/sessions?${queryParams.toString()}`;
+        const queryString = queryParams.toString();
+        return queryString ? `/admin/sessions?${queryString}` : '/admin/sessions';
       },
       providesTags: ['Sessions'],
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          sessions: readCollection<Session>(root, ['sessions', 'items', 'results']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
     getSessionById: builder.query<SessionDetailResponse, string>({
       query: (sessionId) => `/admin/sessions/${sessionId}`,
