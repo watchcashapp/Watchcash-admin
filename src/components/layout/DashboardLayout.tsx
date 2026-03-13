@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { showSuccess, showError } = useToast();
   const [logout] = useLogoutMutation();
   const { refreshToken, user } = useSelector((state: RootState) => state.auth);
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
 
   const filteredMenuItems = React.useMemo(() => {
     return menuItems
@@ -152,10 +152,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Permission check for Audit Logs page
   React.useEffect(() => {
-    if (isMounted && pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
+    if (isMounted && isInitialized && pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router, pathname]);
+  }, [isMounted, isInitialized, hasPermission, router, pathname]);
 
   // Auto-expand submenus when their child routes are active
   React.useEffect(() => {

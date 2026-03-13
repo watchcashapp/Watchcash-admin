@@ -22,7 +22,7 @@ import { useRouter } from 'next/navigation';
 
 export default function AuditLogsPage() {
     const router = useRouter();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isInitialized } = usePermissions();
     const { showSuccess, showError } = useToast();
     const rowsPerPage = 6;
     const [isMounted, setIsMounted] = useState(false);
@@ -38,10 +38,10 @@ export default function AuditLogsPage() {
     const [toDate, setToDate] = useState<string>('');
 
     React.useEffect(() => {
-        if (isMounted && !hasPermission('admin_audit_logs:view')) {
+        if (isMounted && isInitialized && !hasPermission('admin_audit_logs:view')) {
             router.push('/dashboard');
         }
-    }, [isMounted, hasPermission, router]);
+    }, [isMounted, isInitialized, hasPermission, router]);
 
     React.useEffect(() => {
         reset();

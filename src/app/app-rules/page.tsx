@@ -54,7 +54,7 @@ const initialFormData: FormData = {
 export default function AppRulesPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,10 +68,10 @@ export default function AppRulesPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('app_rules:list')) {
+    if (isMounted && isInitialized && !hasPermission('app_rules:list')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
     from: fromDate,

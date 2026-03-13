@@ -48,7 +48,7 @@ function TabPanel(props: TabPanelProps) {
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [tabValue, setTabValue] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const walletPagination = useCursorPagination();
@@ -59,10 +59,10 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('users:view')) {
+    if (isMounted && isInitialized && !hasPermission('users:view')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(

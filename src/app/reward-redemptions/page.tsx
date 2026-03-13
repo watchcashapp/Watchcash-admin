@@ -54,7 +54,7 @@ const PREDEFINED_REASONS = [
 ];
 
 export default function RewardRedemptionsPage() {
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const router = useRouter();
   const { showSuccess, showError } = useToast();
 
@@ -84,10 +84,10 @@ export default function RewardRedemptionsPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('reward_redemptions:list')) {
+    if (isMounted && isInitialized && !hasPermission('reward_redemptions:list')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   useEffect(() => {
     reset();

@@ -50,13 +50,13 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     setIsMounted(true);
   }, []);
 
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
 
   useEffect(() => {
-    if (isMounted && !hasPermission('users:view')) {
+    if (isMounted && isInitialized && !hasPermission('users:view')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   if (loadingUser) {
     return (

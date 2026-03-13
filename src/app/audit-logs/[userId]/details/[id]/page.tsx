@@ -24,16 +24,16 @@ import { useGetAuditLogQuery } from '@/store/api/auditLogsApi';
 
 export default function AuditLogDetailPage() {
     const router = useRouter();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isInitialized } = usePermissions();
     const params = useParams();
     const userId = params.userId as string;
     const logId = params.id as string;
 
     React.useEffect(() => {
-        if (!hasPermission('admin_audit_logs:view')) {
+        if (isInitialized && !hasPermission('admin_audit_logs:view')) {
             router.push('/dashboard');
         }
-    }, [hasPermission, router]);
+    }, [isInitialized, hasPermission, router]);
 
     const { data: log, isLoading, error } = useGetAuditLogQuery({ userId, logId }, {
         skip: !userId || !logId,

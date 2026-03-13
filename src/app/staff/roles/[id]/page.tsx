@@ -39,7 +39,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   const { data: roleResponse, isLoading: loadingRole } = useGetRoleByIdQuery(resolvedParams.id);
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -47,10 +47,10 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('rbac:manage_roles')) {
+    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const role = roleResponse?.data;
 

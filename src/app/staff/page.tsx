@@ -47,7 +47,7 @@ const initialFormData: StaffFormData = {
 
 export default function StaffPage() {
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const { showSuccess, showError } = useToast();
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -61,11 +61,11 @@ export default function StaffPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('staff:list')) {
+    if (isMounted && isInitialized && !hasPermission('staff:list')) {
       showError("You don't have permission to view staff");
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router, showError]);
+  }, [isMounted, isInitialized, hasPermission, router, showError]);
 
   const { data, isLoading, error } = useGetStaffQuery({
     cursor,

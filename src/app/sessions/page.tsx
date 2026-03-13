@@ -32,7 +32,7 @@ const statusOptions = [
 
 export default function SessionsPage() {
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const { showError } = useToast();
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
@@ -47,6 +47,12 @@ export default function SessionsPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted && isInitialized && !hasPermission('sessions:view_sessions_count') && !hasPermission('sessions:view_live')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   // Reset page when filters change
   useEffect(() => {

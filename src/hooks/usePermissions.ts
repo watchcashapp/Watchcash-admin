@@ -21,6 +21,7 @@ export const usePermissions = () => {
         hasPermission,
         isFullAdmin,
         permissions: user?.permissions || [],
-        userType: user?.userType
+        userType: user?.userType,
+        isInitialized: useSelector((state: RootState) => state.auth.isInitialized)
     };
 };

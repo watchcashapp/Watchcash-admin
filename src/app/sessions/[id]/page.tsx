@@ -71,7 +71,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   const resolvedParams = use(params);
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [activeTab, setActiveTab] = useState(0);
   const [isReviewingSession, setIsReviewingSession] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -82,6 +82,12 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted && isInitialized && !hasPermission('sessions:list')) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const { data: response, isLoading, error } = useGetSessionByIdQuery(resolvedParams.id);
   const [reviewSession, { isLoading: refreshingIsReviewing }] = useReviewSessionMutation();

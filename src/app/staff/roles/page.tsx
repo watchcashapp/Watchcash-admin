@@ -21,7 +21,7 @@ import {
 import { usePermissions } from '@/hooks/usePermissions';
 
 export default function RolesPage() {
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -33,10 +33,10 @@ export default function RolesPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('rbac:manage_roles')) {
+    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const { data: rolesData, isLoading } = useGetRolesQuery(undefined);
 

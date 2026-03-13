@@ -38,7 +38,7 @@ export default function AddRolePage() {
 
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -46,10 +46,10 @@ export default function AddRolePage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('rbac:manage_roles')) {
+    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   // Auto-generate code from name
   const generateCode = (name: string): string => {

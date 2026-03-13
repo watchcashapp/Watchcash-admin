@@ -27,6 +27,8 @@ export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
+  isInitialized: boolean;
+  isLoading: boolean;
 }
 
 const initialState: AuthState = {
@@ -34,6 +36,8 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   user: null,
+  isInitialized: false,
+  isLoading: false,
 };
 
 const authSlice = createSlice({
@@ -45,12 +49,22 @@ const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
       state.user = action.payload.user;
+      state.isInitialized = true;
+      state.isLoading = false;
     },
     clearAuth: (state) => {
       state.isAuthenticated = false;
       state.accessToken = null;
       state.refreshToken = null;
       state.user = null;
+      state.isInitialized = true;
+      state.isLoading = false;
+    },
+    setAuthLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setInitialized: (state, action: PayloadAction<boolean>) => {
+      state.isInitialized = action.payload;
     },
     updatePermissionsAndRoles: (state, action: PayloadAction<{ permissions: Permission[]; roles: Role[] }>) => {
       if (state.user) {
@@ -61,5 +75,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearAuth, updatePermissionsAndRoles } = authSlice.actions;
+export const { setUser, clearAuth, updatePermissionsAndRoles, setAuthLoading, setInitialized } = authSlice.actions;
 export default authSlice.reducer;

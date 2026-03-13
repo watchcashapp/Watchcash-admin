@@ -26,7 +26,7 @@ import {
 export default function GlobalRulesPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const { data: globalRules, isLoading, error } = useGetGlobalRulesQuery();
   const [updateGlobalRules, { isLoading: isUpdating }] = useUpdateGlobalRulesMutation();
 
@@ -38,10 +38,10 @@ export default function GlobalRulesPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('global_rules:view')) {
+    if (isMounted && isInitialized && !hasPermission('global_rules:view')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const [formData, setFormData] = useState<GlobalRules>({
     defaultPointsPerMinute: 0,

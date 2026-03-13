@@ -7,7 +7,7 @@ import UserManagementTable from '@/components/features/UserManagementTable';
 
 export default function StaffUsersPage() {
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -15,10 +15,10 @@ export default function StaffUsersPage() {
   }, []);
 
   React.useEffect(() => {
-    if (isMounted && !hasPermission('users:list')) {
+    if (isMounted && isInitialized && !hasPermission('users:list')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   if (!isMounted) return null;
 

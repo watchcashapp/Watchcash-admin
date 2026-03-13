@@ -29,7 +29,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 
 export default function RbacRulesPage() {
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export default function RbacRulesPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('rbac:manage_roles')) {
+    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   const { showSuccess, showError } = useToast();
   const { data: rolesData, isLoading, error } = useGetRolesQuery(undefined, {

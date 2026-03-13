@@ -48,7 +48,7 @@ const PREDEFINED_REASONS = [
 export default function RewardRedemptionDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const router = useRouter();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isInitialized } = usePermissions();
     const { showSuccess, showError } = useToast();
 
     const { data: response, isLoading, error } = useGetRewardRedemptionByIdQuery(resolvedParams.id);
@@ -72,6 +72,12 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (isMounted && isInitialized && !hasPermission('reward_redemptions:list')) {
+            router.push('/dashboard');
+        }
+    }, [isMounted, isInitialized, hasPermission, router]);
 
     const handleReviewSubmit = async () => {
         try {

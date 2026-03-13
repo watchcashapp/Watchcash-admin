@@ -23,7 +23,7 @@ import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 export default function AuditLogsUserPage() {
     const router = useRouter();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isInitialized } = usePermissions();
     const { showError } = useToast();
     const params = useParams();
     const userId = params.userId as string;
@@ -42,10 +42,10 @@ export default function AuditLogsUserPage() {
     }, []);
 
     useEffect(() => {
-        if (isMounted && !hasPermission('admin_audit_logs:view')) {
+        if (isMounted && isInitialized && !hasPermission('admin_audit_logs:view')) {
             router.push('/dashboard');
         }
-    }, [isMounted, hasPermission, router]);
+    }, [isMounted, isInitialized, hasPermission, router]);
 
     const queryArgs = React.useMemo(() => ({
         user_id: userId,

@@ -26,7 +26,7 @@ export default function SettingsPage() {
     const { data: response, isLoading: isFetching } = useGetSettingsQuery();
     const [updateSettings, { isLoading: isUpdating }] = useUpdateSettingsMutation();
     const router = useRouter();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isInitialized } = usePermissions();
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -34,10 +34,10 @@ export default function SettingsPage() {
     }, []);
 
     useEffect(() => {
-        if (isMounted && !hasPermission('admin:full_access')) {
+        if (isMounted && isInitialized && !hasPermission('admin:full_access')) {
             router.push('/dashboard');
         }
-    }, [isMounted, hasPermission, router]);
+    }, [isMounted, isInitialized, hasPermission, router]);
 
     useEffect(() => {
         if (response?.settings) {

@@ -51,7 +51,7 @@ export default function EditUserPage() {
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const { data: rolesResponse, isLoading: loadingRoles } = useGetRolesQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isInitialized } = usePermissions();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -59,10 +59,10 @@ export default function EditUserPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !hasPermission('users:update')) {
+    if (isMounted && isInitialized && !hasPermission('users:update')) {
       router.push('/dashboard');
     }
-  }, [isMounted, hasPermission, router]);
+  }, [isMounted, isInitialized, hasPermission, router]);
 
   useEffect(() => {
     if (user) {
