@@ -20,6 +20,7 @@ import { config } from '@/config/env';
 import { DataTable, useToast } from '@/components/shared';
 import { useGetSessionsQuery } from '@/store/api/sessionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 const statusOptions = [
   { value: '', label: 'All Status' },
@@ -33,7 +34,6 @@ export default function SessionsPage() {
   const router = useRouter();
   const { hasPermission } = usePermissions();
   const { showError } = useToast();
-  const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState('');
@@ -41,6 +41,7 @@ export default function SessionsPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const hasFilters = status || userId || deviceId || fromDate || toDate;
 
   useEffect(() => {
@@ -49,11 +50,11 @@ export default function SessionsPage() {
 
   // Reset page when filters change
   useEffect(() => {
-    setPage(1);
-  }, [status, userId, deviceId, fromDate, toDate]);
+    reset();
+  }, [status, userId, deviceId, fromDate, toDate, reset]);
 
   const { data: sessionsData, isLoading } = useGetSessionsQuery({
-    page,
+    cursor,
     limit,
     status: status || undefined,
     userId: userId || undefined,
@@ -64,9 +65,8 @@ export default function SessionsPage() {
     refetchOnMountOrArgChange: true
   });
 
-  const sessions = sessionsData?.data.sessions || [];
-  const pagination = sessionsData?.data;
-  const calculatedTotalPages = pagination?.totalPages || Math.ceil((pagination?.total || 0) / (pagination?.limit || 10));
+  const sessions = sessionsData?.sessions || [];
+  const pagination = sessionsData?.pagination;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -267,7 +267,6 @@ export default function SessionsPage() {
               value={userId}
               onChange={(e) => {
                 setUserId(e.target.value);
-                setPage(1);
               }}
               size="small"
               fullWidth
@@ -294,7 +293,6 @@ export default function SessionsPage() {
               value={deviceId}
               onChange={(e) => {
                 setDeviceId(e.target.value);
-                setPage(1);
               }}
               size="small"
               fullWidth
@@ -322,7 +320,6 @@ export default function SessionsPage() {
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
-                setPage(1);
               }}
               size="small"
               fullWidth
@@ -360,7 +357,6 @@ export default function SessionsPage() {
               value={fromDate}
               onChange={(e) => {
                 setFromDate(e.target.value);
-                setPage(1);
               }}
               size="small"
               fullWidth
@@ -387,7 +383,6 @@ export default function SessionsPage() {
               value={toDate}
               onChange={(e) => {
                 setToDate(e.target.value);
-                setPage(1);
               }}
               size="small"
               fullWidth
@@ -417,7 +412,7 @@ export default function SessionsPage() {
                 setDeviceId('');
                 setFromDate('');
                 setToDate('');
-                setPage(1);
+                reset();
               }}
               sx={{
                 height: '32px',
@@ -446,33 +441,33 @@ export default function SessionsPage() {
         <>
           <DataTable
             columns={columns}
-            data={sessionsData?.data.sessions || []}
+            data={sessions}
             getRowId={(row: any) => row.session_id || row.id}
           />
 
           {/* Pagination */}
-          {sessionsData?.data && (
+          {sessionsData && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                Showing {sessionsData.data.sessions.length} of {sessionsData.data.total} results
+                Showing {sessions.length}{typeof pagination?.total === 'number' ? ` of ${pagination.total}` : ''} results
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <IconButton
                   size="small"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page <= 1}
-                  sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
+                  onClick={goPrevious}
+                  disabled={!canGoBack}
+                  sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
                 >
                   <NavigateBefore />
                 </IconButton>
                 <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                  {page} / {calculatedTotalPages || 1}
+                  Page {pageNumber}
                 </Typography>
                 <IconButton
                   size="small"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= (calculatedTotalPages || 1)}
-                  sx={{ color: page >= (calculatedTotalPages || 1) ? 'text.disabled' : 'text.secondary' }}
+                  onClick={() => goNext(pagination?.nextCursor)}
+                  disabled={!pagination?.hasMore || !pagination?.nextCursor}
+                  sx={{ color: !pagination?.hasMore || !pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
                 >
                   <NavigateNext />
                 </IconButton>

@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+    appendCursorPagination,
+    CursorPaginationMeta,
+    CursorPaginationParams,
+    getResponseDataRoot,
+    normalizeCursorPaginationMeta,
+    readCollection,
+} from './pagination';
 
 export interface RewardCatalog {
     id: string;
@@ -22,15 +30,10 @@ export interface RewardCatalog {
 
 export interface RewardCatalogsResponse {
     items: RewardCatalog[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages?: number;
+    pagination: CursorPaginationMeta;
 }
 
-export interface RewardCatalogsQueryParams {
-    page?: number;
-    limit?: number;
+export interface RewardCatalogsQueryParams extends CursorPaginationParams {
     search?: string;
     currency?: string;
     status?: string;
@@ -45,15 +48,23 @@ export const rewardCatalogsApi = createApi({
             query: (params) => {
                 const queryParams = new URLSearchParams();
                 if (params) {
-                    if (params.page) queryParams.append('page', params.page.toString());
-                    if (params.limit) queryParams.append('limit', params.limit.toString());
+                    appendCursorPagination(queryParams, params);
                     if (params.search) queryParams.append('search', params.search);
                     if (params.currency) queryParams.append('currency', params.currency);
                     if (params.status) queryParams.append('status', params.status);
                 }
-                return `/admin/reward-catalogs?${queryParams.toString()}`;
+                const queryString = queryParams.toString();
+                return queryString ? `/admin/reward-catalogs?${queryString}` : '/admin/reward-catalogs';
             },
             providesTags: ['RewardCatalogs'],
+            transformResponse: (response: unknown, _meta, arg) => {
+                const root = getResponseDataRoot(response);
+
+                return {
+                    items: readCollection<RewardCatalog>(root, ['items', 'rewardCatalogs', 'reward_catalogs', 'results']),
+                    pagination: normalizeCursorPaginationMeta(response, arg?.limit),
+                };
+            },
         }),
     }),
 });

@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+  appendCursorPagination,
+  CursorPaginationMeta,
+  CursorPaginationParams,
+  getResponseDataRoot,
+  normalizeCursorPaginationMeta,
+  readCollection,
+} from './pagination';
 
 export interface Staff {
   id: string;
@@ -12,18 +20,11 @@ export interface Staff {
 }
 
 export interface StaffListResponse {
-  status: string;
-  data: {
-    staff: Staff[];
-    total: number;
-    page: number;
-    limit: number;
-  };
+  staff: Staff[];
+  pagination: CursorPaginationMeta;
 }
 
-export interface StaffFilters {
-  page?: number;
-  limit?: number;
+export interface StaffFilters extends CursorPaginationParams {
   search?: string;
   role?: string;
   isActive?: boolean;
@@ -51,15 +52,23 @@ export const staffApi = createApi({
     getStaff: builder.query<StaffListResponse, StaffFilters>({
       query: (filters) => {
         const params = new URLSearchParams();
-        if (filters.page) params.append('page', filters.page.toString());
-        if (filters.limit) params.append('limit', filters.limit.toString());
+        appendCursorPagination(params, filters);
         if (filters.search) params.append('search', filters.search);
         if (filters.role) params.append('role', filters.role);
         if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
         
-        return `/admin/staff?${params.toString()}`;
+        const queryString = params.toString();
+        return queryString ? `/admin/staff?${queryString}` : '/admin/staff';
       },
       providesTags: ['Staff'],
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          staff: readCollection<Staff>(root, ['staff', 'items', 'results']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
     
     createStaff: builder.mutation<any, CreateStaffRequest>({

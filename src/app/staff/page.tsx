@@ -29,6 +29,7 @@ import {
   Staff,
 } from "@/store/api/staffApi";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 interface StaffFormData {
   name: string;
@@ -48,12 +49,12 @@ export default function StaffPage() {
   const router = useRouter();
   const { hasPermission } = usePermissions();
   const { showSuccess, showError } = useToast();
-  const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
+  const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
 
   useEffect(() => {
     setIsMounted(true);
@@ -67,12 +68,16 @@ export default function StaffPage() {
   }, [isMounted, hasPermission, router, showError]);
 
   const { data, isLoading, error } = useGetStaffQuery({
-    page,
+    cursor,
     limit,
     search: search || undefined,
     role: roleFilter || undefined,
     isActive: statusFilter === "" ? undefined : statusFilter === "active",
   });
+
+  useEffect(() => {
+    reset();
+  }, [search, roleFilter, statusFilter, reset]);
 
   const [createStaff, { isLoading: isCreating }] = useCreateStaffMutation();
   const [updateStaff, { isLoading: isUpdating }] = useUpdateStaffMutation();
@@ -382,7 +387,7 @@ export default function StaffPage() {
         <>
           <DataTable
             columns={columns}
-            data={data?.data.staff || []}
+            data={data?.staff || []}
             getRowId={(row) => row.id}
             onEdit={hasPermission('staff:update') ? (staff) => handleOpenDialog(staff as Staff) : undefined}
             onDelete={hasPermission('staff:delete') ? (staff) => setDeleteConfirm(staff as Staff) : undefined}
@@ -391,7 +396,7 @@ export default function StaffPage() {
           />
 
           {/* Pagination Controls */}
-          {data && data.data.total > limit && (
+          {data && (canGoBack || data.pagination?.hasMore) && (
             <Box
               sx={{
                 mt: 3,
@@ -402,8 +407,8 @@ export default function StaffPage() {
               }}
             >
               <Button
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
+                onClick={goPrevious}
+                disabled={!canGoBack}
                 variant="outlined"
                 size="small"
                 sx={{
@@ -418,11 +423,11 @@ export default function StaffPage() {
                 Previous
               </Button>
               <Typography variant="body2" color="text.secondary">
-                Page {page} of {Math.ceil(data.data.total / limit)}
+                Page {pageNumber}
               </Typography>
               <Button
-                onClick={() => setPage(page + 1)}
-                disabled={page >= Math.ceil(data.data.total / limit)}
+                onClick={() => goNext(data.pagination?.nextCursor)}
+                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
                 variant="outlined"
                 size="small"
                 sx={{

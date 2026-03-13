@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+    appendCursorPagination,
+    CursorPaginationMeta,
+    CursorPaginationParams,
+    getResponseDataRoot,
+    normalizeCursorPaginationMeta,
+    readCollection,
+} from './pagination';
 
 export interface AuditLogAdmin {
     id: string;
@@ -27,19 +35,11 @@ export interface AuditLog {
 }
 
 export interface AuditLogsResponse {
-    status: string;
-    data: {
-        items: AuditLog[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
+    items: AuditLog[];
+    pagination: CursorPaginationMeta;
 }
 
-export interface GetAuditLogsParams {
-    page?: number;
-    limit?: number;
+export interface GetAuditLogsParams extends CursorPaginationParams {
     targetUser?: string;
     action?: string;
     from?: string;
@@ -51,42 +51,57 @@ export const auditLogsApi = createApi({
     baseQuery: baseQueryWithReauth,
     tagTypes: ['AuditLogs'],
     endpoints: (builder) => ({
-        getAuditLogs: builder.query<AuditLogsResponse['data'], GetAuditLogsParams>({
+        getAuditLogs: builder.query<AuditLogsResponse, GetAuditLogsParams>({
             query: (params = {}) => {
                 const queryParams = new URLSearchParams();
 
-                if (params.page) queryParams.append('page', params.page.toString());
-                if (params.limit) queryParams.append('limit', params.limit.toString());
+                appendCursorPagination(queryParams, params);
                 if (params.targetUser) queryParams.append('targetUser', params.targetUser);
                 if (params.action) queryParams.append('action', params.action);
                 if (params.from) queryParams.append('from', params.from);
                 if (params.to) queryParams.append('to', params.to);
 
-                return `/admin/audit-logs?${queryParams.toString()}`;
+                const queryString = queryParams.toString();
+                return queryString ? `/admin/audit-logs?${queryString}` : '/admin/audit-logs';
             },
             providesTags: ['AuditLogs'],
-            transformResponse: (response: AuditLogsResponse) => response.data,
+            transformResponse: (response: unknown, _meta, arg) => {
+                const root = getResponseDataRoot(response);
+
+                return {
+                    items: readCollection<AuditLog>(root, ['items', 'auditLogs', 'audit_logs', 'results']),
+                    pagination: normalizeCursorPaginationMeta(response, arg.limit),
+                };
+            },
         }),
-        getAuditLogsByUser: builder.query<AuditLogsResponse['data'], { user_id: string } & Omit<GetAuditLogsParams, 'userId'>>({
+        getAuditLogsByUser: builder.query<AuditLogsResponse, { user_id: string } & Omit<GetAuditLogsParams, 'userId'>>({
             query: ({ user_id, ...params }) => {
                 const queryParams = new URLSearchParams();
 
-                if (params.page) queryParams.append('page', params.page.toString());
-                if (params.limit) queryParams.append('limit', params.limit.toString());
+                appendCursorPagination(queryParams, params);
                 if (params.action) queryParams.append('action', params.action);
                 if (params.from) queryParams.append('from', params.from);
                 if (params.to) queryParams.append('to', params.to);
 
-                return `/admin/audit-logs/${user_id}?${queryParams.toString()}`;
+                const queryString = queryParams.toString();
+                return queryString ? `/admin/audit-logs/${user_id}?${queryString}` : `/admin/audit-logs/${user_id}`;
             },
             providesTags: ['AuditLogs'],
-            transformResponse: (response: AuditLogsResponse) => response.data,
+            transformResponse: (response: unknown, _meta, arg) => {
+                const root = getResponseDataRoot(response);
+
+                return {
+                    items: readCollection<AuditLog>(root, ['items', 'auditLogs', 'audit_logs', 'results']),
+                    pagination: normalizeCursorPaginationMeta(response, arg.limit),
+                };
+            },
         }),
         getAuditLog: builder.query<AuditLog, { userId: string; logId: string }>({
             query: ({ userId }) => `/admin/audit-logs/${userId}?limit=100`,
             providesTags: (_result, _error, { logId }) => [{ type: 'AuditLogs', id: logId }],
-            transformResponse: (response: AuditLogsResponse, _meta, { logId }) => {
-                const items = response.data?.items || [];
+            transformResponse: (response: unknown, _meta, { logId }) => {
+                const root = getResponseDataRoot(response);
+                const items = readCollection<AuditLog>(root, ['items', 'auditLogs', 'audit_logs', 'results']);
                 // Search for the logId. Try exact match first, then partial match if ID seems truncated (at least 30 chars)
                 return items.find((item: AuditLog) =>
                     item.id === logId ||

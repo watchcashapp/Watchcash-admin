@@ -21,6 +21,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, Column } from '@/components/shared';
 import { useGetUserByIdQuery, useGetUserWalletQuery, useGetUserRedeemHistoryQuery, WalletTransaction } from '@/store/api/usersApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -49,10 +50,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const { hasPermission } = usePermissions();
   const [tabValue, setTabValue] = useState(0);
-  const [walletPage, setWalletPage] = useState(1);
-
-  const [historyPage, setHistoryPage] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
+  const walletPagination = useCursorPagination();
+  const historyPagination = useCursorPagination();
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,13 +66,21 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
-    { userId: resolvedParams.id, page: walletPage, limit: 6 },
+    { userId: resolvedParams.id, cursor: walletPagination.cursor, limit: 6 },
     { skip: tabValue !== 1 }
   );
   const { data: historyData, isLoading: loadingHistory } = useGetUserRedeemHistoryQuery(
-    { userId: resolvedParams.id, page: historyPage, limit: 6 },
+    { userId: resolvedParams.id, cursor: historyPagination.cursor, limit: 6 },
     { skip: tabValue !== 2 }
   );
+
+  useEffect(() => {
+    walletPagination.reset();
+  }, [resolvedParams.id, walletPagination.reset]);
+
+  useEffect(() => {
+    historyPagination.reset();
+  }, [resolvedParams.id, historyPagination.reset]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -481,25 +489,25 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   {/* Pagination */}
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
-                      Showing {walletData.transactions.length} of {walletData.total} results
+                      Showing {walletData.transactions.length}{typeof walletData.pagination.total === 'number' ? ` of ${walletData.pagination.total}` : ''} results
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <IconButton
                         size="small"
-                        onClick={() => setWalletPage(walletPage - 1)}
-                        disabled={walletPage <= 1}
-                        sx={{ color: walletPage <= 1 ? 'text.disabled' : 'text.secondary', p: 0.5 }}
+                        onClick={walletPagination.goPrevious}
+                        disabled={!walletPagination.canGoBack}
+                        sx={{ color: !walletPagination.canGoBack ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
                         <NavigateBefore fontSize="small" />
                       </IconButton>
                       <Typography variant="caption" sx={{ mx: 0.5, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                        {walletPage} / {walletData.totalPages}
+                        Page {walletPagination.pageNumber}
                       </Typography>
                       <IconButton
                         size="small"
-                        onClick={() => setWalletPage(walletPage + 1)}
-                        disabled={walletPage >= walletData.totalPages}
-                        sx={{ color: walletPage >= walletData.totalPages ? 'text.disabled' : 'text.secondary', p: 0.5 }}
+                        onClick={() => walletPagination.goNext(walletData.pagination.nextCursor)}
+                        disabled={!walletData.pagination.hasMore || !walletData.pagination.nextCursor}
+                        sx={{ color: !walletData.pagination.hasMore || !walletData.pagination.nextCursor ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
                         <NavigateNext fontSize="small" />
                       </IconButton>
@@ -546,25 +554,25 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   {/* Pagination */}
                   <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
-                      Showing {historyData.items.length} of {historyData.total} results
+                      Showing {historyData.items.length}{typeof historyData.pagination.total === 'number' ? ` of ${historyData.pagination.total}` : ''} results
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <IconButton
                         size="small"
-                        onClick={() => setHistoryPage(historyPage - 1)}
-                        disabled={historyPage <= 1}
-                        sx={{ color: historyPage <= 1 ? 'text.disabled' : 'text.secondary', p: 0.5 }}
+                        onClick={historyPagination.goPrevious}
+                        disabled={!historyPagination.canGoBack}
+                        sx={{ color: !historyPagination.canGoBack ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
                         <NavigateBefore fontSize="small" />
                       </IconButton>
                       <Typography variant="caption" sx={{ mx: 0.5, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                        {historyPage} / {historyData.totalPages}
+                        Page {historyPagination.pageNumber}
                       </Typography>
                       <IconButton
                         size="small"
-                        onClick={() => setHistoryPage(historyPage + 1)}
-                        disabled={historyPage >= historyData.totalPages}
-                        sx={{ color: historyPage >= historyData.totalPages ? 'text.disabled' : 'text.secondary', p: 0.5 }}
+                        onClick={() => historyPagination.goNext(historyData.pagination.nextCursor)}
+                        disabled={!historyData.pagination.hasMore || !historyData.pagination.nextCursor}
+                        sx={{ color: !historyData.pagination.hasMore || !historyData.pagination.nextCursor ? 'text.disabled' : 'text.secondary', p: 0.5 }}
                       >
                         <NavigateNext fontSize="small" />
                       </IconButton>

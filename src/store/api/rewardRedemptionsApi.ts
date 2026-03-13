@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+    appendCursorPagination,
+    CursorPaginationMeta,
+    CursorPaginationParams,
+    getResponseDataRoot,
+    normalizeCursorPaginationMeta,
+    readCollection,
+} from './pagination';
 
 export interface RewardRedemption {
     id: string;
@@ -26,19 +34,11 @@ export interface RewardRedemption {
 }
 
 export interface RewardRedemptionsResponse {
-    status: string;
-    data: {
-        items: RewardRedemption[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages?: number;
-    };
+    items: RewardRedemption[];
+    pagination: CursorPaginationMeta;
 }
 
-export interface RewardRedemptionsQueryParams {
-    page?: number;
-    limit?: number;
+export interface RewardRedemptionsQueryParams extends CursorPaginationParams {
     search?: string;
     status?: string;
     from?: string;
@@ -53,15 +53,23 @@ export const rewardRedemptionsApi = createApi({
         getRewardRedemptions: builder.query<RewardRedemptionsResponse, RewardRedemptionsQueryParams>({
             query: (params) => {
                 const queryParams = new URLSearchParams();
-                if (params?.page) queryParams.append('page', params.page.toString());
-                if (params?.limit) queryParams.append('limit', params.limit.toString());
+                appendCursorPagination(queryParams, params);
                 if (params?.status) queryParams.append('status', params.status);
                 if (params?.search) queryParams.append('search', params.search);
                 if (params?.from) queryParams.append('from', params.from);
                 if (params?.to) queryParams.append('to', params.to);
-                return `/admin/reward-redemptions?${queryParams.toString()}`;
+                const queryString = queryParams.toString();
+                return queryString ? `/admin/reward-redemptions?${queryString}` : '/admin/reward-redemptions';
             },
             providesTags: ['RewardRedemptions'],
+            transformResponse: (response: unknown, _meta, arg) => {
+                const root = getResponseDataRoot(response);
+
+                return {
+                    items: readCollection<RewardRedemption>(root, ['items', 'rewardRedemptions', 'reward_redemptions', 'results']),
+                    pagination: normalizeCursorPaginationMeta(response, arg.limit),
+                };
+            },
         }),
         getRewardRedemptionById: builder.query<any, string>({
             query: (id) => `/admin/reward-redemptions/${id}`,

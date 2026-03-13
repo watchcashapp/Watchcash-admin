@@ -1,5 +1,13 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import {
+  appendCursorPagination,
+  CursorPaginationMeta,
+  CursorPaginationParams,
+  getResponseDataRoot,
+  normalizeCursorPaginationMeta,
+  readCollection,
+} from './pagination';
 
 export interface User {
   id: string;
@@ -25,18 +33,11 @@ export interface UsersResponse {
   status: string;
   data: {
     users: User[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
+    pagination: CursorPaginationMeta;
   };
 }
 
-export interface GetUsersParams {
-  page?: number;
-  limit?: number;
+export interface GetUsersParams extends CursorPaginationParams {
   search?: string;
   isActive?: boolean;
   userType?: string;
@@ -101,10 +102,7 @@ export interface UserWalletResponse {
     user: User;
     walletBalance: number;
     transactions: WalletTransaction[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
+    pagination: CursorPaginationMeta;
   };
 }
 
@@ -143,6 +141,11 @@ export interface TransactionDetailResponse {
   data: TransactionDetail;
 }
 
+export interface UserRedeemHistoryResponse {
+  items: any[];
+  pagination: CursorPaginationMeta;
+}
+
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: baseQueryWithReauth,
@@ -152,18 +155,25 @@ export const usersApi = createApi({
       query: (params = {}) => {
         const queryParams = new URLSearchParams();
 
-        if (params.page) queryParams.append('page', params.page.toString());
-        if (params.limit) queryParams.append('limit', params.limit.toString());
+        appendCursorPagination(queryParams, params);
         if (params.search) queryParams.append('search', params.search);
         if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
         if (params.userType) queryParams.append('userType', params.userType);
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);
 
-        return `/admin/users?${queryParams.toString()}`;
+        const queryString = queryParams.toString();
+        return queryString ? `/admin/users?${queryString}` : '/admin/users';
       },
       providesTags: ['Users'],
-      transformResponse: (response: UsersResponse) => response.data,
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          users: readCollection<User>(root, ['users', 'items', 'results']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
     getUserById: builder.query<User, string>({
       query: (id) => `/admin/users/${id}`,
@@ -210,28 +220,47 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['Users'],
     }),
-    getUserWallet: builder.query<UserWalletResponse['data'], { userId: string; page?: number; limit?: number }>({
-      query: ({ userId, page = 1, limit = 20 }) => {
+    getUserWallet: builder.query<UserWalletResponse['data'], { userId: string } & CursorPaginationParams>({
+      query: ({ userId, cursor, limit = 20 }) => {
         const queryParams = new URLSearchParams();
-        queryParams.append('page', page.toString());
-        queryParams.append('limit', limit.toString());
+        appendCursorPagination(queryParams, { cursor, limit });
+
         return `/admin/users/${userId}/wallet?${queryParams.toString()}`;
       },
-      transformResponse: (response: UserWalletResponse) => response.data,
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+        const walletBalanceRaw = root.walletBalance ?? root.wallet_balance ?? 0;
+        const walletBalance = typeof walletBalanceRaw === 'number'
+          ? walletBalanceRaw
+          : Number(walletBalanceRaw) || 0;
+
+        return {
+          user: root.user as User,
+          walletBalance,
+          transactions: readCollection<WalletTransaction>(root, ['transactions', 'items', 'results']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
     getTransactionDetail: builder.query<TransactionDetail, { userId: string; transactionId: string }>({
       query: ({ userId, transactionId }) =>
         `/admin/users/${userId}/transactions/${transactionId}`,
       transformResponse: (response: TransactionDetailResponse) => response.data,
     }),
-    getUserRedeemHistory: builder.query<{ items: any[]; total: number; page: number; totalPages: number }, { userId: string; page?: number; limit?: number }>({
-      query: ({ userId, page = 1, limit = 20 }) => {
+    getUserRedeemHistory: builder.query<UserRedeemHistoryResponse, { userId: string } & CursorPaginationParams>({
+      query: ({ userId, cursor, limit = 20 }) => {
         const queryParams = new URLSearchParams();
-        queryParams.append('page', page.toString());
-        queryParams.append('limit', limit.toString());
+        appendCursorPagination(queryParams, { cursor, limit });
         return `/admin/users/${userId}/redeemhistory?${queryParams.toString()}`;
       },
-      transformResponse: (response: any) => response.data,
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          items: readCollection<any>(root, ['items', 'results', 'redeemHistory', 'redeem_history']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
     }),
   }),
 });
