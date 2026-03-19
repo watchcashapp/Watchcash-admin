@@ -11,17 +11,23 @@ import {
   InputLabel,
   Select,
   Chip,
-  Card,
-  Avatar,
-  Stack,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
   Grid,
   Button,
   CircularProgress,
-  Paper,
+  Avatar,
+  Stack,
+  Card,
+  CardContent,
 } from '@mui/material';
-import { Search, FilterList, CardGiftcard, Refresh, UploadFile } from '@mui/icons-material';
+import { Search, FilterList, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useToast } from '@/components/shared';
+import { useToast, FileUploadZone } from '@/components/shared';
 import { config } from '@/config/env';
 import { 
   useGetRewardCatalogsQuery, 
@@ -39,6 +45,7 @@ export default function RewardCatalogPage() {
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [allRewards, setAllRewards] = useState<RewardCatalog[]>([]);
   const [uploadRewardCatalog] = useUploadRewardCatalogMutation();
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isManualUploading, setIsManualUploading] = useState(false);
   const isUploading = isManualUploading;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,8 +132,14 @@ export default function RewardCatalogPage() {
       showError(err.message || 'Failed to upload reward catalog');
     } finally {
       setIsManualUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setIsImportDialogOpen(false);
     }
+  };
+
+  const handleFileSelect = (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    handleFileChange({ target: { files: [file] } } as any);
   };
 
   const getStatusStyle = (val: string) => {
@@ -180,9 +193,8 @@ export default function RewardCatalogPage() {
           <Button
             variant="contained"
             size="small"
-            startIcon={isUploading ? <CircularProgress size={16} color="inherit" /> : <UploadFile />}
-            onClick={handleUploadClick}
-            disabled={isUploading}
+            startIcon={<UploadFile />}
+            onClick={() => setIsImportDialogOpen(true)}
             sx={{
               background: "linear-gradient(45deg, #213350, #6AB344)",
               fontSize: '0.75rem',
@@ -194,7 +206,7 @@ export default function RewardCatalogPage() {
               }
             }}
           >
-            {isUploading ? 'IMPORTING...' : 'IMPORT CSV'}
+            IMPORT CSV
           </Button>
         </Box>
 
@@ -429,6 +441,48 @@ export default function RewardCatalogPage() {
             </Button>
           </Box>
         )}
+        {/* Import CSV Dialog */}
+        <Dialog 
+          open={isImportDialogOpen} 
+          onClose={() => !isManualUploading && setIsImportDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 3, p: 1 }
+          }}
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Import Reward Catalog</Typography>
+            <IconButton 
+              size="small" 
+              onClick={() => setIsImportDialogOpen(false)}
+              disabled={isManualUploading}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Upload a CSV file containing your reward catalog details. The list will be automatically updated after a successful upload.
+            </Typography>
+            <FileUploadZone 
+              onFileSelect={handleFileSelect}
+              isUploading={isManualUploading}
+              accept=".csv"
+              label="Drag and drop your CSV file here, or click to browse"
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button 
+              onClick={() => setIsImportDialogOpen(false)} 
+              disabled={isManualUploading}
+              color="inherit"
+              sx={{ fontWeight: 600 }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </DashboardLayout>
   );

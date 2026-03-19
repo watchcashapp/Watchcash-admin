@@ -861,14 +861,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                               <Grid container spacing={2}>
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                   <Typography variant="caption" color="text.secondary">Plan Name</Typography>
-                                  <Typography sx={{ color: 'primary.main' }}>
+                                  <Typography sx={{ color: 'primary.main', fontWeight: 600 }}>
                                     {getSubscriptionData()?.plan || 'N/A'}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                  <Typography variant="caption" color="text.secondary">Price ID</Typography>
-                                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                    {getSubscriptionData()?.priceId || 'N/A'}
                                   </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -930,9 +924,22 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                     {getPlanHistoryData().map((history: any, idx: number) => (
                                       <ListItem key={idx} sx={{ px: 0, py: 0.5 }}>
                                         <ListItemText
-                                          primary={history.plan}
+                                          primary={
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                              {history.previousPlan && (
+                                                <>
+                                                  <Typography variant="caption" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                                                    {history.previousPlan}
+                                                  </Typography>
+                                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>→</Typography>
+                                                </>
+                                              )}
+                                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                                {history.newPlan || 'N/A'}
+                                              </Typography>
+                                            </Box>
+                                          }
                                           secondary={new Date(history.createdAt).toLocaleDateString()}
-                                          primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
                                           secondaryTypographyProps={{ variant: 'caption' }}
                                         />
                                         <Chip

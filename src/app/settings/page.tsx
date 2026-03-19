@@ -180,11 +180,11 @@ export default function SettingsPage() {
                         overflow: 'hidden'
                     }}
                 >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                        <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.1rem' }}>
                             Metadata Configuration
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
                             {metadata.length - 1} existing settings
                         </Typography>
                     </Box>
@@ -201,11 +201,11 @@ export default function SettingsPage() {
                                     key={index}
                                     sx={{
                                         display: 'flex',
-                                        gap: 3,
-                                        mb: 2,
+                                        gap: 2,
+                                        mb: 1,
                                         alignItems: 'center',
-                                        p: 1.5,
-                                        borderRadius: 2,
+                                        p: 1,
+                                        borderRadius: 1.5,
                                         transition: 'background-color 0.2s ease',
                                         '&:hover': {
                                             bgcolor: (theme) => theme.palette.mode === 'dark'
