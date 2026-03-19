@@ -873,7 +873,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(33, 51, 80, 0.3)' },
         }}
       >
-        <Toolbar sx={{ minHeight: '48px !important', height: 48 }} />
+        <Toolbar sx={{ minHeight: '64px !important', height: 64 }} />
         <Box sx={{ flexGrow: 1, p: 1 }}>
           {children}
         </Box>
