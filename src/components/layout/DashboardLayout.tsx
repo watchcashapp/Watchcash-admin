@@ -486,7 +486,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           zIndex: 1200,
         }}
       >
-        <Toolbar sx={{ minHeight: '48px !important', height: 48 }}>
+        <Toolbar sx={{ minHeight: '64px !important', height: 64 }}>
           <IconButton
             suppressHydrationWarning
             color="inherit"
