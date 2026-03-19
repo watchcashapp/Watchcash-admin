@@ -19,7 +19,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
-import { DataTable, ConfirmDialog, useToast } from "@/components/shared";
+import { DataTable, ConfirmDialog, useToast, Input } from "@/components/shared";
 import {
   useGetStaffQuery,
   useCreateStaffMutation,
@@ -476,7 +476,7 @@ export default function StaffPage() {
         <DialogContent sx={{ pt: 3 }}>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Full Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -484,15 +484,10 @@ export default function StaffPage() {
                 helperText={formErrors.name}
                 required
                 fullWidth
-                sx={{
-                  "& .MuiInputBase-input": {
-                    fontSize: "0.875rem",
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Email"
                 type="email"
                 value={formData.email}
@@ -501,11 +496,6 @@ export default function StaffPage() {
                 helperText={formErrors.email}
                 required
                 fullWidth
-                sx={{
-                  "& .MuiInputBase-input": {
-                    fontSize: "0.875rem",
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -531,7 +521,7 @@ export default function StaffPage() {
             </Grid>
             {!editingStaff && (
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="Password"
                   type="password"
                   value={formData.password}
@@ -540,11 +530,6 @@ export default function StaffPage() {
                   helperText={formErrors.password}
                   required
                   fullWidth
-                  sx={{
-                    "& .MuiInputBase-input": {
-                      fontSize: "0.875rem",
-                    },
-                  }}
                 />
               </Grid>
             )}

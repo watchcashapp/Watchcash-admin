@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import { Box, Paper, Typography, Grid, Link, TextField, Button, CircularProgress } from "@mui/material";
+import { Box, Paper, Typography, Grid, Link, Button, CircularProgress } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/components/shared";
+import { useToast, Input } from "@/components/shared";
 import { useLoginMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
@@ -197,7 +198,7 @@ function LoginForm() {
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Email"
                 type="email"
                 value={email}
@@ -206,32 +207,21 @@ function LoginForm() {
                 helperText={errors.email}
                 required
                 fullWidth
-                size="small"
                 sx={{
                   '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
+                    transform: 'translate(14px, -6px) scale(0.75)',
                     bgcolor: 'background.paper',
-                    padding: '0 4px',
-                    borderRadius: '4px',
+                    px: 0.5,
                   },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    marginTop: '4px',
-                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
                 }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Password"
                 type="password"
                 value={password}
@@ -240,26 +230,15 @@ function LoginForm() {
                 helperText={errors.password}
                 required
                 fullWidth
-                size="small"
                 sx={{
                   '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
+                    transform: 'translate(14px, -6px) scale(0.75)',
                     bgcolor: 'background.paper',
-                    padding: '0 4px',
-                    borderRadius: '4px',
+                    px: 0.5,
                   },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    marginTop: '4px',
-                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
                 }}
               />
             </Grid>

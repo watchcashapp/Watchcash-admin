@@ -7,12 +7,12 @@ import {
   Checkbox,
   FormControlLabel,
   Typography,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Chip,
+  Grid,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
-import { ExpandMore } from '@mui/icons-material';
+import { InfoOutlined, CheckCircleOutline, RadioButtonUnchecked } from '@mui/icons-material';
 
 interface Permission {
   id: string;
@@ -37,18 +37,7 @@ export default function GroupedPermissionsSelect({
   onChange,
   disabledCodes = ['dashboard:view', 'dashboard:view_total_users'],
 }: GroupedPermissionsSelectProps) {
-  const [expanded, setExpanded] = useState<string[]>(
-    Object.keys(groupedPermissions)
-  );
-
-  const handleToggleCategory = (category: string) => {
-    setExpanded((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-
+  
   const handleSelectAll = (category: string, permissions: Permission[]) => {
     const categoryIds = permissions.map((p) => p.id);
     const allSelected = categoryIds.every((id) => value.includes(id));
@@ -100,8 +89,9 @@ export default function GroupedPermissionsSelect({
       {label && (
         <FormLabel
           sx={{
-            mb: 1,
-            fontWeight: 600,
+            mb: 2,
+            fontWeight: 700,
+            fontSize: '1rem',
             color: 'text.primary',
             '&.Mui-focused': {
               color: 'text.primary',
@@ -111,135 +101,174 @@ export default function GroupedPermissionsSelect({
           {label}
         </FormLabel>
       )}
-      <Paper
-        sx={{
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 1,
-          overflow: 'hidden',
-        }}
-      >
+
+      <Grid container spacing={2}>
         {Object.entries(groupedPermissions).map(([category, permissions]) => {
           const { selected, total } = getCategoryStats(permissions);
           const allSelected = selected === total;
           const someSelected = selected > 0 && selected < total;
 
           return (
-            <Accordion
-              key={category}
-              expanded={expanded.includes(category)}
-              onChange={() => handleToggleCategory(category)}
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                '&:last-child': {
-                  borderBottom: 'none',
-                },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore />}
+            <Grid key={category} size={{ xs: 12, md: 6, lg: 4 }}>
+              <Paper
+                elevation={0}
                 sx={{
-                  minHeight: '48px',
-                  '&.Mui-expanded': {
-                    minHeight: '48px',
-                  },
-                  '& .MuiAccordionSummary-content': {
-                    margin: '8px 0',
-                    '&.Mui-expanded': {
-                      margin: '8px 0',
-                    },
-                  },
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.02)' 
+                    : 'rgba(0, 0, 0, 0.01)',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
+                    borderColor: 'primary.main',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                  }
                 }}
               >
+                {/* Category Header */}
                 <Box
-                  display="flex"
-                  alignItems="center"
-                  gap={2}
-                  width="100%"
-                  onClick={(e) => e.stopPropagation()}
+                  sx={{
+                    p: 1.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                  }}
                 >
-                  <Checkbox
-                    checked={allSelected}
-                    indeterminate={someSelected}
-                    onChange={() => handleSelectAll(category, permissions)}
-                    onClick={(e) => e.stopPropagation()}
-                    size="small"
-                    disabled={permissions.every(isPermissionDisabled)}
-                  />
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      flex: 1,
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {formatCategoryName(category)}
-                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Checkbox
+                      checked={allSelected}
+                      indeterminate={someSelected}
+                      onChange={() => handleSelectAll(category, permissions)}
+                      size="small"
+                      disabled={permissions.every(isPermissionDisabled)}
+                      icon={<RadioButtonUnchecked fontSize="small" />}
+                      checkedIcon={<CheckCircleOutline fontSize="small" />}
+                    />
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        color: 'text.primary',
+                      }}
+                    >
+                      {formatCategoryName(category)}
+                    </Typography>
+                  </Box>
                   <Chip
                     label={`${selected}/${total}`}
                     size="small"
+                    variant={selected > 0 ? "filled" : "outlined"}
                     color={selected > 0 ? 'primary' : 'default'}
-                    sx={{ fontWeight: 500, height: '24px' }}
+                    sx={{ 
+                      fontWeight: 600, 
+                      height: '20px', 
+                      fontSize: '0.65rem',
+                      opacity: selected > 0 ? 1 : 0.6
+                    }}
                   />
                 </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0, pb: 1, px: 2 }}>
-                <Box display="flex" flexDirection="column" gap={0} pl={1}>
-                  {permissions.map((permission) => (
-                    <FormControlLabel
-                      key={permission.id}
-                      control={
-                        <Checkbox
-                          checked={value.includes(permission.id)}
-                          onChange={() => handleTogglePermission(permission)}
-                          size="small"
-                          disabled={isPermissionDisabled(permission)}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8125rem' }}>
-                            {permission.name} {permission.isDirect === false && (
-                              <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ml: 0.5, fontWeight: 400 }}>
-                                (assigned by role)
+
+                {/* Permissions List with Internal Scroll */}
+                <Box
+                  sx={{
+                    p: 1,
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                    flexGrow: 1,
+                    '&::-webkit-scrollbar': {
+                      width: '4px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      borderRadius: '4px',
+                      bgcolor: 'rgba(0,0,0,0.1)',
+                    },
+                  }}
+                >
+                  <Box display="flex" flexDirection="column" gap={0.5}>
+                    {permissions.map((permission) => (
+                      <Box
+                        key={permission.id}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          p: 0.5,
+                          borderRadius: 1,
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          },
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={value.includes(permission.id)}
+                              onChange={() => handleTogglePermission(permission)}
+                              size="small"
+                              disabled={isPermissionDisabled(permission)}
+                            />
+                          }
+                          label={
+                            <Box sx={{ ml: -0.5 }}>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: 500, 
+                                  fontSize: '0.8125rem',
+                                  color: value.includes(permission.id) ? 'primary.main' : 'text.primary'
+                                }}
+                              >
+                                {permission.name}
+                                {permission.isDirect === false && (
+                                  <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ml: 0.5 }}>
+                                    (via role)
+                                  </Typography>
+                                )}
                               </Typography>
-                            )}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: 'block', fontSize: '0.75rem', lineHeight: 1.2 }}
-                          >
-                            {permission.code}
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{
-                        ml: 0,
-                        py: 0.25,
-                        px: 1,
-                        borderRadius: 1,
-                        '&:hover': {
-                          bgcolor: 'action.hover',
-                        },
-                      }}
-                    />
-                  ))}
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ display: 'block', fontSize: '0.7rem', opacity: 0.7 }}
+                              >
+                                {permission.code}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={{
+                            m: 0,
+                            width: '100%',
+                          }}
+                        />
+                        {permission.description && (
+                          <Tooltip title={permission.description} arrow placement="top">
+                            <IconButton size="small" sx={{ mt: 0.5, p: 0.25 }}>
+                              <InfoOutlined sx={{ fontSize: '0.875rem', opacity: 0.5 }} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
                 </Box>
-              </AccordionDetails>
-            </Accordion>
+              </Paper>
+            </Grid>
           );
         })}
-      </Paper>
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-        {value.length} permission(s) selected
-      </Typography>
+      </Grid>
+      
+      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <CheckCircleOutline sx={{ fontSize: '1rem', color: 'primary.main' }} />
+        <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+          {value.length} permission(s) selected total
+        </Typography>
+      </Box>
     </FormControl>
   );
 }
