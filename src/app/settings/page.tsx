@@ -135,7 +135,7 @@ export default function SettingsPage() {
         return (
             <DashboardLayout>
                 <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
-                    <CircularProgress sx={{ color: '#667eea' }} />
+                    <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
                 </Box>
             </DashboardLayout>
         );
@@ -149,7 +149,7 @@ export default function SettingsPage() {
                         fontWeight: 700,
                         fontSize: '1.1rem',
                         mb: 2,
-                        background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        background: 'linear-gradient(45deg, #213350, #6AB344)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -169,11 +169,11 @@ export default function SettingsPage() {
                         borderColor: (theme) =>
                             theme.palette.mode === 'dark'
                                 ? 'rgba(255, 255, 255, 0.1)'
-                                : 'rgba(102, 126, 234, 0.1)',
+                                : 'rgba(33, 51, 80, 0.1)',
                         boxShadow: (theme) =>
                             theme.palette.mode === 'dark'
                                 ? '0 4px 20px rgba(0, 0, 0, 0.4)'
-                                : '0 4px 20px rgba(102, 126, 234, 0.05)',
+                                : '0 4px 20px rgba(33, 51, 80, 0.05)',
                         flexGrow: 1,
                         display: 'flex',
                         flexDirection: 'column',
@@ -212,8 +212,8 @@ export default function SettingsPage() {
                                                 ? 'rgba(255, 255, 255, 0.03)'
                                                 : 'rgba(0, 0, 0, 0.02)',
                                         },
-                                        border: index === 0 ? '1px dashed #667eea' : '1px solid transparent',
-                                        bgcolor: index === 0 ? 'rgba(102, 126, 234, 0.04)' : 'transparent',
+                                        border: index === 0 ? '1px dashed #213350' : '1px solid transparent',
+                                        bgcolor: index === 0 ? 'rgba(33, 51, 80, 0.04)' : 'transparent',
                                     }}
                                 >
                                     <TextField
@@ -231,10 +231,10 @@ export default function SettingsPage() {
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#667eea',
+                                                    borderColor: '#213350',
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#667eea',
+                                                    borderColor: '#213350',
                                                 },
                                             },
                                             '& .MuiInputBase-input.Mui-disabled': {
@@ -266,10 +266,10 @@ export default function SettingsPage() {
                                             },
                                             '& .MuiOutlinedInput-root': {
                                                 '&:hover fieldset': {
-                                                    borderColor: '#667eea',
+                                                    borderColor: '#213350',
                                                 },
                                                 '&.Mui-focused fieldset': {
-                                                    borderColor: '#667eea',
+                                                    borderColor: '#213350',
                                                 },
                                             },
                                             '& .MuiInputBase-input.Mui-disabled': {
@@ -332,14 +332,14 @@ export default function SettingsPage() {
                                 height: '32px',
                                 fontSize: '0.75rem',
                                 px: 3,
-                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                                 '&:hover': {
-                                    background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
-                                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                                    boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                                 },
                                 '&.Mui-disabled': {
-                                    background: 'rgba(102, 126, 234, 0.5)',
+                                    background: 'rgba(33, 51, 80, 0.5)',
                                     color: 'white',
                                 }
                             }}

@@ -66,9 +66,22 @@ export const rewardCatalogsApi = createApi({
                 };
             },
         }),
+        uploadRewardCatalog: builder.mutation<{ message: string }, FormData>({
+            query: (formData) => ({
+                url: '/admin/reward-catalogs/upload',
+                method: 'POST',
+                body: formData,
+                // Ensure no Content-Type header is set to allow the browser to set it with the boundary
+                headers: {
+                    'Content-Type': undefined,
+                },
+            }),
+            invalidatesTags: ['RewardCatalogs'],
+        }),
     }),
 });
 
 export const {
     useGetRewardCatalogsQuery,
+    useUploadRewardCatalogMutation,
 } = rewardCatalogsApi;

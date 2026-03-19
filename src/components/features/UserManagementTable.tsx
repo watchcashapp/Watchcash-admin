@@ -165,7 +165,7 @@ export default function UserManagementTable({
           size="small"
           sx={{
             background: value === 'ADMIN'
-              ? 'linear-gradient(45deg, #667eea, #764ba2)'
+              ? 'linear-gradient(45deg, #213350, #6AB344)'
               : 'linear-gradient(45deg, #10b981, #059669)',
             color: 'white',
             fontWeight: 600,
@@ -261,7 +261,7 @@ export default function UserManagementTable({
           sx={{
             fontWeight: 700,
             fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -279,12 +279,12 @@ export default function UserManagementTable({
               sx={{
                 height: '30px',
                 fontSize: '0.75rem',
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
                 px: 2,
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                 },
               }}
             >
@@ -300,7 +300,7 @@ export default function UserManagementTable({
               sx={{
                 height: '32px',
                 fontSize: '0.75rem',
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
               }}
             >
               ADD USER
@@ -486,12 +486,12 @@ export default function UserManagementTable({
               disabled={!hasFilters}
               sx={{
                 height: '32px',
-                borderColor: '#667eea',
-                color: '#667eea',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
+                color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
                 fontSize: '0.7rem',
                 '&:hover': {
-                  borderColor: '#5a67d8',
-                  backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                  borderColor: '#6AB344',
+                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
                 },
               }}
             >

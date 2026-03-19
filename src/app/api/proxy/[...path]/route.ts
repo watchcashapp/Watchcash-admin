@@ -60,24 +60,27 @@ async function proxyRequest(
     const finalUrl = url.toString();
 
     // Forward body for all non-GET/HEAD methods (including DELETE)
-    let body: string | undefined = undefined;
+    let body: any = undefined;
+    let contentType = request.headers.get('content-type') || '';
+
     if (method !== 'GET' && method !== 'HEAD') {
       try {
-        // Try JSON first, fall back to raw text
-        const contentType = request.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
           const json = await request.json();
           if (json !== undefined && json !== null) {
             body = JSON.stringify(json);
           }
+        } else if (contentType.includes('multipart/form-data')) {
+          // For multipart, get the raw body as an arrayBuffer to preserve the boundary
+          body = await request.arrayBuffer();
         } else {
           const text = await request.text();
           if (text) {
             body = text;
           }
         }
-      } catch {
-        // Ignore body parse errors – send no body
+      } catch (error) {
+        console.error('Proxy body parse error:', error);
       }
     }
 
@@ -85,8 +88,10 @@ async function proxyRequest(
       'ngrok-skip-browser-warning': 'true',
     };
 
-    // Only set Content-Type when we actually have a body
-    if (body) {
+    // Forward the original Content-Type if it exists, otherwise default to JSON if we have a body
+    if (contentType) {
+      headers['Content-Type'] = contentType;
+    } else if (body && typeof body === 'string') {
       headers['Content-Type'] = 'application/json';
     }
 
@@ -109,9 +114,9 @@ async function proxyRequest(
 
     // Get response data
     let data;
-    const contentType = response.headers.get('content-type');
+    const responseContentType = response.headers.get('content-type');
 
-    if (contentType?.includes('application/json')) {
+    if (responseContentType?.includes('application/json')) {
       data = await response.json();
 
 

@@ -43,7 +43,7 @@ export default function AuditLogDetailPage() {
         return (
             <DashboardLayout>
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                    <CircularProgress sx={{ color: '#667eea' }} />
+                    <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
                 </Box>
             </DashboardLayout>
         );
@@ -95,7 +95,7 @@ export default function AuditLogDetailPage() {
                             sx={{
                                 fontWeight: 700,
                                 fontSize: '1.1rem',
-                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                background: 'linear-gradient(45deg, #213350, #6AB344)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
@@ -110,7 +110,7 @@ export default function AuditLogDetailPage() {
                         sx={{
                             height: '22px',
                             fontSize: '0.7rem',
-                            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                            background: 'linear-gradient(45deg, #213350, #6AB344)',
                             color: 'white',
                             fontWeight: 600,
                             textTransform: 'capitalize',
@@ -182,7 +182,7 @@ export default function AuditLogDetailPage() {
 
                         <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
                             <Box display="flex" alignItems="center" gap={1}>
-                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(102, 126, 234, 0.1)', color: 'primary.main', display: 'flex' }}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(33, 51, 80, 0.1)', color: '#213350', display: 'flex' }}>
                                     <AdminPanelSettings sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>
@@ -192,7 +192,7 @@ export default function AuditLogDetailPage() {
                             </Box>
 
                             <Box display="flex" alignItems="center" gap={1}>
-                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(118, 75, 162, 0.1)', color: '#764ba2', display: 'flex' }}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(106, 179, 68, 0.1)', color: '#6AB344', display: 'flex' }}>
                                     <Person sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>

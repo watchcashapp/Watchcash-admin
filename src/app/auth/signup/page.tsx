@@ -112,7 +112,7 @@ function SignupForm() {
       sx={{
         minHeight: '100vh',
         height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -160,7 +160,7 @@ function SignupForm() {
             fontWeight: 700,
             color: 'primary.main',
             mb: 3,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -317,11 +317,11 @@ function SignupForm() {
                   fontSize: '1rem',
                   fontWeight: 600,
                   textTransform: 'none',
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                    boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                     transform: 'translateY(-2px)',
                   },
                   '&:active': {
@@ -372,7 +372,7 @@ export default function SignupPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
         }}
       >
         <CircularProgress sx={{ color: 'white' }} />

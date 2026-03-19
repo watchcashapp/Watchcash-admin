@@ -157,7 +157,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+        <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
       </Box>
     );
   }
@@ -303,7 +303,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             height: '28px',
             fontSize: '0.75rem',
             '&:hover': {
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
             '& .MuiButton-startIcon': {
               mr: { xs: 0, sm: 0.5 },
@@ -321,15 +321,15 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             startIcon={<RateReview sx={{ fontSize: '1rem !important' }} />}
             onClick={() => setReviewDialogOpen(true)}
             sx={{
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
+              boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
               minWidth: { xs: 'auto', sm: '120px' },
               px: { xs: 1.5, sm: 2 },
               height: '28px',
               fontSize: '0.75rem',
               '&:hover': {
-                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
               },
               '& .MuiButton-startIcon': {
                 mr: { xs: 0, sm: 0.5 },
@@ -350,7 +350,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           mb: 1.5,
           fontWeight: 700,
           fontSize: '1.1rem',
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+          background: 'linear-gradient(45deg, #213350, #6AB344)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -1027,7 +1027,7 @@ function ReviewFormComponent({
           fullWidth
           disabled={refreshingIsReviewing || !reviewForm.reason}
           sx={{
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             py: 1.5,
           }}
         >

@@ -90,7 +90,7 @@ export default function RolesPage() {
           sx={{
             fontWeight: 700,
             fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -106,11 +106,11 @@ export default function RolesPage() {
             sx={{
               height: '30px',
               fontSize: '0.75rem',
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
-              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
+              boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
               '&:hover': {
-                background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
               },
             }}
           >

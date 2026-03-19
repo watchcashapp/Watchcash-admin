@@ -88,13 +88,13 @@ export default function MultiSelect({
                     sx={{
                       height: '24px',
                       fontSize: '0.75rem',
-                      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                      color: '#667eea',
+                      backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.15)' : 'rgba(33, 51, 80, 0.1)',
+                      color: (theme) => theme.palette.mode === 'dark' ? '#6AB344' : '#213350',
                       '& .MuiChip-deleteIcon': {
-                        color: '#667eea',
+                        color: (theme) => theme.palette.mode === 'dark' ? '#6AB344' : '#213350',
                         fontSize: '16px',
                         '&:hover': {
-                          color: '#5a67d8',
+                          color: '#6AB344',
                         },
                       },
                     }}
@@ -130,9 +130,9 @@ export default function MultiSelect({
               <Checkbox
                 checked={value.indexOf(option.value) > -1}
                 sx={{
-                  color: '#667eea',
+                  color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#213350',
                   '&.Mui-checked': {
-                    color: '#667eea',
+                    color: '#6AB344',
                   },
                 }}
               />

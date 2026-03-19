@@ -16,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>WatchNCash</title>
+        <title>WatchCash</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg" />
+        <link rel="alternate icon" href="/assets/images/favicon.svg" />
+        <meta name="theme-color" content="#213350" />
       </head>
       <body suppressHydrationWarning>
         <ThemeProvider>

@@ -205,7 +205,7 @@ export default function ProfilePage() {
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
           <CircularProgress
             sx={{
-              color: '#667eea',
+              color: '#213350',
             }}
           />
         </Box>
@@ -237,7 +237,7 @@ export default function ProfilePage() {
             fontWeight: 700,
             fontSize: '1.1rem',
             mb: 2,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -268,8 +268,8 @@ export default function ProfilePage() {
                     height: 80,
                     mx: 'auto',
                     mb: 1.5,
-                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                    background: 'linear-gradient(45deg, #213350, #6AB344)',
+                    boxShadow: '0 8px 24px rgba(33, 51, 80, 0.4)',
                     fontSize: '2rem',
                   }}
                 >
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                       px: 2,
                       py: 0.5,
                       borderRadius: 2,
-                      background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                      background: 'linear-gradient(45deg, #213350, #6AB344)',
                       color: 'white',
                       fontWeight: 600,
                       mt: 1,
@@ -330,14 +330,14 @@ export default function ProfilePage() {
                         fontSize: '0.75rem',
                         minWidth: { xs: 'auto', sm: 100 },
                         px: { xs: 1.5, sm: 2 },
-                        borderColor: '#667eea',
-                        color: '#667eea',
+                        borderColor: '#213350',
+                        color: '#213350',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
                         '&:hover': {
-                          borderColor: '#5a67d8',
-                          backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                          borderColor: '#6AB344',
+                          backgroundColor: 'rgba(33, 51, 80, 0.04)',
                         },
                       }}
                     >
@@ -436,14 +436,14 @@ export default function ProfilePage() {
                             fontSize: '0.75rem',
                             minWidth: { xs: 'auto', sm: 100 },
                             px: { xs: 1.5, sm: 2 },
-                            background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                            background: 'linear-gradient(45deg, #213350, #6AB344)',
+                            boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                             '&:hover': {
-                              background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                              boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                              background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                              boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                             },
                             '&:disabled': {
-                              background: 'rgba(102, 126, 234, 0.5)',
+                              background: 'rgba(33, 51, 80, 0.5)',
                             },
                           }}
                         >
@@ -483,7 +483,7 @@ export default function ProfilePage() {
             >
               <CardContent sx={{ p: 2 }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <Lock sx={{ color: '#667eea', fontSize: '1.2rem' }} />
+                  <Lock sx={{ color: '#213350', fontSize: '1.2rem' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Change Password
                   </Typography>
@@ -547,14 +547,14 @@ export default function ProfilePage() {
                           fontSize: '0.75rem',
                           minWidth: { xs: 'auto', sm: 120 },
                           px: { xs: 1.5, sm: 2 },
-                          background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                          background: 'linear-gradient(45deg, #213350, #6AB344)',
+                          boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                           '&:hover': {
-                            background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                            boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                            background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                            boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                           },
                           '&:disabled': {
-                            background: 'rgba(102, 126, 234, 0.5)',
+                            background: 'rgba(33, 51, 80, 0.5)',
                           },
                         }}
                       >

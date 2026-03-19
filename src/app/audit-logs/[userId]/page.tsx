@@ -160,7 +160,7 @@ export default function AuditLogsUserPage() {
                     sx={{
                         fontWeight: 700,
                         fontSize: '1.1rem',
-                        background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        background: 'linear-gradient(45deg, #213350, #6AB344)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',

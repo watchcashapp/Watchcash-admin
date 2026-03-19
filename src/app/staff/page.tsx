@@ -239,7 +239,7 @@ export default function StaffPage() {
           sx={{
             fontWeight: 700,
             fontSize: '1.1rem',
-            background: "linear-gradient(45deg, #667eea, #764ba2)",
+            background: "linear-gradient(45deg, #213350, #6AB344)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -255,11 +255,11 @@ export default function StaffPage() {
             sx={{
               height: '32px',
               fontSize: '0.75rem',
-              background: "linear-gradient(45deg, #667eea, #764ba2)",
-              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+              background: "linear-gradient(45deg, #213350, #6AB344)",
+              boxShadow: "0 4px 12px rgba(33, 51, 80, 0.4)",
               "&:hover": {
-                background: "linear-gradient(45deg, #5a67d8, #764ba2)",
-                boxShadow: "0 6px 16px rgba(102, 126, 234, 0.5)",
+                background: "linear-gradient(45deg, #1a2940, #6AB344)",
+                boxShadow: "0 6px 16px rgba(33, 51, 80, 0.5)",
               },
             }}
           >
@@ -381,7 +381,7 @@ export default function StaffPage() {
       {/* Data Table */}
       {isLoading ? (
         <Box display="flex" justifyContent="center" py={8}>
-          <CircularProgress sx={{ color: "#667eea" }} />
+          <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
         </Box>
       ) : (
         <>
@@ -412,11 +412,11 @@ export default function StaffPage() {
                 variant="outlined"
                 size="small"
                 sx={{
-                  borderColor: "#667eea",
-                  color: "#667eea",
+                  borderColor: "#213350",
+                  color: "#213350",
                   "&:hover": {
-                    borderColor: "#5a67d8",
-                    backgroundColor: "rgba(102, 126, 234, 0.04)",
+                    borderColor: "#6AB344",
+                    backgroundColor: "rgba(33, 51, 80, 0.04)",
                   },
                 }}
               >
@@ -431,11 +431,11 @@ export default function StaffPage() {
                 variant="outlined"
                 size="small"
                 sx={{
-                  borderColor: "#667eea",
-                  color: "#667eea",
+                  borderColor: "#213350",
+                  color: "#213350",
                   "&:hover": {
-                    borderColor: "#5a67d8",
-                    backgroundColor: "rgba(102, 126, 234, 0.04)",
+                    borderColor: "#6AB344",
+                    backgroundColor: "rgba(33, 51, 80, 0.04)",
                   },
                 }}
               >
@@ -465,7 +465,7 @@ export default function StaffPage() {
         <DialogTitle
           sx={{
             fontWeight: 600,
-            background: "linear-gradient(45deg, #667eea, #764ba2)",
+            background: "linear-gradient(45deg, #213350, #6AB344)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -559,9 +559,9 @@ export default function StaffPage() {
             variant="contained"
             disabled={isCreating || isUpdating}
             sx={{
-              background: "linear-gradient(45deg, #667eea, #764ba2)",
+              background: "linear-gradient(45deg, #213350, #6AB344)",
               "&:hover": {
-                background: "linear-gradient(45deg, #5a67d8, #764ba2)",
+                background: "linear-gradient(45deg, #1a2940, #6AB344)",
               },
             }}
           >

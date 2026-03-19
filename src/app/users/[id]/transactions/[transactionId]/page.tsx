@@ -88,7 +88,7 @@ function SectionCard({
         >
             <CardContent sx={{ p: 3 }}>
                 <Box display="flex" alignItems="center" gap={1.2} mb={2}>
-                    <Box sx={{ color: '#667eea' }}>{icon}</Box>
+                    <Box sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : '#213350' }}>{icon}</Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
                         {title}
                     </Typography>
@@ -136,7 +136,7 @@ export default function TransactionDetailPage({
         return (
             <DashboardLayout>
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                    <CircularProgress sx={{ color: '#667eea' }} />
+                    <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
                 </Box>
             </DashboardLayout>
         );
@@ -182,7 +182,7 @@ export default function TransactionDetailPage({
                         variant="h4"
                         sx={{
                             fontWeight: 700,
-                            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                            background: 'linear-gradient(45deg, #213350, #6AB344)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text',
@@ -293,7 +293,7 @@ export default function TransactionDetailPage({
                                         label={transaction.session.status}
                                         icon={<CheckCircle sx={{ fontSize: '14px !important' }} />}
                                         sx={{
-                                            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                            background: 'linear-gradient(45deg, #213350, #6AB344)',
                                             color: 'white',
                                             fontWeight: 600,
                                         }}
@@ -373,7 +373,7 @@ export default function TransactionDetailPage({
                                                 icon={transaction.adjustment.madeByAdmin ? <Person sx={{ fontSize: '14px !important' }} /> : <Tune sx={{ fontSize: '14px !important' }} />}
                                                 sx={{
                                                     background: transaction.adjustment.madeByAdmin
-                                                        ? 'linear-gradient(45deg, #667eea, #764ba2)'
+                                                        ? 'linear-gradient(45deg, #213350, #6AB344)'
                                                         : 'linear-gradient(45deg, #6b7280, #4b5563)',
                                                     color: 'white',
                                                     fontWeight: 600,

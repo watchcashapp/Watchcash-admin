@@ -217,7 +217,7 @@ export default function EditUserPage() {
           sx={{
             mb: 3,
             '&:hover': {
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
           }}
         >
@@ -248,7 +248,7 @@ export default function EditUserPage() {
         sx={{
           mb: 1.5,
           '&:hover': {
-            backgroundColor: 'rgba(102, 126, 234, 0.08)',
+            backgroundColor: 'rgba(33, 51, 80, 0.08)',
           },
         }}
       >
@@ -260,7 +260,7 @@ export default function EditUserPage() {
         sx={{
           mb: 2,
           fontWeight: 700,
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+          background: 'linear-gradient(45deg, #213350, #6AB344)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -339,9 +339,9 @@ export default function EditUserPage() {
                         checked={formData.roles.includes(role.id)}
                         onChange={() => handleRoleToggle(role.id)}
                         sx={{
-                          color: '#667eea',
+                          color: '#213350',
                           '&.Mui-checked': {
-                            color: '#667eea',
+                            color: '#213350',
                           },
                           py: 0.5,
                         }}
@@ -397,9 +397,9 @@ export default function EditUserPage() {
                 onClick={handleSubmit}
                 disabled={isUpdating}
                 sx={{
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
                   },
                 }}
               >

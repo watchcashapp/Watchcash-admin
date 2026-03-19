@@ -301,7 +301,7 @@ export default function AppRulesPage() {
             sx={{
               fontWeight: 700,
               fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -320,12 +320,12 @@ export default function AppRulesPage() {
               sx={{
                 height: '30px',
                 fontSize: '0.75rem',
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
                 px: 2,
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                 },
               }}
             >
@@ -441,12 +441,12 @@ export default function AppRulesPage() {
                 disabled={!fromDate && !toDate && !searchQuery}
                 sx={{
                   height: '32px',
-                  borderColor: '#667eea',
-                  color: '#667eea',
+                  borderColor: '#213350',
+                  color: '#213350',
                   fontSize: '0.7rem',
                   '&:hover': {
-                    borderColor: '#5a67d8',
-                    backgroundColor: 'rgba(102, 126, 234, 0.04)',
+                    borderColor: '#6AB344',
+                    backgroundColor: 'rgba(33, 51, 80, 0.04)',
                   },
                 }}
               >
@@ -658,10 +658,10 @@ export default function AppRulesPage() {
                       name="enabled"
                       sx={{
                         '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#667eea',
+                          color: '#6AB344',
                         },
                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#667eea',
+                          backgroundColor: '#6AB344',
                         },
                       }}
                     />
@@ -680,9 +680,9 @@ export default function AppRulesPage() {
               variant="contained"
               disabled={isCreating || isUpdating}
               sx={{
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
                 },
               }}
             >

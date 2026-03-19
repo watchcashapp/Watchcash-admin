@@ -39,7 +39,7 @@ export default function ConfirmDialog({
       case 'warning':
         return '#f59e0b';
       case 'info':
-        return '#667eea';
+        return '#213350';
       default:
         return '#f59e0b';
     }

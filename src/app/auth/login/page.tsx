@@ -111,7 +111,7 @@ function LoginForm() {
       sx={{
         minHeight: '100vh',
         height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -129,7 +129,7 @@ function LoginForm() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%)',
+          background: 'radial-gradient(circle at 20% 50%, rgba(33, 51, 80, 0.3) 0%, transparent 50%)',
           pointerEvents: 'none',
         }}
       />
@@ -153,6 +153,18 @@ function LoginForm() {
           zIndex: 1,
         }}
       >
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Box
+            component="img"
+            src="/assets/images/logo.svg"
+            alt="WatchCash Logo"
+            sx={{
+              height: 48,
+              width: 'auto',
+            }}
+          />
+        </Box>
+
         <Typography
           variant="h4"
           component="h1"
@@ -163,7 +175,7 @@ function LoginForm() {
             fontWeight: 700,
             color: 'primary.main',
             mb: 3,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -179,7 +191,7 @@ function LoginForm() {
           color="text.secondary"
           sx={{ mb: 4 }}
         >
-          Sign in to access your WatchCash admin dashboard
+          Sign in to access your WatchCash dashboard
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -264,11 +276,11 @@ function LoginForm() {
                   fontSize: '1rem',
                   fontWeight: 600,
                   textTransform: 'none',
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
-                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                    boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                     transform: 'translateY(-2px)',
                   },
                   '&:active': {
@@ -330,7 +342,7 @@ export default function LoginPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
         }}
       >
         <CircularProgress sx={{ color: 'white' }} />

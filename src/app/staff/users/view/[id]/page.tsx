@@ -75,7 +75,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           sx={{
             mb: 3,
             '&:hover': {
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
           }}
         >
@@ -100,7 +100,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             height: '28px',
             fontSize: '0.75rem',
             '&:hover': {
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
           }}
         >
@@ -113,9 +113,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           sx={{
             height: '28px',
             fontSize: '0.75rem',
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             '&:hover': {
-              background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
+              background: 'linear-gradient(45deg, #1a2940, #6AB344)',
             },
           }}
         >
@@ -129,7 +129,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           mb: 1,
           fontWeight: 700,
           fontSize: '1.1rem',
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+          background: 'linear-gradient(45deg, #213350, #6AB344)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -198,7 +198,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                           height: '18px',
                           fontSize: '0.65rem',
                           background: userResponse.userType === 'ADMIN'
-                            ? 'linear-gradient(45deg, #667eea, #764ba2)'
+                            ? 'linear-gradient(45deg, #213350, #6AB344)'
                             : 'linear-gradient(45deg, #10b981, #059669)',
                           color: 'white',
                           fontWeight: 600,
@@ -271,7 +271,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         sx={{
                           height: '20px',
                           fontSize: '0.7rem',
-                          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                          background: 'linear-gradient(45deg, #213350, #6AB344)',
                           color: 'white',
                           fontWeight: 600,
                         }}
@@ -310,7 +310,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         sx={{
                           height: '18px',
                           fontSize: '0.65rem',
-                          borderColor: '#667eea',
+                          borderColor: '#213350',
                           color: 'text.primary',
                         }}
                       />

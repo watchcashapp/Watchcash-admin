@@ -44,6 +44,7 @@ import {
   NotificationsNone,
   DoneAll,
   Close,
+  CardGiftcard,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -55,7 +56,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useNotifications } from '@/components/notifications/NotificationsProvider';
 
-const drawerWidth = 240;
+const drawerWidth = 210;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -83,9 +84,11 @@ const menuItems: MenuItem[] = [
     ]
   },
   { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:list' },
+  { text: 'Reward Catalog', icon: <CardGiftcard />, path: '/reward-catalog', permission: 'reward_catalogs:list' },
   { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
   { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:list' },
   { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
+  { text: 'Login History', icon: <History />, path: '/login-history', permission: 'login_history:list' },
   { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
@@ -150,10 +153,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsMounted(true);
   }, []);
 
-  // Permission check for Audit Logs page
   React.useEffect(() => {
-    if (isMounted && isInitialized && pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
-      router.push('/dashboard');
+    if (isMounted && isInitialized) {
+      if (pathname.startsWith('/audit-logs') && !hasPermission('admin_audit_logs:view')) {
+        router.push('/dashboard');
+      } else if (pathname.startsWith('/login-history') && !hasPermission('login_history:list')) {
+        router.push('/dashboard');
+      }
     }
   }, [isMounted, isInitialized, hasPermission, router, pathname]);
 
@@ -303,21 +309,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const drawer = (
     <Box>
-      <Toolbar>
+      <Toolbar sx={{ minHeight: '64px !important', height: 64, display: 'flex', alignItems: 'center', px: 2 }}>
+        <Box
+          component="img"
+          src="/assets/images/logo.svg"
+          alt="WatchNCash Logo"
+          sx={{
+            height: 40,
+            width: 'auto',
+            mr: 2,
+          }}
+        />
         <Typography
           variant="h6"
           noWrap
           component="div"
           sx={{
             fontWeight: 700,
-            background: 'linear-gradient(45deg, #667eea, #764ba2)',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
             textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
         >
-          WatchCash Admin
+          
         </Typography>
       </Toolbar>
       <Divider />
@@ -336,29 +352,32 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }
                 }}
                 sx={{
+                  py: 0.5,
+                  minHeight: 40,
                   '&.Mui-selected': {
                     background: item.subItems
-                      ? 'rgba(102, 126, 234, 0.15)'
-                      : 'linear-gradient(45deg, #667eea, #764ba2)',
+                      ? 'rgba(33, 51, 80, 0.15)'
+                      : 'linear-gradient(45deg, #213350, #6AB344)',
                     color: item.subItems ? 'text.primary' : 'white',
                     '&:hover': {
                       background: item.subItems
-                        ? 'rgba(102, 126, 234, 0.2)'
-                        : 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                        ? 'rgba(33, 51, 80, 0.2)'
+                        : 'linear-gradient(45deg, #1a2940, #6AB344)',
                     },
                     '& .MuiListItemIcon-root': {
-                      color: item.subItems ? '#667eea' : 'white',
+                      color: item.subItems ? '#213350' : 'white',
                     },
                   },
                   '&:hover': {
-                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                    backgroundColor: 'rgba(33, 51, 80, 0.08)',
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
+                    minWidth: 36,
                     color: isMenuItemActive(item)
-                      ? (item.subItems ? '#667eea' : 'white')
+                      ? (item.subItems ? '#213350' : 'white')
                       : 'text.secondary',
                     transition: 'color 0.2s ease',
                   }}
@@ -374,7 +393,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         : 'text.primary',
                       fontWeight: isMenuItemActive(item) ? 600 : 400,
                       transition: 'all 0.2s ease',
-                      fontSize: '0.8rem',
+                      fontSize: '0.78rem',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }
                   }}
                 />
@@ -395,18 +417,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       onClick={() => handleNavigation(subItem.path)}
                       sx={{
                         pl: 4,
+                        py: 0.4,
+                        minHeight: 32,
                         '&.Mui-selected': {
-                          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                          background: 'linear-gradient(45deg, #213350, #6AB344)',
                           color: 'white',
                           '&:hover': {
-                            background: 'linear-gradient(45deg, #5a67d8, #764ba2)',
+                            background: 'linear-gradient(45deg, #1a2940, #6AB344)',
                           },
                           '& .MuiListItemIcon-root': {
                             color: 'white',
                           },
                         },
                         '&:hover': {
-                          backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                          backgroundColor: 'rgba(33, 51, 80, 0.08)',
                         },
                       }}
                     >
@@ -540,7 +564,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     sx={{
                       alignItems: 'flex-start',
                       py: 1.25,
-                      backgroundColor: notification.is_read ? 'transparent' : 'rgba(102, 126, 234, 0.08)',
+                      backgroundColor: notification.is_read ? 'transparent' : 'rgba(33, 51, 80, 0.08)',
                       whiteSpace: 'normal',
                       '&:hover .delete-btn': {
                         opacity: 1,
@@ -627,7 +651,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     variant="caption"
                     sx={{
                       fontWeight: 700,
-                      background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                      background: 'linear-gradient(45deg, #213350, #6AB344)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
@@ -651,8 +675,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               color="inherit"
               sx={{
                 '& .MuiAvatar-root': {
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                 }
               }}
             >
@@ -715,7 +739,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }}
                 sx={{
                   '&:hover': {
-                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                    backgroundColor: 'rgba(33, 51, 80, 0.08)',
                   }
                 }}
               >
@@ -739,7 +763,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }}
                 sx={{
                   '&:hover': {
-                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                    backgroundColor: 'rgba(33, 51, 80, 0.08)',
                   }
                 }}
               >
@@ -763,7 +787,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }}
                 sx={{
                   '&:hover': {
-                    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                    backgroundColor: 'rgba(33, 51, 80, 0.08)',
                   }
                 }}
               >
@@ -821,6 +845,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               width: drawerWidth,
               borderRight: '1px solid',
               borderColor: 'divider',
+              '&::-webkit-scrollbar': { width: '4px' },
+              '&::-webkit-scrollbar-track': { background: 'transparent' },
+              '&::-webkit-scrollbar-thumb': { background: 'rgba(33, 51, 80, 0.2)', borderRadius: '4px' },
+              '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(33, 51, 80, 0.3)' },
             },
           }}
         >
@@ -841,8 +869,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           flexDirection: 'column',
           '&::-webkit-scrollbar': { width: '4px' },
           '&::-webkit-scrollbar-track': { background: 'transparent' },
-          '&::-webkit-scrollbar-thumb': { background: 'rgba(102, 126, 234, 0.2)', borderRadius: '4px' },
-          '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(102, 126, 234, 0.3)' },
+          '&::-webkit-scrollbar-thumb': { background: 'rgba(33, 51, 80, 0.2)', borderRadius: '4px' },
+          '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(33, 51, 80, 0.3)' },
         }}
       >
         <Toolbar sx={{ minHeight: '48px !important', height: 48 }} />

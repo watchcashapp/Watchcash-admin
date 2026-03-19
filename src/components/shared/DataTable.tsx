@@ -54,7 +54,7 @@ export default function DataTable<T extends Record<string, any>>({
   if (isLoading && (!data || data.length === 0)) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-        <CircularProgress sx={{ color: '#667eea' }} />
+        <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
       </Box>
     );
   }
@@ -113,14 +113,14 @@ export default function DataTable<T extends Record<string, any>>({
                   sx={{
                     fontWeight: 600,
                     background: (theme) => theme.palette.mode === 'dark'
-                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
-                      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+                      ? 'linear-gradient(135deg, rgba(33, 51, 80, 0.15) 0%, rgba(106, 179, 68, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(33, 51, 80, 0.08) 0%, rgba(106, 179, 68, 0.08) 100%)',
                     color: 'text.primary',
                     fontSize: '0.65rem',
                     whiteSpace: 'nowrap',
                     borderBottom: (theme) => theme.palette.mode === 'dark'
-                      ? '2px solid rgba(102, 126, 234, 0.3)'
-                      : '2px solid rgba(102, 126, 234, 0.2)',
+                      ? '2px solid rgba(33, 51, 80, 0.3)'
+                      : '2px solid rgba(33, 51, 80, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     py: 0.75,
@@ -135,14 +135,14 @@ export default function DataTable<T extends Record<string, any>>({
                   sx={{
                     fontWeight: 600,
                     background: (theme) => theme.palette.mode === 'dark'
-                      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
-                      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+                      ? 'linear-gradient(135deg, rgba(33, 51, 80, 0.15) 0%, rgba(106, 179, 68, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(33, 51, 80, 0.08) 0%, rgba(106, 179, 68, 0.08) 100%)',
                     color: 'text.primary',
                     fontSize: '0.65rem',
                     whiteSpace: 'nowrap',
                     borderBottom: (theme) => theme.palette.mode === 'dark'
-                      ? '2px solid rgba(102, 126, 234, 0.3)'
-                      : '2px solid rgba(102, 126, 234, 0.2)',
+                      ? '2px solid rgba(33, 51, 80, 0.3)'
+                      : '2px solid rgba(33, 51, 80, 0.2)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     py: 0.75,
@@ -161,8 +161,8 @@ export default function DataTable<T extends Record<string, any>>({
                 sx={{
                   '&:hover': {
                     backgroundColor: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(102, 126, 234, 0.08)'
-                      : 'rgba(102, 126, 234, 0.04)',
+                      ? 'rgba(33, 51, 80, 0.08)'
+                      : 'rgba(33, 51, 80, 0.04)',
                     transition: 'background-color 0.2s ease',
                   },
                   '&:nth-of-type(even)': {
@@ -259,9 +259,9 @@ export default function DataTable<T extends Record<string, any>>({
                           size="small"
                           onClick={() => onEdit(row)}
                           sx={{
-                            color: '#667eea',
+                            color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main',
                             '&:hover': {
-                              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                              backgroundColor: 'rgba(33, 51, 80, 0.1)',
                               transform: 'scale(1.1)',
                             },
                             transition: 'all 0.2s ease',

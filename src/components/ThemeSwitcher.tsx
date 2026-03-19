@@ -102,9 +102,9 @@ export default function ThemeSwitcher({ open, onClose }: ThemeSwitcherProps) {
                 sx={{
                   borderRadius: 2,
                   '&.Mui-selected': {
-                    background: 'linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))',
+                    background: 'linear-gradient(45deg, rgba(33, 51, 80, 0.1), rgba(106, 179, 68, 0.1))',
                     '&:hover': {
-                      background: 'linear-gradient(45deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15))',
+                      background: 'linear-gradient(45deg, rgba(33, 51, 80, 0.15), rgba(106, 179, 68, 0.15))',
                     },
                   },
                 }}

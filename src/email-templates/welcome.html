@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Welcome to Watchcash</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            background-color: #f5f7fa;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f5f7fa;
+            padding-bottom: 40px;
+        }
+
+        .main {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-spacing: 0;
+            font-family: sans-serif;
+            color: #1a1f3a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #213350 0%, #6AB344 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            padding: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .button {
+            background: #213350;
+            background: linear-gradient(135deg, #213350 0%, #6AB344 100%);
+            border-radius: 6px;
+            color: #ffffff !important;
+            display: inline-block;
+            font-weight: bold;
+            padding: 14px 28px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1a1f3a;
+        }
+
+        .text {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <center>
+            <table class="main" width="100%">
+                <!-- Header -->
+                <tr>
+                    <td class="header">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img src="../../public/assets/images/email-template-logo.svg" alt="Watchcash Logo" style="height: 40px; width: auto;" />
+                        </div>
+                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-family: sans-serif;">Watchcash</h1>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td class="content">
+                        <h2 class="title" style="font-family: sans-serif;">Welcome, {{name}}!</h2>
+                        <p class="text" style="font-family: sans-serif;">We're thrilled to have you join Watchcash. Our
+                            platform is designed to provide you with the most efficient admin tools for managing your
+                            assets.</p>
+                        <p class="text" style="font-family: sans-serif;">To get started, please explore your dashboard
+                            and familiarize yourself with the features.</p>
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="{{login_url}}" class="button" style="font-family: sans-serif;">Go to Dashboard</a>
+                        </div>
+                        <p class="text" style="margin-top: 30px; font-family: sans-serif;">If you have any questions,
+                            feel free to reply to this email.</p>
+                        <p class="text" style="font-family: sans-serif;">Best regards,<br>The Watchcash Team</p>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td class="footer">
+                        <p style="font-family: sans-serif;">&copy; 2024 Watchcash. All rights reserved.</p>
+                        <p style="font-family: sans-serif;">123 Business Ave, Suite 100, City, Country</p>
+                        <p style="font-family: sans-serif;"><a href="{{unsubscribe_url}}"
+                                style="color: #213350; text-decoration: underline;">Unsubscribe</a> from these emails.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</body>
+
+</html>

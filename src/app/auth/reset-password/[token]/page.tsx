@@ -67,6 +67,18 @@ export default function ResetPassword() {
             maxWidth: { xs: '100%', sm: 480 }
           }}
         >
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <Box
+              component="img"
+              src="/assets/images/logo.svg"
+              alt="WatchCash Logo"
+              sx={{
+                height: 48,
+                width: 'auto',
+              }}
+            />
+          </Box>
+
           <Typography
             variant="h4"
             component="h1"

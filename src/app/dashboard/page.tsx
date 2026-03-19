@@ -94,8 +94,8 @@ export default function DashboardPage() {
       title: 'Total Users',
       value: data.data.totalUsers.toString(),
       icon: <People />,
-      color: '#667eea',
-      bgColor: 'rgba(102, 126, 234, 0.1)',
+      color: '#213350',
+      bgColor: 'rgba(33, 51, 80, 0.1)',
     },
     {
       title: 'Active Users',
@@ -129,8 +129,8 @@ export default function DashboardPage() {
       title: 'Today\'s Sessions',
       value: data.data.totalSessionsInDay.toString(),
       icon: <AccessTime />,
-      color: '#8b5cf6',
-      bgColor: 'rgba(139, 92, 246, 0.1)',
+      color: '#6AB344',
+      bgColor: 'rgba(106, 179, 68, 0.1)',
     },
   ] : [];
 
@@ -154,7 +154,7 @@ export default function DashboardPage() {
               fontWeight: 700,
               fontSize: '1.25rem',
               mb: 0.25,
-              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',

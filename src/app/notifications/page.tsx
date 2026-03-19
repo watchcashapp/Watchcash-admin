@@ -170,7 +170,7 @@ export default function NotificationsPage() {
                 fontWeight: 700,
                 fontSize: '1.1rem',
                 mb: 0.5,
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -209,11 +209,11 @@ export default function NotificationsPage() {
                 textTransform: 'uppercase',
                 fontWeight: 600,
                 px: 2,
-                background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.3)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #764ba2, #667eea)',
-                  boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 6px 16px rgba(33, 51, 80, 0.4)',
                 }
               }}
             >
@@ -338,7 +338,7 @@ export default function NotificationsPage() {
 
         {isInitialLoading ? (
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="220px">
-            <CircularProgress size={30} sx={{ color: '#667eea' }} />
+            <CircularProgress size={30} sx={{ color: '#213350' }} />
           </Box>
         ) : notifications.length === 0 ? (
           <Card
@@ -370,7 +370,7 @@ export default function NotificationsPage() {
                     borderColor: (theme: Theme) =>
                       notification.is_read
                         ? theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
-                        : 'rgba(102, 126, 234, 0.3)',
+                        : 'rgba(33, 51, 80, 0.3)',
                     backgroundColor: 'background.paper',
                     transition: 'all 0.2s ease',
                     '&:hover': {
@@ -438,8 +438,8 @@ export default function NotificationsPage() {
                                 height: 18,
                                 fontSize: '0.65rem',
                                 fontWeight: 600,
-                                bgcolor: 'rgba(102, 126, 234, 0.08)',
-                                color: 'primary.main',
+                                bgcolor: 'rgba(33, 51, 80, 0.08)',
+                                color: '#213350',
                                 border: 'none',
                                 borderRadius: 1
                               }}
@@ -465,7 +465,7 @@ export default function NotificationsPage() {
                               textTransform: 'none',
                               p: 0.5,
                               px: 1,
-                              '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.05)' }
+                              '&:hover': { bgcolor: 'rgba(33, 51, 80, 0.05)' }
                             }}
                           >
                             Mark Read

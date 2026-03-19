@@ -15,7 +15,7 @@ export default function StaffUsersPage() {
   }, []);
 
   React.useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('users:list')) {
+    if (isMounted && isInitialized && !hasPermission('staff:list')) {
       router.push('/dashboard');
     }
   }, [isMounted, isInitialized, hasPermission, router]);

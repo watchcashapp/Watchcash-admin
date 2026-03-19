@@ -46,6 +46,35 @@ export interface GetUsersParams extends CursorPaginationParams {
   to?: string;
 }
 
+export interface LoginHistory {
+  id: string;
+  userId: string;
+  userName?: string;
+  deviceId: string | null;
+  userAgent: string;
+  ip: string;
+  isAdmin: boolean;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface GetLoginHistoryParams extends CursorPaginationParams {
+  user_id?: string;
+  is_admin?: boolean;
+}
+
+export interface LoginHistoryResponse {
+  status: string;
+  data: {
+    items: LoginHistory[];
+    pagination: CursorPaginationMeta;
+  };
+}
+
 export interface CreateUserRequest {
   name: string;
   email: string;
@@ -146,6 +175,59 @@ export interface TransactionDetailResponse {
 export interface UserRedeemHistoryResponse {
   items: any[];
   pagination: CursorPaginationMeta;
+}
+
+export interface SubscriptionLog {
+  id: string;
+  userId: string;
+  subscriptionId: string;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string | null;
+  stripeInvoiceId: string | null;
+  stripeEventId: string;
+  amount: string;
+  currency: string;
+  status: string;
+  rawEvent: any;
+  createdAt: string;
+}
+
+export interface SubscriptionLogsResponse {
+  items: SubscriptionLog[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  limit: number;
+}
+
+export interface PlanHistoryResponse {
+  items: any[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  limit: number;
+}
+
+export interface UserSubscription {
+  id: string;
+  userId: string;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  plan: string;
+  priceId: string;
+  status: string;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserSubscriptionResponse {
+  status: string;
+  data: {
+    subscription: UserSubscription;
+    logs: SubscriptionLogsResponse;
+    planHistory: PlanHistoryResponse;
+  };
 }
 
 export const usersApi = createApi({
@@ -265,6 +347,67 @@ export const usersApi = createApi({
         };
       },
     }),
+    getLoginHistory: builder.query<LoginHistoryResponse['data'], GetLoginHistoryParams>({
+      query: (params = {}) => {
+        const queryParams = new URLSearchParams();
+        appendCursorPagination(queryParams, params);
+        if (params.user_id) queryParams.append('user_id', params.user_id);
+        if (params.is_admin !== undefined) queryParams.append('is_admin', params.is_admin.toString());
+
+        const queryString = queryParams.toString();
+        return queryString ? `/admin/logins?${queryString}` : '/admin/logins';
+      },
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+
+        return {
+          items: readCollection<LoginHistory>(root, ['items', 'results', 'logins']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
+    }),
+    getUserLoginHistory: builder.query<LoginHistoryResponse['data'], { userId: string } & CursorPaginationParams>({
+      query: ({ userId, ...params }) => {
+        const queryParams = new URLSearchParams();
+        appendCursorPagination(queryParams, params);
+        return `/admin/users/${userId}/logins?${queryParams.toString()}`;
+      },
+      transformResponse: (response: unknown, _meta, arg) => {
+        const root = getResponseDataRoot(response);
+        return {
+          items: readCollection<LoginHistory>(root, ['items', 'results', 'logins']),
+          pagination: normalizeCursorPaginationMeta(response, arg.limit),
+        };
+      },
+    }),
+    getUserSubscription: builder.query<UserSubscriptionResponse['data'], { userId: string; search?: string; logsLimit?: number; planLimit?: number } | string>({
+      query: (arg) => {
+        let userId: string;
+        let search: string | undefined;
+        let logsLimit: number | undefined;
+        let planLimit: number | undefined;
+
+        if (typeof arg === 'string') {
+          userId = arg;
+        } else {
+          userId = arg.userId;
+          search = arg.search;
+          logsLimit = arg.logsLimit;
+          planLimit = arg.planLimit;
+        }
+
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append('search', search);
+        if (logsLimit !== undefined) queryParams.append('logs_limit', logsLimit.toString());
+        if (planLimit !== undefined) queryParams.append('plan_limit', planLimit.toString());
+
+        const qs = queryParams.toString();
+        return qs ? `/admin/users/${userId}/subscription?${qs}` : `/admin/users/${userId}/subscription`;
+      },
+      transformResponse: (response: UserSubscriptionResponse) => {
+        return response.data;
+      },
+    }),
   }),
 });
 
@@ -277,4 +420,7 @@ export const {
   useGetUserWalletQuery,
   useGetTransactionDetailQuery,
   useGetUserRedeemHistoryQuery,
+  useGetLoginHistoryQuery,
+  useGetUserLoginHistoryQuery,
+  useGetUserSubscriptionQuery,
 } = usersApi;

@@ -115,7 +115,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
     if (isLoading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                <CircularProgress sx={{ color: '#667eea' }} />
+                <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
             </Box>
         );
     }
@@ -160,7 +160,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                             sx={{
                                 fontWeight: 700,
                                 fontSize: '1.1rem',
-                                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                                background: 'linear-gradient(45deg, #213350, #6AB344)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
@@ -177,8 +177,8 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 sx={{
                                     height: '30px',
                                     fontSize: '0.75rem',
-                                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                                    '&:hover': { background: 'linear-gradient(45deg, #5a67d8, #6a3f92)' },
+                                    background: 'linear-gradient(45deg, #213350, #6AB344)',
+                                    '&:hover': { background: 'linear-gradient(45deg, #1a2940, #6AB344)' },
                                 }}
                             >
                                 {reviewDialogOpen ? 'Hide' : 'Review'}
@@ -503,7 +503,7 @@ function ReviewForm({
                     onClick={handleReviewSubmit}
                     disabled={isReviewing || !reviewForm.admin_reason_code || !reviewForm.utid}
                     sx={{
-                        background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        background: 'linear-gradient(45deg, #213350, #6AB344)',
                         height: '32px',
                         fontSize: '0.75rem',
                     }}
