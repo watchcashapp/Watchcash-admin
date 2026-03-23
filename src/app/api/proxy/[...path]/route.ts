@@ -112,28 +112,44 @@ async function proxyRequest(
 
 
 
-    // Get response data
-    let data;
-    const responseContentType = response.headers.get('content-type');
+    // Handle response (including 204 No Content)
+    const responseContentType = response.headers.get('content-type') || '';
 
-    if (responseContentType?.includes('application/json')) {
-      data = await response.json();
-
-
-      return NextResponse.json(data, {
-        status: response.status,
-      });
-    } else {
-      data = await response.text();
-
-
-      return new NextResponse(data, {
-        status: response.status,
-        headers: {
-          'Content-Type': contentType || 'text/plain',
-        },
-      });
+    if (response.status === 204) {
+      // 204 must not include a body; returning JSON/any body can throw.
+      return new NextResponse(null, { status: 204 });
     }
+
+    const responseText = await response.text();
+    const isJson = responseContentType.includes('application/json');
+
+    if (isJson) {
+      if (responseText) {
+        try {
+          const parsed = JSON.parse(responseText);
+          return NextResponse.json(parsed, { status: response.status });
+        } catch {
+          // Backend claims JSON but body isn't valid JSON; pass raw text through.
+          return new NextResponse(responseText, {
+            status: response.status,
+            headers: {
+              'Content-Type': responseContentType || 'application/json',
+            },
+          });
+        }
+      }
+
+      // Content-Type says JSON, but body is empty.
+      return new NextResponse(null, { status: response.status });
+    }
+
+    // Non-JSON or unknown content-type: pass raw text through.
+    return new NextResponse(responseText, {
+      status: response.status,
+      headers: {
+        'Content-Type': responseContentType || 'text/plain',
+      },
+    });
   } catch (error: any) {
 
 
