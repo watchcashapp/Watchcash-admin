@@ -2,7 +2,9 @@
 
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setUser, setAuthLoading, setInitialized } from '@/store/slices/authSlice';
+import { setUser, setAuthLoading, setInitialized, setAuthenticatedWithTokens } from '@/store/slices/authSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { getTokenFromCookie } from '@/utils/auth';
 import { useGetProfileQuery } from '@/store/api/authApi';
 
@@ -12,13 +14,19 @@ export default function AuthInitializer() {
   const refreshToken = getTokenFromCookie('refreshToken');
 
   const hasTokens = !!(accessToken && refreshToken);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  // Initialize immediately if no tokens exist
+  // Initialize immediately if tokens exist, before profile fetch
   useEffect(() => {
-    if (!hasTokens) {
+    if (hasTokens && !isAuthenticated) {
+      dispatch(setAuthenticatedWithTokens({
+        accessToken: accessToken!,
+        refreshToken: refreshToken!,
+      }));
+    } else if (!hasTokens) {
       dispatch(setInitialized(true));
     }
-  }, [hasTokens, dispatch]);
+  }, [hasTokens, isAuthenticated, dispatch, accessToken, refreshToken]);
 
   // Fetch current user from API if tokens exist
   const { data: currentUser, isSuccess, isLoading, isError } = useGetProfileQuery(undefined, {
@@ -36,7 +44,7 @@ export default function AuthInitializer() {
   }, [isError, dispatch]);
 
   useEffect(() => {
-    // Only set user if we have both tokens AND user data from API
+    // Only update the full user object once the profile fetch succeeds
     if (hasTokens && currentUser && isSuccess) {
       dispatch(setUser({
         accessToken: accessToken!,

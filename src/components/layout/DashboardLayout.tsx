@@ -355,7 +355,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Box onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', ml: 1 }}>
               <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{user?.name}</Typography>
-                {user?.userType && user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
+                {user?.userType && 
+                 user.userType.toUpperCase() !== 'STAFF' && 
+                 user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
                   <Typography variant="caption" color="text.secondary">
                     {user?.userType}
                   </Typography>

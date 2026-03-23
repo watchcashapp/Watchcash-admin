@@ -60,6 +60,12 @@ const authSlice = createSlice({
       state.isInitialized = true;
       state.isLoading = false;
     },
+    setAuthenticatedWithTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
+      state.isAuthenticated = true;
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+      state.isInitialized = true;
+    },
     setAuthLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
@@ -75,5 +81,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, clearAuth, updatePermissionsAndRoles, setAuthLoading, setInitialized } = authSlice.actions;
+export const { setUser, clearAuth, updatePermissionsAndRoles, setAuthLoading, setInitialized, setAuthenticatedWithTokens } = authSlice.actions;
 export default authSlice.reducer;
