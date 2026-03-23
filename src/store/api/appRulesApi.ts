@@ -45,6 +45,7 @@ export interface UpdateAppRuleRequest extends CreateAppRuleRequest {}
 export interface GetAppRulesParams {
   from?: string;
   to?: string;
+  search?: string;
 }
 
 export const appRulesApi = createApi({
@@ -57,6 +58,7 @@ export const appRulesApi = createApi({
         const queryParams = new URLSearchParams();
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);
+        if (params.search) queryParams.append('search', params.search);
         
         return `/admin/app-rules?${queryParams.toString()}`;
       },

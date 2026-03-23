@@ -27,6 +27,7 @@ import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
   useGetAppRulesQuery,
+  useGetAppRuleByIdQuery,
   useCreateAppRuleMutation,
   useUpdateAppRuleMutation,
   useDeleteAppRuleMutation,
@@ -40,9 +41,9 @@ interface FormData extends CreateAppRuleRequest { }
 
 const initialFormData: FormData = {
   appName: "",
-  pointsPerMinute: 0,
-  dailyHardCap: 0,
-  dailySoftCap: 0,
+  pointsPerMinute: 1,
+  dailyHardCap: 1,
+  dailySoftCap: 1,
   softCapMultiplier: 1,
   maxSessionDuration: 1,
   minSessionDuration: 1,
@@ -62,6 +63,16 @@ export default function AppRulesPage() {
   const itemsPerPage = 6;
   const hasFilters = fromDate || toDate;
   const [isMounted, setIsMounted] = useState(false);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(1); // Reset page on search
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -76,6 +87,7 @@ export default function AppRulesPage() {
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
     from: fromDate,
     to: toDate,
+    search: debouncedSearchQuery,
   });
   const [createAppRule, { isLoading: isCreating }] = useCreateAppRuleMutation();
   const [updateAppRule, { isLoading: isUpdating }] = useUpdateAppRuleMutation();
@@ -89,6 +101,30 @@ export default function AppRulesPage() {
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+
+  // Use the detail API to fetch the rule when editing
+  const { data: ruleDetail, isFetching: isFetchingDetail } = useGetAppRuleByIdQuery(
+    editingRule?.id || '',
+    { skip: !editingRule?.id }
+  );
+
+  // Update formData when ruleDetail is fetched
+  useEffect(() => {
+    if (editingRule && ruleDetail) {
+      setFormData({
+        appName: ruleDetail.appName,
+        pointsPerMinute: ruleDetail.pointsPerMinute,
+        dailyHardCap: ruleDetail.dailyHardCap,
+        dailySoftCap: ruleDetail.dailySoftCap,
+        softCapMultiplier: ruleDetail.softCapMultiplier,
+        maxSessionDuration: ruleDetail.maxSessionDuration,
+        minSessionDuration: ruleDetail.minSessionDuration,
+        maxDailySessions: ruleDetail.maxDailySessions,
+        enabled: ruleDetail.enabled,
+        permissions: ruleDetail.permissions || [],
+      });
+    }
+  }, [editingRule, ruleDetail]);
 
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({
@@ -148,7 +184,19 @@ export default function AppRulesPage() {
         return;
       }
       setEditingRule(rule);
-      // ...
+      // Pre-fill from the list data first while the detail is fetching
+      setFormData({
+        appName: rule.appName,
+        pointsPerMinute: rule.pointsPerMinute,
+        dailyHardCap: rule.dailyHardCap,
+        dailySoftCap: rule.dailySoftCap,
+        softCapMultiplier: rule.softCapMultiplier,
+        maxSessionDuration: rule.maxSessionDuration,
+        minSessionDuration: rule.minSessionDuration,
+        maxDailySessions: rule.maxDailySessions,
+        enabled: rule.enabled,
+        permissions: rule.permissions || [],
+      });
     } else {
       if (!hasPermission('app_rules:create')) {
         showError('You do not have permission to create app rules');
@@ -686,7 +734,7 @@ export default function AppRulesPage() {
                 },
               }}
             >
-              {isCreating || isUpdating ? 'Saving...' : editingRule ? 'Update' : 'Create'}
+              {isCreating || isUpdating || isFetchingDetail ? 'Saving...' : editingRule ? 'Update' : 'Create'}
             </Button>
           </DialogActions>
         </Dialog>
