@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/shared';
 import AuthInitializer from '@/components/AuthInitializer';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { NotificationsProvider } from '@/components/notifications/NotificationsProvider';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 export default function RootLayout({
   children,
@@ -27,7 +28,11 @@ export default function RootLayout({
             <AuthInitializer />
             <ToastProvider>
               <NotificationsProvider>
-                <ThemeRegistry>{children}</ThemeRegistry>
+                <ThemeRegistry>
+                  <DashboardLayout>
+                    {children}
+                  </DashboardLayout>
+                </ThemeRegistry>
               </NotificationsProvider>
             </ToastProvider>
           </Provider>

@@ -8,8 +8,7 @@ export default function BillingSuccessPage() {
   const router = useRouter();
 
   return (
-    <DashboardLayout>
-      <Box
+    <Box
         sx={{
           minHeight: "80vh",
           display: "flex",
@@ -36,8 +35,7 @@ export default function BillingSuccessPage() {
             </Button>
           </CardContent>
         </Card>
-      </Box>
-    </DashboardLayout>
+    </Box>
   );
 }
 

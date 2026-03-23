@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import { ArrowBack, History, AdminPanelSettings, Person, Language, Description } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useGetAuditLogQuery } from '@/store/api/auditLogsApi';
 
@@ -41,29 +40,25 @@ export default function AuditLogDetailPage() {
 
     if (isLoading) {
         return (
-            <DashboardLayout>
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                    <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
-                </Box>
-            </DashboardLayout>
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+            </Box>
         );
     }
 
     if (error || !log) {
         return (
-            <DashboardLayout>
-                <Box p={4} textAlign="center">
-                    <Typography variant="h5" color="error" gutterBottom>
-                        Log Entry Not Found
-                    </Typography>
-                    <Button
-                        startIcon={<ArrowBack />}
-                        onClick={() => router.push('/audit-logs')}
-                    >
-                        Back to Audit Logs
-                    </Button>
-                </Box>
-            </DashboardLayout>
+            <Box p={4} textAlign="center">
+                <Typography variant="h5" color="error" gutterBottom>
+                    Log Entry Not Found
+                </Typography>
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() => router.push('/audit-logs')}
+                >
+                    Back to Audit Logs
+                </Button>
+            </Box>
         );
     }
 
@@ -79,7 +74,7 @@ export default function AuditLogDetailPage() {
     };
 
     return (
-        <DashboardLayout>
+        <>
             <Box mb={2}>
                 <Button
                     startIcon={<ArrowBack />}
@@ -255,6 +250,6 @@ export default function AuditLogDetailPage() {
                     </Paper>
                 </Grid>
             </Grid>
-        </DashboardLayout>
+        </>
     );
 }

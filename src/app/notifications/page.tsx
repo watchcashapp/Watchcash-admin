@@ -25,7 +25,6 @@ import {
   CheckBoxOutlineBlank,
   CheckBox,
 } from '@mui/icons-material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useToast, ConfirmDialog } from '@/components/shared';
 import { useNotifications } from '@/components/notifications/NotificationsProvider';
 import type { Notification as AppNotification } from '@/store/api/notificationsApi';
@@ -151,8 +150,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <Box>
+    <Box>
         <Box
           sx={{
             display: 'flex',
@@ -161,7 +159,6 @@ export default function NotificationsPage() {
             flexDirection: { xs: 'column', md: 'row' },
             gap: 2,
             mb: 2,
-            pt: 2
           }}
         >
           <Box>
@@ -521,6 +518,5 @@ export default function NotificationsPage() {
           </>
         )}
       </Box>
-    </DashboardLayout>
-  );
+    );
 }

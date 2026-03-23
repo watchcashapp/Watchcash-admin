@@ -24,8 +24,6 @@ export default function LoginHistoryPage() {
     if (!isMounted) return null;
 
     return (
-        <DashboardLayout>
-            <LoginHistoryTable />
-        </DashboardLayout>
+        <LoginHistoryTable />
     );
 }

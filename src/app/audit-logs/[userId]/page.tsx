@@ -15,7 +15,6 @@ import { IconButton } from '@mui/material';
 
 import { useRouter, useParams } from 'next/navigation';
 
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsByUserQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -141,7 +140,7 @@ export default function AuditLogsUserPage() {
     ];
 
     return (
-        <DashboardLayout>
+        <>
             <Box mb={1.5}>
                 <Button
                     startIcon={<ArrowBack />}
@@ -312,6 +311,6 @@ export default function AuditLogsUserPage() {
                     </Box>
                 ) : null}
             />
-        </DashboardLayout>
+        </>
     );
 }

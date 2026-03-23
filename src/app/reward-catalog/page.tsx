@@ -26,7 +26,6 @@ import {
   CardContent,
 } from '@mui/material';
 import { Search, FilterList, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useToast, FileUploadZone } from '@/components/shared';
 import { config } from '@/config/env';
 import { 
@@ -152,23 +151,24 @@ export default function RewardCatalogPage() {
   };
 
   return (
-    <DashboardLayout>
-      <Box sx={{ p: { xs: 2, sm: 1 } }}>
+    <Box>
         <Box 
           sx={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center', 
-            mb: 2.5,
+            mb: 1.5,
             flexWrap: 'wrap',
             gap: 2
           }}
         >
-          <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', m: 0, p: 0 }}>
             <Typography 
               sx={{ 
                 fontWeight: 700, 
                 fontSize: '1.1rem',
+                lineHeight: 1,
+                mb: 0.5,
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -177,7 +177,7 @@ export default function RewardCatalogPage() {
             >
               Reward Catalog
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1, m: 0 }}>
               Explore and manage available reward items
             </Typography>
           </Box>
@@ -214,7 +214,7 @@ export default function RewardCatalogPage() {
           elevation={0}
           sx={{ 
             p: 1.5, 
-            mb: 3, 
+            mb: 2, 
             borderRadius: 2,
             bgcolor: 'background.paper',
             border: (theme) => theme.palette.mode === 'dark'
@@ -322,7 +322,7 @@ export default function RewardCatalogPage() {
                   }
                 }}
               >
-                <Box sx={{ p: 2, flex: 1 }}>
+                <Box sx={{ p: 1.5, flex: 1 }}>
                   <Stack direction="row" spacing={1.5} alignItems="flex-start" mb={2}>
                     <Avatar 
                       src={reward.imageUrl || undefined} 
@@ -484,6 +484,5 @@ export default function RewardCatalogPage() {
           </DialogActions>
         </Dialog>
       </Box>
-    </DashboardLayout>
-  );
+    );
 }

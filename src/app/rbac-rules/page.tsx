@@ -180,50 +180,45 @@ export default function RbacRulesPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
-        </Box>
-      </DashboardLayout>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
-        <Box>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              background: "linear-gradient(45deg, #213350, #6AB344)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              mb: 1,
-            }}
-          >
-            RBAC Rules
-          </Typography>
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-            Failed to load RBAC roles. The backend endpoint might not be available yet.
-            <br />
-            Error: {JSON.stringify(error)}
-          </Alert>
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            This page requires the following backend endpoint:
-            <br />
-            <code>GET /admin/rbac/roles</code>
-          </Alert>
-        </Box>
-      </DashboardLayout>
+      <Box>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 700,
+            fontSize: '1.1rem',
+            background: "linear-gradient(45deg, #213350, #6AB344)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            mb: 1,
+          }}
+        >
+          RBAC Rules
+        </Typography>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          Failed to load RBAC roles. The backend endpoint might not be available yet.
+          <br />
+          Error: {JSON.stringify(error)}
+        </Alert>
+        <Alert severity="info" sx={{ borderRadius: 2 }}>
+          This page requires the following backend endpoint:
+          <br />
+          <code>GET /admin/rbac/roles</code>
+        </Alert>
+      </Box>
     );
   }
 
   return (
-    <DashboardLayout>
-      <Box>
+    <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography
             variant="h5"
@@ -379,6 +374,5 @@ export default function RbacRulesPage() {
           onCancel={() => setDeleteConfirm({ open: false, role: null })}
         />
       </Box>
-    </DashboardLayout>
   );
 }

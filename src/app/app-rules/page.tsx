@@ -21,7 +21,6 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Add, NavigateBefore, NavigateNext, Search } from "@mui/icons-material";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -341,8 +340,7 @@ export default function AppRulesPage() {
   };
 
   return (
-    <DashboardLayout>
-      <Box>
+    <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography
             variant="h5"
@@ -750,6 +748,5 @@ export default function AppRulesPage() {
           severity="error"
         />
       </Box>
-    </DashboardLayout>
-  );
+    );
 }

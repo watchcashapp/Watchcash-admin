@@ -8,8 +8,7 @@ export default function BillingCancelPage() {
   const router = useRouter();
 
   return (
-    <DashboardLayout>
-      <Box
+    <Box
         sx={{
           minHeight: "80vh",
           display: "flex",
@@ -36,8 +35,6 @@ export default function BillingCancelPage() {
             </Button>
           </CardContent>
         </Card>
-      </Box>
-    </DashboardLayout>
+    </Box>
   );
 }
-

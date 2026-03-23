@@ -10,8 +10,7 @@ import {
     InputAdornment,
     Button,
 } from '@mui/material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { DataTable, useToast } from '@/components/shared';
+import { DataTable, useToast, ConfirmDialog } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -192,8 +191,8 @@ export default function AuditLogsPage() {
     ];
 
     return (
-        <DashboardLayout>
-            <Box mb={1} display="flex" justifyContent="space-between" alignItems="center">
+    <Box>
+      <Box mb={1} display="flex" justifyContent="space-between" alignItems="center">
                 <Typography
                     sx={{
                         fontWeight: 700,
@@ -431,6 +430,6 @@ export default function AuditLogsPage() {
                     </Box>
                 ) : null}
             />
-        </DashboardLayout>
-    );
+        </Box>
+  );
 }

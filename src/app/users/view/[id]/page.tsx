@@ -379,46 +379,41 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         return 'linear-gradient(45deg, #9ca3af, #4b5563)';
     }
   }
-
   if (loadingUser) {
     return (
-      <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
-      </DashboardLayout>
+      <Box p={4} display="flex" flexDirection="column" alignItems="center" gap={2}>
+        <CircularProgress />
+        <Typography color="text.secondary">Loading user details...</Typography>
+      </Box>
     );
   }
 
   if (userError || !userResponse) {
     return (
-      <DashboardLayout>
-        <Box>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={() => router.push('/users')}
-            sx={{
-              mb: 3,
-              '&:hover': {
-                backgroundColor: 'rgba(33, 51, 80, 0.08)',
-              },
-            }}
-          >
-            Back to User Management
-          </Button>
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="error">
-              Failed to load user details. Please try again.
-            </Typography>
-          </Paper>
-        </Box>
-      </DashboardLayout>
+      <Box p={4}>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => router.push('/users')}
+          sx={{
+            mb: 3,
+            '&:hover': {
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
+            },
+          }}
+        >
+          Back to User Management
+        </Button>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography color="error">
+            Failed to load user details. Please try again.
+          </Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-    <DashboardLayout>
-      <Box>
+    <Box>
         <Button
           startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
           onClick={() => router.push('/users')}
@@ -1045,6 +1040,5 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           )}
         </Paper>
       </Box>
-    </DashboardLayout>
   );
 }

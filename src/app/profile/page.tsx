@@ -15,7 +15,6 @@ import {
   Alert,
 } from "@mui/material";
 import { Edit, Save, Lock } from "@mui/icons-material";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } from "@/store/api/authApi";
 import { useToast, Input } from "@/components/shared";
 
@@ -201,21 +200,19 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <CircularProgress
-            sx={{
-              color: '#213350',
-            }}
-          />
-        </Box>
-      </DashboardLayout>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress
+          sx={{
+            color: '#213350',
+          }}
+        />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <Box>
         <Alert
           severity="error"
           sx={{
@@ -225,13 +222,12 @@ export default function ProfilePage() {
         >
           Failed to load profile data. Please try again.
         </Alert>
-      </DashboardLayout>
+      </Box>
     );
   }
 
   return (
-    <DashboardLayout>
-      <Box>
+    <Box>
         <Typography
           sx={{
             fontWeight: 700,
@@ -578,6 +574,5 @@ export default function ProfilePage() {
           </Grid>
         </Grid>
       </Box>
-    </DashboardLayout>
-  );
+    );
 }

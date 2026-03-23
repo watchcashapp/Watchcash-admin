@@ -11,7 +11,6 @@ import {
     CircularProgress,
 } from '@mui/material';
 import { Add, Delete, Edit } from '@mui/icons-material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useToast } from '@/components/shared';
 import { useRouter } from 'next/navigation';
 import { useGetSettingsQuery, useUpdateSettingsMutation } from '@/store/api/settingsApi';
@@ -133,17 +132,17 @@ export default function SettingsPage() {
 
     if (isFetching) {
         return (
-            <DashboardLayout>
+            <Box>
                 <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
                     <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
                 </Box>
-            </DashboardLayout>
+            </Box>
         );
     }
 
     return (
-        <DashboardLayout>
-            <Box sx={{ width: '100%', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+    <Box>
+      <Box sx={{ width: '100%', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
                 <Typography
                     sx={{
                         fontWeight: 700,
@@ -349,6 +348,6 @@ export default function SettingsPage() {
                     </Box>
                 </Paper>
             </Box>
-        </DashboardLayout>
-    );
+        </Box>
+  );
 }

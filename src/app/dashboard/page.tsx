@@ -29,7 +29,6 @@ import {
   NavigateBefore,
   NavigateNext,
 } from '@mui/icons-material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useGetDashboardStatsQuery, useGetSessionsSummaryQuery } from '@/store/api/dashboardApi';
@@ -145,7 +144,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <DashboardLayout>
+    <Box>
       <Box>
         {/* Welcome Message */}
         <Box mb={2}>
@@ -533,6 +532,6 @@ export default function DashboardPage() {
           )}
         </Grid>
       </Box>
-    </DashboardLayout>
+    </Box>
   );
 }

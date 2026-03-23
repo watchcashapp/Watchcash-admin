@@ -134,8 +134,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
     }
 
     return (
-        <DashboardLayout>
-            <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'hidden' }}>
+        <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'hidden' }}>
                 {/* Header */}
                 <Box>
                     <Box
@@ -400,7 +399,6 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                     )}
                 </Drawer>
             </Box>
-        </DashboardLayout>
     );
 }
 

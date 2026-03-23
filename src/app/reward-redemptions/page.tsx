@@ -285,22 +285,22 @@ export default function RewardRedemptionsPage() {
   ];
 
   return (
-    <DashboardLayout>
-      <Box sx={{ width: '100%', overflow: 'hidden' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-          <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            Reward Redemptions
-          </Typography>
-          {hasPermission('reward_redemptions:list') && (
+    <Box sx={{ width: '100%' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: '1.1rem',
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Reward Redemptions
+        </Typography>
+        {hasPermission('reward_redemptions:list') && (
+          <Box display="flex" gap={1}>
             <Button
               variant="contained"
               size="small"
@@ -320,262 +320,262 @@ export default function RewardRedemptionsPage() {
             >
               EXPORT
             </Button>
-          )}
-        </Box>
-
-        {/* Filters */}
-        <Paper
-          sx={{
-            p: 1.5,
-            mb: 2,
-            bgcolor: 'background.paper',
-            boxShadow: (theme) => theme.palette.mode === 'dark'
-              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-              : '0 4px 12px rgba(0, 0, 0, 0.05)',
-            border: (theme) => theme.palette.mode === 'dark'
-              ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(0, 0, 0, 0.08)',
-            borderRadius: 1.5,
-          }}
-        >
-          <Grid container spacing={1.5} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="From"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="To"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                label="Status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
-                }}
-              >
-                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
-                <MenuItem value="PENDING" sx={{ fontSize: '0.75rem' }}>Pending</MenuItem>
-                <MenuItem value="APPROVED" sx={{ fontSize: '0.75rem' }}>Approved</MenuItem>
-                <MenuItem value="REJECTED" sx={{ fontSize: '0.75rem' }}>Rejected</MenuItem>
-                <MenuItem value="PROCESSED" sx={{ fontSize: '0.75rem' }}>Processed</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Search"
-                placeholder="ID or User ID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                slotProps={{
-                  input: {
-                    sx: { fontSize: '0.75rem', height: '32px' },
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
-                      </InputAdornment>
-                    ),
-                  },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 1 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  setSearch('');
-                  setStatus('');
-                  setFromDate('');
-                  setToDate('');
-                  reset();
-                }}
-                disabled={!hasFilters}
-                sx={{
-                  height: '32px',
-                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
-                  color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
-                  fontSize: '0.7rem',
-                  '&:hover': {
-                    borderColor: '#6AB344',
-                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
-                  },
-                }}
-              >
-                Clear
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
-            Failed to load redemptions. Please try again.
-          </Alert>
+          </Box>
         )}
+      </Box>
 
-        <DataTable
-          columns={columns}
-          data={redemptions}
-          isLoading={isLoading}
-          getRowId={(row) => row.id}
-          emptyMessage="No reward redemptions found. Try adjusting your filters."
-          onView={hasPermission('reward_redemptions:view') ? handleView : undefined}
-          renderPagination={() => pagination ? (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                Showing {redemptions.length}{typeof pagination.total === 'number' ? ` of ${pagination.total}` : ''} results
+      {/* Filters */}
+      <Paper
+        sx={{
+          p: 1.5,
+          mb: 2,
+          bgcolor: 'background.paper',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+            : '0 4px 12px rgba(0, 0, 0, 0.05)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: 1.5,
+        }}
+      >
+        <Grid container spacing={1.5} alignItems="center">
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="From"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="To"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              slotProps={{
+                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              slotProps={{
+                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+                '& .MuiSelect-select': {
+                  py: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }
+              }}
+            >
+              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
+              <MenuItem value="PENDING" sx={{ fontSize: '0.75rem' }}>Pending</MenuItem>
+              <MenuItem value="APPROVED" sx={{ fontSize: '0.75rem' }}>Approved</MenuItem>
+              <MenuItem value="REJECTED" sx={{ fontSize: '0.75rem' }}>Rejected</MenuItem>
+              <MenuItem value="PROCESSED" sx={{ fontSize: '0.75rem' }}>Processed</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Search"
+              placeholder="ID or User ID"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              slotProps={{
+                input: {
+                  sx: { fontSize: '0.75rem', height: '32px' },
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                    </InputAdornment>
+                  ),
+                },
+                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+              }}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                  bgcolor: 'background.paper',
+                  px: 0.5,
+                },
+                '& .MuiInputLabel-shrink': {
+                  transform: 'translate(14px, -6px) scale(0.75)',
+                },
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 1 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => {
+                setSearch('');
+                setStatus('');
+                setFromDate('');
+                setToDate('');
+                reset();
+              }}
+              disabled={!hasFilters}
+              sx={{
+                height: '32px',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
+                color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
+                fontSize: '0.7rem',
+                '&:hover': {
+                  borderColor: '#6AB344',
+                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
+                },
+              }}
+            >
+              Clear
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
+          Failed to load redemptions. Please try again.
+        </Alert>
+      )}
+
+      <DataTable
+        columns={columns}
+        data={redemptions}
+        isLoading={isLoading}
+        getRowId={(row) => row.id}
+        emptyMessage="No reward redemptions found. Try adjusting your filters."
+        onView={hasPermission('reward_redemptions:view') ? handleView : undefined}
+        renderPagination={() => pagination ? (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              Showing {redemptions.length}{typeof pagination.total === 'number' ? ` of ${pagination.total}` : ''} results
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                onClick={goPrevious}
+                disabled={!canGoBack}
+              >
+                <NavigateBefore fontSize="small" />
+              </IconButton>
+              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', fontSize: '0.75rem' }}>
+                Page {pageNumber}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <IconButton
-                  size="small"
-                  onClick={goPrevious}
-                  disabled={!canGoBack}
-                >
-                  <NavigateBefore fontSize="small" />
-                </IconButton>
-                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', fontSize: '0.75rem' }}>
-                  Page {pageNumber}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => goNext(pagination.nextCursor)}
-                  disabled={!pagination.hasMore || !pagination.nextCursor}
-                >
-                  <NavigateNext fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          ) : null}
-        />
-
-        {/* Review Drawer */}
-        <Drawer
-          anchor="right"
-          open={reviewDialogOpen}
-          onClose={() => !isReviewing && setReviewDialogOpen(false)}
-          PaperProps={{
-            sx: {
-              width: { xs: '100%', sm: 400 },
-              boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
-            }
-          }}
-        >
-          <Box display="flex" flexDirection="column" flex={1} minHeight={0} sx={{ overflow: 'hidden' }}>
-            <Box p={2} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>Mark Review</Typography>
-              <Button size="small" onClick={() => setReviewDialogOpen(false)} disabled={isReviewing} sx={{ minWidth: 'auto', p: 1 }}>✕</Button>
-            </Box>
-            <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
-              <Box mb={3}>
-                <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} slotProps={{ inputLabel: { shrink: true, required: true } }}>
-                  <MenuItem value="approve">Approve</MenuItem>
-                  <MenuItem value="reject">Reject</MenuItem>
-                  <MenuItem value="hold">Hold</MenuItem>
-                </TextField>
-              </Box>
-              <Box mb={3}>
-                <TextField fullWidth label="Reason Code" value={reviewForm.admin_reason_code} onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} disabled={isReviewing} placeholder="E.g. valid_activity" />
-                <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
-                  {PREDEFINED_REASONS.map((reason) => (
-                    <Chip
-                      key={reason.value}
-                      label={reason.label}
-                      variant={reviewForm.admin_reason_code === reason.value ? 'filled' : 'outlined'}
-                      color={reviewForm.admin_reason_code === reason.value ? 'primary' : 'default'}
-                      onClick={() => setReviewForm({ ...reviewForm, admin_reason_code: reason.value })}
-                      disabled={isReviewing}
-                      sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
-                    />
-                  ))}
-                </Box>
-              </Box>
-              <Box mb={3}>
-                <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." slotProps={{ inputLabel: { shrink: true } }} />
-              </Box>
-            </Box>
-            <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
-              <Button fullWidth variant="contained" onClick={handleReviewSubmit} disabled={isReviewing} sx={{ background: 'linear-gradient(45deg, #213350, #6AB344)' }}>
-                {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
-              </Button>
+              <IconButton
+                size="small"
+                onClick={() => goNext(pagination.nextCursor)}
+                disabled={!pagination.hasMore || !pagination.nextCursor}
+              >
+                <NavigateNext fontSize="small" />
+              </IconButton>
             </Box>
           </Box>
-        </Drawer>
-      </Box>
-    </DashboardLayout>
+        ) : null}
+      />
+
+      {/* Review Drawer */}
+      <Drawer
+        anchor="right"
+        open={reviewDialogOpen}
+        onClose={() => !isReviewing && setReviewDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: '100%', sm: 400 },
+            boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+          }
+        }}
+      >
+        <Box display="flex" flexDirection="column" flex={1} minHeight={0} sx={{ overflow: 'hidden' }}>
+          <Box p={2} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Mark Review</Typography>
+            <Button size="small" onClick={() => setReviewDialogOpen(false)} disabled={isReviewing} sx={{ minWidth: 'auto', p: 1 }}>✕</Button>
+          </Box>
+          <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
+            <Box mb={3}>
+              <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} slotProps={{ inputLabel: { shrink: true, required: true } }}>
+                <MenuItem value="approve">Approve</MenuItem>
+                <MenuItem value="reject">Reject</MenuItem>
+                <MenuItem value="hold">Hold</MenuItem>
+              </TextField>
+            </Box>
+            <Box mb={3}>
+              <TextField fullWidth label="Reason Code" value={reviewForm.admin_reason_code} onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} disabled={isReviewing} placeholder="E.g. valid_activity" />
+              <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
+                {PREDEFINED_REASONS.map((reason) => (
+                  <Chip
+                    key={reason.value}
+                    label={reason.label}
+                    variant={reviewForm.admin_reason_code === reason.value ? 'filled' : 'outlined'}
+                    color={reviewForm.admin_reason_code === reason.value ? 'primary' : 'default'}
+                    onClick={() => setReviewForm({ ...reviewForm, admin_reason_code: reason.value })}
+                    disabled={isReviewing}
+                    sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box mb={3}>
+              <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." slotProps={{ inputLabel: { shrink: true } }} />
+            </Box>
+          </Box>
+          <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
+            <Button fullWidth variant="contained" onClick={handleReviewSubmit} disabled={isReviewing} sx={{ background: 'linear-gradient(45deg, #213350, #6AB344)' }}>
+              {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
+    </Box>
   );
 }

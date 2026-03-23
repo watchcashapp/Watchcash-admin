@@ -248,20 +248,16 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   if (loadingUser) {
     return (
-      <DashboardLayout>
-        <Box display="flex" justifyContent="center" py={8}><CircularProgress /></Box>
-      </DashboardLayout>
+      <Box display="flex" justifyContent="center" py={8}><CircularProgress /></Box>
     );
   }
 
   if (userError || !userResponse) {
     return (
-      <DashboardLayout>
-        <Box sx={{ p: 4, textAlign: 'center' }}>
-          <Button startIcon={<ArrowBack />} onClick={() => router.push('/users')} sx={{ mb: 2 }}>Back</Button>
-          <Typography color="error">Failed to load user details.</Typography>
-        </Box>
-      </DashboardLayout>
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Button startIcon={<ArrowBack />} onClick={() => router.push('/users')} sx={{ mb: 2 }}>Back</Button>
+        <Typography color="error">Failed to load user details.</Typography>
+      </Box>
     );
   }
 
@@ -372,8 +368,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   }, [hasPermission]);
 
   return (
-    <DashboardLayout>
-      <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
         <Box display="flex" alignItems="center" gap={1} mb={3}>
           <Button startIcon={<ArrowBack />} onClick={() => router.push('/users')}>Back</Button>
           <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>User Details</Typography>
@@ -390,7 +385,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             </TabPanel>
           ))}
         </Paper>
-      </Box>
-    </DashboardLayout>
+    </Box>
   );
 }
