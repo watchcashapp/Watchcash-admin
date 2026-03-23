@@ -65,17 +65,22 @@ async function proxyRequest(
 
     if (method !== 'GET' && method !== 'HEAD') {
       try {
-        if (contentType.includes('application/json')) {
-          const json = await request.json();
-          if (json !== undefined && json !== null) {
-            body = JSON.stringify(json);
-          }
-        } else if (contentType.includes('multipart/form-data')) {
-          // For multipart, get the raw body as an arrayBuffer to preserve the boundary
-          body = await request.arrayBuffer();
-        } else {
-          const text = await request.text();
-          if (text) {
+        const clonedRequest = request.clone();
+        const text = await clonedRequest.text();
+        
+        if (text) {
+          if (contentType.includes('application/json')) {
+            try {
+              const json = JSON.parse(text);
+              if (json !== undefined && json !== null) {
+                body = JSON.stringify(json);
+              }
+            } catch (e) {
+              body = text;
+            }
+          } else if (contentType.includes('multipart/form-data')) {
+            body = await request.arrayBuffer();
+          } else {
             body = text;
           }
         }
