@@ -281,17 +281,14 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
     { id: 'timestamp', label: 'Timestamp', minWidth: 180, format: (value: string) => isMounted ? new Date(value).toLocaleString() : '' },
   ];
 
-  // Mock review history data
-  const mockReviews = [
-    { id: 'r1', reviewer: 'Admin', decision: 'Approve', notes: 'All good', timestamp: '2024-01-01T10:00:00Z' },
-    { id: 'r2', reviewer: 'Supervisor', decision: 'Reject', notes: 'Insufficient info', timestamp: '2024-01-02T14:30:00Z' },
-  ];
+  // Review History data
+  const reviews = sessionFallback.reviews || [];
 
   const totalTransactionsPages = Math.ceil(wallet_transactions.length / itemsPerPage);
   const paginatedTransactions = wallet_transactions.slice((transactionsPage - 1) * itemsPerPage, transactionsPage * itemsPerPage);
 
-  const totalReviewsPages = Math.ceil(mockReviews.length / itemsPerPage);
-  const paginatedReviews = mockReviews.slice((reviewsPage - 1) * itemsPerPage, reviewsPage * itemsPerPage);
+  const totalReviewsPages = Math.ceil(reviews.length / itemsPerPage);
+  const paginatedReviews = reviews.slice((reviewsPage - 1) * itemsPerPage, reviewsPage * itemsPerPage);
 
   return (
     <Box>
@@ -757,19 +754,19 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
               <TabPanel value={activeTab} index={2}>
                 <Box sx={{ p: 2 }}>
                   <Typography variant="body1" sx={{ mb: 2, fontWeight: 700, fontSize: '0.9rem' }}>
-                    Review History ({mockReviews.length})
+                    Review History ({reviews.length})
                   </Typography>
-                  {mockReviews.length > 0 ? (
+                  {reviews.length > 0 ? (
                     <>
                       <DataTable
                         columns={reviewColumns}
                         data={paginatedReviews}
-                        getRowId={(row) => row.id}
+                        getRowId={(row: any) => `${row.reviewer}-${row.timestamp}`}
                       />
                       {/* Pagination */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Showing {paginatedReviews.length} of {mockReviews.length} results
+                          Showing {paginatedReviews.length} of {reviews.length} results
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                           <IconButton
@@ -881,8 +878,8 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             />
           </Paper>
         </Box>
-      </Box >
-    </Box >
+      </Box>
+    </Box>
   );
 }
 

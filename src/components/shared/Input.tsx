@@ -57,7 +57,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                   size="small"
                   sx={{ mr: -0.5 }}
                 >
-                  {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  {showPassword ? <Visibility fontSize="small" /> : <VisibilityOff fontSize="small" />}
                 </IconButton>
               </InputAdornment>
             ) : undefined,

@@ -76,6 +76,12 @@ export interface SessionDetailResponse {
       note: string;
       createdAt: string;
     }>;
+    reviews?: Array<{
+      reviewer: string;
+      decision: string;
+      notes: string;
+      timestamp: string;
+    }>;
   };
 }
 
