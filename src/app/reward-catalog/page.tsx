@@ -39,7 +39,7 @@ import { useRef } from 'react';
 export default function RewardCatalogPage() {
   const { showSuccess, showError } = useToast();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('ACTIVE');
+  const [status, setStatus] = useState('');
   const [currency, setCurrency] = useState('');
   const [limit] = useState(12);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
@@ -283,7 +283,7 @@ export default function RewardCatalogPage() {
                 variant="outlined" 
                 onClick={() => {
                   setSearch('');
-                  setStatus('ACTIVE');
+                  setStatus('');
                   setCurrency('');
                   setCursor(undefined);
                 }}
