@@ -188,7 +188,26 @@ export default function SettingsPage() {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
+                    <Box 
+                        sx={{ 
+                            flexGrow: 1, 
+                            overflowY: 'auto', 
+                            pr: 1,
+                            '&::-webkit-scrollbar': {
+                                width: '6px',
+                            },
+                            '&::-webkit-scrollbar-track': {
+                                backgroundColor: 'transparent',
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                                backgroundColor: 'rgba(33, 51, 80, 0.15)',
+                                borderRadius: '10px',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(33, 51, 80, 0.25)',
+                                },
+                            },
+                        }}
+                    >
 
                         {metadata.map((row, index) => {
                             const isExisting = !!originalSettings[row.metakey];

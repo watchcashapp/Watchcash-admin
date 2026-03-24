@@ -50,6 +50,7 @@ import {
   Gavel,
   FormatListBulleted,
   Person,
+  AdsClick,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -97,6 +98,7 @@ const menuItems: MenuItem[] = [
   { text: 'Audit Logs', icon: <ReceiptLong />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
   { text: 'Login History', icon: <Login />, path: '/login-history', permission: 'login_history:list' },
   { text: 'App Management', icon: <AdminPanelSettings />, path: '/app-management', permission: 'admin:full_access' },
+  { text: 'Ads Management', icon: <AdsClick />, path: '/ads-management', permission: 'admin:full_access' },
   { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   { text: 'Settings', icon: <Settings />, path: '/settings', permission: 'admin:full_access' },
@@ -259,8 +261,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Toolbar sx={{ minHeight: '64px !important', height: 64, display: 'flex', alignItems: 'center', px: 2 }}>
-        <Box component="img" src="/assets/images/email-template-logo.svg" alt="Logo" sx={{ height: 40, width: 'auto', mr: 2 }} />
+      <Toolbar sx={{ minHeight: '64px !important', height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', px: 2 }}>
+        <Box component="img" src="/assets/images/email-template-logo.svg" alt="Logo" sx={{ height: 40, width: 'auto' }} />
       </Toolbar>
       <Divider />
       <Box sx={{ 
