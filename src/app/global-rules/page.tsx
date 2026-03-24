@@ -364,7 +364,7 @@ export default function GlobalRulesPage() {
 
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="Max Session Duration"
+                  label="Max Session Duration(seconds)"
                   name="maxSessionDuration"
                   type="number"
                   value={formData.maxSessionDuration}
@@ -396,7 +396,7 @@ export default function GlobalRulesPage() {
 
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="Min Session Duration"
+                  label="Min Session Duration(seconds)"
                   name="minSessionDuration"
                   type="number"
                   value={formData.minSessionDuration}
