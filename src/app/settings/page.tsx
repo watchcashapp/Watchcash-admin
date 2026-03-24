@@ -350,6 +350,7 @@ export default function SettingsPage() {
                                 height: '32px',
                                 fontSize: '0.75rem',
                                 px: 3,
+                                color: 'white',
                                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                                 boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
                                 '&:hover': {

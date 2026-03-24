@@ -16,6 +16,12 @@ export interface AdProvider {
   config: any;
 }
 
+export interface AdProvidersResponse {
+  providers: AdProvider[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export const adsApi = createApi({
   reducerPath: 'adsApi',
   baseQuery: baseQueryWithReauth,
@@ -42,18 +48,26 @@ export const adsApi = createApi({
       }),
       invalidatesTags: ['AdSettings'],
     }),
-    getAdProviders: builder.query<AdProvider[], void>({
-      query: () => '/admin/ad-providers',
+    getAdProviders: builder.query<AdProvidersResponse, { cursor?: string; limit?: number } | void>({
+      query: (params) => ({
+        url: '/admin/ad-providers',
+        params: params || { limit: 10 },
+      }),
       transformResponse: (response: any) => {
-        const rawData = response.data?.providers || response.providers || response.data || response;
-        if (!Array.isArray(rawData)) return [];
-        return rawData.map((p: any) => ({
-          id: p.id,
-          provider_code: p.provider_code ?? p.providerCode ?? '',
-          provider_name: p.provider_name ?? p.providerName ?? '',
-          is_enabled: p.is_enabled ?? p.isEnabled ?? false,
-          config: p.config ?? {},
-        }));
+        const data = response.data || response;
+        const rawProviders = data.providers || [];
+        
+        return {
+          providers: Array.isArray(rawProviders) ? rawProviders.map((p: any) => ({
+            id: p.id,
+            provider_code: p.provider_code ?? p.providerCode ?? '',
+            provider_name: p.provider_name ?? p.providerName ?? '',
+            is_enabled: p.is_enabled ?? p.isEnabled ?? false,
+            config: p.config ?? {},
+          })) : [],
+          nextCursor: data.nextCursor || null,
+          hasMore: data.hasMore ?? false,
+        };
       },
       providesTags: ['AdProviders'],
     }),

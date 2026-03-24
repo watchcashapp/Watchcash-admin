@@ -206,6 +206,7 @@ export default function NotificationsPage() {
                 textTransform: 'uppercase',
                 fontWeight: 600,
                 px: 2,
+                color: 'white',
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                 boxShadow: '0 4px 12px rgba(33, 51, 80, 0.3)',
                 '&:hover': {

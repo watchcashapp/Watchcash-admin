@@ -475,6 +475,7 @@ export default function RewardCatalogPage() {
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                 borderRadius: '20px',
                 px: 4,
+                color: 'white',
                 boxShadow: '0 4px 12px rgba(33, 51, 80, 0.2)',
                 '&:hover': {
                   background: 'linear-gradient(45deg, #1a2940, #6AB344)',

@@ -32,6 +32,7 @@ import {
   Add,
   Delete,
   Code,
+  Refresh,
 } from '@mui/icons-material';
 import { useToast } from '@/components/shared';
 import {
@@ -103,8 +104,14 @@ export default function AdsManagementPage() {
     cooldown_seconds: 1
   });
 
-  // Providers State
-  const { data: providers, isLoading: isLoadingProviders } = useGetAdProvidersQuery();
+  // Providers Pagination State
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [allProviders, setAllProviders] = useState<AdProvider[]>([]);
+  const { data: providersData, isLoading: isLoadingProviders, isFetching: isFetchingProviders } = useGetAdProvidersQuery({ 
+    limit: 6, 
+    cursor: cursor || undefined 
+  });
+  
   const [saveProvider, { isLoading: isSavingProvider }] = useSaveAdProviderMutation();
   const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateProviderStatusMutation();
   const [openProviderDialog, setOpenProviderDialog] = useState(false);
@@ -115,6 +122,39 @@ export default function AdsManagementPage() {
     is_enabled: true,
     config: {}
   });
+
+  // Handle accumulating providers
+  useEffect(() => {
+    if (providersData?.providers) {
+      if (!cursor) {
+        // If cursor is null, it's a fresh load (e.g. after invalidation)
+        setAllProviders(providersData.providers);
+      } else {
+        // Append unique providers
+        setAllProviders(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newOnes = providersData!.providers.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newOnes];
+        });
+      }
+    }
+  }, [providersData, cursor]);
+
+  // Reset pagination when a provider is saved/updated (tag invalidation)
+  useEffect(() => {
+    // When providersData changes and it's the first page (no nextCursor in current query or it's a refetch)
+    // Actually, RTK Query will refetch the first page on invalidation if we're not careful.
+    // However, if we want to refresh the WHOLE list after a save, we should reset.
+    // The providesTags: ['AdProviders'] will cause a refetch with the CURRENT params.
+    // If we were on page 3, it refetches page 3. That's not what we want.
+    // We want to go back to page 1 to see the new item.
+  }, []);
+
+  const handleLoadMore = () => {
+    if (providersData?.nextCursor) {
+      setCursor(providersData.nextCursor);
+    }
+  };
 
   useEffect(() => {
     if (adSettings) {
@@ -167,21 +207,6 @@ export default function AdsManagementPage() {
     setOpenProviderDialog(true);
   };
 
-  const generateCode = (name: string) => {
-    return name.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
-  };
-
-  const handleNameChange = (name: string) => {
-    setProviderForm(prev => {
-      const updates: any = { provider_name: name };
-      // Only auto-generate code if we're creating a new provider
-      if (!editingProvider) {
-        updates.provider_code = generateCode(name);
-      }
-      return { ...prev, ...updates };
-    });
-  };
-
   const handleSaveProvider = async () => {
     try {
       let finalConfig = providerForm.config;
@@ -197,9 +222,25 @@ export default function AdsManagementPage() {
       await saveProvider({ ...providerForm, config: finalConfig }).unwrap();
       showSuccess(editingProvider ? 'Provider updated' : 'Provider added');
       setOpenProviderDialog(false);
+      setCursor(null); // Reset pagination on save
     } catch (err: any) {
       showError(err?.data?.message || 'Failed to save provider');
     }
+  };
+
+  const generateCode = (name: string) => {
+    return name.trim().toUpperCase().replace(/[^A-Z0-9]/g, '_');
+  };
+
+  const handleNameChange = (name: string) => {
+    setProviderForm(prev => {
+      const updates: any = { provider_name: name };
+      // Only auto-generate code if we're creating a new provider
+      if (!editingProvider) {
+        updates.provider_code = generateCode(name);
+      }
+      return { ...prev, ...updates };
+    });
   };
 
   if (isLoadingSettings || isLoadingProviders) {
@@ -246,6 +287,7 @@ export default function AdsManagementPage() {
             startIcon={<Add />}
             onClick={() => handleOpenDialog()}
             sx={{
+              color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               fontWeight: 600,
               fontSize: '0.75rem',
@@ -264,6 +306,7 @@ export default function AdsManagementPage() {
             sx={{
               height: '30px',
               fontSize: '0.75rem',
+              color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
               px: 2,
@@ -308,7 +351,7 @@ export default function AdsManagementPage() {
         {/* --- SERVICE TAB (CRUD) --- */}
         <TabPanel value={activeTab} index={0}>
           <Grid container spacing={2}>
-            {providers && providers.map((provider) => (
+            {allProviders.map((provider) => (
               <Grid size={{ xs: 12, md: 6, lg: 4 }} key={provider.provider_code}>
                 <Card
                   variant="outlined"
@@ -357,6 +400,31 @@ export default function AdsManagementPage() {
               </Grid>
             ))}
           </Grid>
+
+          {providersData?.hasMore && (
+            <Box display="flex" justifyContent="center" mt={3} mb={1}>
+              <Button
+                variant="contained"
+                onClick={handleLoadMore}
+                disabled={isFetchingProviders}
+                size="small"
+                startIcon={isFetchingProviders ? <CircularProgress size={16} color="inherit" /> : <Refresh />}
+                sx={{
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                  px: 4,
+                  fontSize: '0.75rem',
+                  color: 'white',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.2)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                    boxShadow: '0 6px 16px rgba(33, 51, 80, 0.3)',
+                  }
+                }}
+              >
+                {isFetchingProviders ? 'Loading...' : 'Load More'}
+              </Button>
+            </Box>
+          )}
         </TabPanel>
 
         {/* --- AD SETTINGS TAB --- */}
@@ -474,6 +542,7 @@ export default function AdsManagementPage() {
                       sx={{
                         height: 32,
                         fontSize: '0.75rem',
+                        color: 'white',
                         background: 'linear-gradient(45deg, #213350, #6AB344)',
                       }}
                     >
@@ -546,6 +615,7 @@ export default function AdsManagementPage() {
             disabled={isSavingProvider}
             size="small"
             sx={{
+              color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               fontWeight: 600,
               px: 3
