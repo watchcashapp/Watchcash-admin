@@ -15,6 +15,7 @@ import {
     TableContainer,
     TableRow,
     CircularProgress,
+    Skeleton,
 } from '@mui/material';
 import { ArrowBack, History, AdminPanelSettings, Person, Language, Description } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
@@ -40,8 +41,54 @@ export default function AuditLogDetailPage() {
 
     if (isLoading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+            <Box sx={{ p: 2 }}>
+                <Box sx={{ mb: 2 }}>
+                    <Skeleton width={80} height={28} sx={{ mb: 1 }} />
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Skeleton width={150} height={32} />
+                        <Skeleton variant="rectangular" width={80} height={22} sx={{ borderRadius: 4 }} />
+                    </Box>
+                </Box>
+                <Grid container spacing={1.5}>
+                    <Grid size={{ xs: 12, md: 5 }}>
+                        <Paper sx={{ p: 1.5, borderRadius: 1.5, height: 150 }}>
+                            <Skeleton width={150} height={24} sx={{ mb: 2 }} />
+                            {[...Array(3)].map((_, i) => (
+                                <Box key={i} sx={{ mb: 1, display: 'flex', gap: 2 }}>
+                                    <Skeleton width={80} height={16} />
+                                    <Skeleton width="100%" height={16} />
+                                </Box>
+                            ))}
+                        </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 7 }}>
+                        <Paper sx={{ p: 1.5, borderRadius: 1.5, height: 150 }}>
+                            <Skeleton width={150} height={24} sx={{ mb: 2 }} />
+                            <Box display="flex" gap={2}>
+                                {[...Array(3)].map((_, i) => (
+                                    <Box key={i} display="flex" alignItems="center" gap={1}>
+                                        <Skeleton variant="rectangular" width={32} height={32} sx={{ borderRadius: 1 }} />
+                                        <Box>
+                                            <Skeleton width={40} height={12} />
+                                            <Skeleton width={80} height={20} />
+                                        </Box>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Paper>
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                        <Paper sx={{ p: 1.5, borderRadius: 1.5 }}>
+                            <Skeleton width={120} height={24} sx={{ mb: 2 }} />
+                            {[...Array(4)].map((_, i) => (
+                                <Box key={i} sx={{ mb: 1, display: 'flex', gap: 4 }}>
+                                    <Skeleton width={150} height={20} />
+                                    <Skeleton width="100%" height={24} />
+                                </Box>
+                            ))}
+                        </Paper>
+                    </Grid>
+                </Grid>
             </Box>
         );
     }

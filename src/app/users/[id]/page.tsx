@@ -16,9 +16,9 @@ import {
   IconButton,
   TextField,
   Divider,
-  List,
   ListItem,
   ListItemText,
+  Skeleton,
 } from '@mui/material';
 import { ArrowBack, Person, AccountBalanceWallet, History, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -55,7 +55,7 @@ function TabPanel(props: TabPanelProps) {
       style={{ minHeight: 'auto', display: value === index ? 'block' : 'none' }}
       {...other}
     >
-      {value === index && <Box sx={{ pt: 1.5 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -248,7 +248,36 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   if (loadingUser) {
     return (
-      <Box display="flex" justifyContent="center" py={8}><CircularProgress /></Box>
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+          <Skeleton variant="rectangular" width={80} height={28} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="text" width={150} height={32} />
+        </Box>
+        <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, py: 1 }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Skeleton width={80} height={24} />
+              <Skeleton width={120} height={24} />
+              <Skeleton width={120} height={24} />
+            </Box>
+          </Box>
+          <Box sx={{ p: 3 }}>
+            <Card sx={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+              <CardContent>
+                <Skeleton width={150} height={24} sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  {[...Array(3)].map((_, i) => (
+                    <Grid key={i} size={{ xs: 12, sm: 6 }}>
+                      <Skeleton width={60} height={16} sx={{ mb: 0.5 }} />
+                      <Skeleton width="100%" height={24} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+          </Box>
+        </Paper>
+      </Box>
     );
   }
 

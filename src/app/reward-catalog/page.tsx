@@ -24,6 +24,8 @@ import {
   Stack,
   Card,
   CardContent,
+  Skeleton,
+  Divider,
 } from '@mui/material';
 import { Search, FilterList, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
 import { useToast, FileUploadZone } from '@/components/shared';
@@ -33,7 +35,50 @@ import {
   useUploadRewardCatalogMutation,
   RewardCatalog 
 } from '@/store/api/rewardCatalogsApi';
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
+
+function CatalogSkeleton() {
+  return (
+    <Grid container spacing={2}>
+      {[...Array(12)].map((_, i) => (
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={i}>
+          <Card 
+            elevation={0} 
+            sx={{ 
+              height: '100%', 
+              borderRadius: 2, 
+              border: (theme) => theme.palette.mode === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.08)'
+                : '1px solid rgba(0, 0, 0, 0.05)',
+            }}
+          >
+            <Box sx={{ p: 1.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="flex-start" mb={2}>
+                <Skeleton variant="rounded" width={48} height={48} sx={{ borderRadius: 1.5 }} />
+                <Box sx={{ flex: 1 }}>
+                  <Skeleton width="80%" height={20} sx={{ mb: 0.5 }} />
+                  <Skeleton width="40%" height={14} />
+                </Box>
+              </Stack>
+              <Stack spacing={1}>
+                {[...Array(3)].map((_, j) => (
+                  <Box key={j} display="flex" justifyContent="space-between">
+                    <Skeleton width={40} height={14} />
+                    <Skeleton width={60} height={14} />
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+            <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Skeleton width={50} height={20} sx={{ borderRadius: 1 }} />
+              <Skeleton width={70} height={14} />
+            </Box>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
 
 export default function RewardCatalogPage() {
   const { showSuccess, showError } = useToast();
@@ -66,6 +111,8 @@ export default function RewardCatalogPage() {
       }
     }
   }, [data, cursor]);
+  const showSkeletons = (isLoading || (isFetching && !cursor)) && allRewards.length === 0;
+  const displayedRewards = allRewards.length > 0 ? allRewards : (!cursor && data?.items ? data.items : []);
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
@@ -301,7 +348,7 @@ export default function RewardCatalogPage() {
         </Paper>
 
         <Grid container spacing={2}>
-          {allRewards.map((reward) => (
+          {displayedRewards.map((reward) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={reward.id}>
               <Card
                 elevation={0}
@@ -407,19 +454,17 @@ export default function RewardCatalogPage() {
           ))}
         </Grid>
 
-        {isLoading && allRewards.length === 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
-          </Box>
+        {showSkeletons && (
+          <CatalogSkeleton />
         )}
 
-        {allRewards.length === 0 && !isLoading && (
+        {displayedRewards.length === 0 && !showSkeletons && !isLoading && !isFetching && (
           <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 2 }}>
             <Typography color="text.secondary">No rewards found matching your criteria</Typography>
           </Paper>
         )}
 
-        {data?.pagination?.hasMore && (
+        {data?.pagination?.hasMore && !showSkeletons && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
             <Button
               variant="contained"

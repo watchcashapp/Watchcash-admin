@@ -14,6 +14,7 @@ import {
     TextField,
     MenuItem,
     IconButton,
+    Skeleton,
 } from '@mui/material';
 import { ArrowBack, RateReview } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -114,8 +115,41 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
 
     if (isLoading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+            <Box sx={{ p: 1.5 }}>
+                <Box sx={{ mb: 1 }}>
+                    <Skeleton width={60} height={20} sx={{ mb: 0.5 }} />
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Skeleton width={180} height={32} />
+                        <Skeleton variant="rectangular" width={100} height={30} sx={{ borderRadius: 1 }} />
+                    </Box>
+                </Box>
+                <Paper sx={{ p: 2, borderRadius: 1.5, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Skeleton width={60} height={20} />
+                        <Skeleton variant="rectangular" width={80} height={20} sx={{ borderRadius: 1 }} />
+                    </Box>
+                    <Divider sx={{ my: 1.5 }} />
+                    <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Skeleton width={150} height={24} sx={{ mb: 2 }} />
+                            {[...Array(2)].map((_, i) => (
+                                <Box key={i} sx={{ mb: 1.5 }}>
+                                    <Skeleton width={100} height={16} sx={{ mb: 0.5 }} />
+                                    <Skeleton width="100%" height={24} />
+                                </Box>
+                            ))}
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Skeleton width={180} height={24} sx={{ mb: 2 }} />
+                            {[...Array(3)].map((_, i) => (
+                                <Box key={i} sx={{ mb: 1.5 }}>
+                                    <Skeleton width={120} height={16} sx={{ mb: 0.5 }} />
+                                    <Skeleton width="100%" height={24} />
+                                </Box>
+                            ))}
+                        </Grid>
+                    </Grid>
+                </Paper>
             </Box>
         );
     }

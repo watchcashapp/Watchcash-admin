@@ -13,6 +13,7 @@ import {
   Tabs,
   Tab,
   IconButton,
+  Skeleton,
 } from '@mui/material';
 import { ArrowBack, RateReview, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -62,7 +63,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`session-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -156,8 +157,86 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+      <Box sx={{ p: 0 }}>
+        {/* Header Skeleton */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+          <Skeleton variant="rectangular" width={140} height={28} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="rectangular" width={130} height={28} sx={{ borderRadius: 1 }} />
+        </Box>
+        
+        {/* Title Skeleton */}
+        <Skeleton variant="text" width="180px" height={36} sx={{ mb: 1.5, borderRadius: 1 }} />
+        
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 2 }}>
+          <Paper sx={{ flex: 1, borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Tabs Skeleton */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, height: 36, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Skeleton width={60} height={20} />
+              <Skeleton width={80} height={20} />
+              <Skeleton width={100} height={20} />
+            </Box>
+            
+            <Box sx={{ p: 3 }}>
+              {/* Status Badge Skeleton */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Skeleton width={50} height={16} />
+                <Skeleton variant="rectangular" width={70} height={20} sx={{ borderRadius: 1 }} />
+              </Box>
+              
+              <Divider sx={{ my: 1 }} />
+              
+              {/* Info Section Skeleton */}
+              <Skeleton width={160} height={24} sx={{ mb: 1.5 }} />
+              <Grid container spacing={1}>
+                {[...Array(6)].map((_, i) => (
+                  <Grid key={i} size={{ xs: 12, md: 6 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Skeleton width={80} height={14} sx={{ mb: 0.5 }} />
+                      <Skeleton variant="rectangular" width="95%" height={26} sx={{ borderRadius: 0.5 }} />
+                    </Box>
+                  </Grid>
+                ))}
+                {/* Map Skeleton */}
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{ mb: 1 }}>
+                    <Skeleton width={80} height={14} sx={{ mb: 0.5 }} />
+                    <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 2 }} />
+                  </Box>
+                </Grid>
+              </Grid>
+              
+              <Divider sx={{ my: 1 }} />
+              
+              {/* User Section Skeleton */}
+              <Skeleton width={140} height={24} sx={{ mb: 1.5 }} />
+              <Grid container spacing={1} mb={2}>
+                {[...Array(3)].map((_, i) => (
+                  <Grid key={i} size={{ xs: 12, md: 6 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Skeleton width={80} height={14} sx={{ mb: 0.5 }} />
+                      <Skeleton variant="rectangular" width="95%" height={26} sx={{ borderRadius: 0.5 }} />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Divider sx={{ my: 1 }} />
+
+              {/* Reward Section Skeleton */}
+              <Skeleton width={150} height={24} sx={{ mb: 1.5 }} />
+              <Grid container spacing={1}>
+                {[...Array(3)].map((_, i) => (
+                  <Grid key={i} size={{ xs: 12, md: 6 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Skeleton width={80} height={14} sx={{ mb: 0.5 }} />
+                      <Skeleton variant="rectangular" width="95%" height={26} sx={{ borderRadius: 0.5 }} />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </Paper>
+        </Box>
       </Box>
     );
   }
