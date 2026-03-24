@@ -129,19 +129,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const showSkeletons = !isMounted || !isInitialized || !user;
-
-  const isAuthPage = pathname.startsWith('/auth');
-
-  const isMenuItemActive = (item: MenuItem): boolean => {
-    if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');
-    if (item.subItems) return item.subItems.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path + '/'));
-    return false;
-  };
 
   const filteredMenuItems = useMemo(() => {
     return menuItems
@@ -155,6 +143,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       })
       .filter(item => !(item.subItems && item.subItems.length === 0 && !item.path));
   }, [hasPermission]);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Proactively prefetch all visible menu items once initialized
+  useEffect(() => {
+    if (!showSkeletons && filteredMenuItems.length > 0) {
+      filteredMenuItems.forEach(item => {
+        if (item.path) router.prefetch(item.path);
+        if (item.subItems) {
+          item.subItems.forEach(sub => router.prefetch(sub.path));
+        }
+      });
+    }
+  }, [showSkeletons, filteredMenuItems, router]);
+
+  const isAuthPage = pathname.startsWith('/auth');
+
+  const isMenuItemActive = (item: MenuItem): boolean => {
+    if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');
+    if (item.subItems) return item.subItems.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path + '/'));
+    return false;
+  };
+
 
   // Auto-expand submenus when their child routes are active
   React.useEffect(() => {
