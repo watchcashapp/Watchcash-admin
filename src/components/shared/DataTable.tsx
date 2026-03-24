@@ -101,7 +101,24 @@ export default function DataTable<T extends Record<string, any>>({
         borderRadius: 3,
       }}
     >
-      <TableContainer sx={{ overflowX: 'auto' }}>
+      <TableContainer 
+        sx={{ 
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(33, 51, 80, 0.15)',
+            borderRadius: '10px',
+            '&:hover': {
+              backgroundColor: 'rgba(33, 51, 80, 0.25)',
+            },
+          },
+        }}
+      >
         <Table stickyHeader>
           <TableHead>
             <TableRow>
