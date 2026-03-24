@@ -409,12 +409,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <MenuItem onClick={handleMarkAllNotificationsRead} sx={{ justifyContent: 'center', color: 'primary.main' }}>Read all</MenuItem>
             </Menu>
             {showSkeletons ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Skeleton variant="circular" width={38} height={38} />
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                  <Skeleton width={80} height={20} />
-                  <Skeleton width={50} height={14} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1 }}>
+                <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+                  <Skeleton width={80} height={16} />
+                  <Skeleton width={50} height={12} sx={{ ml: 'auto' }} />
                 </Box>
+                <Skeleton variant="circular" width={38} height={38} />
               </Box>
             ) : (
               <Box onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', ml: 1 }}>
