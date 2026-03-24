@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Box,
   Drawer,
@@ -22,6 +23,7 @@ import {
   useMediaQuery,
   Collapse,
   CircularProgress,
+  Skeleton,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -43,6 +45,11 @@ import {
   DoneAll,
   Brightness4,
   CardGiftcard,
+  ReceiptLong,
+  Login,
+  Gavel,
+  FormatListBulleted,
+  Person,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast, ConfirmDialog } from '@/components/shared';
@@ -54,7 +61,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useNotifications } from '@/components/notifications/NotificationsProvider';
 
-const drawerWidth = 210;
+const drawerWidth = 240;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -62,15 +69,18 @@ interface DashboardLayoutProps {
 
 interface MenuItem {
   text: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   path?: string;
   permission?: string;
   subItems?: { text: string; icon: React.ReactNode; path: string; permission?: string }[];
+  isHeader?: boolean;
 }
 
 const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', permission: 'dashboard:view' },
+  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
   { text: 'User Management', icon: <People />, path: '/users', permission: 'users:list' },
+  { text: 'RBAC Rules', icon: <Gavel />, path: '/rbac-rules', permission: 'rbac:manage_roles' },
   {
     text: 'Staff Management',
     icon: <BadgeIcon />,
@@ -82,14 +92,13 @@ const menuItems: MenuItem[] = [
   },
   { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:list' },
   { text: 'Reward Catalog', icon: <CardGiftcard />, path: '/reward-catalog', permission: 'reward_catalogs:list' },
-  { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
-  { text: 'App Rules', icon: <Rule />, path: '/app-rules', permission: 'app_rules:list' },
-  { text: 'Audit Logs', icon: <History />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
-  { text: 'Login History', icon: <History />, path: '/login-history', permission: 'login_history:list' },
-  { text: 'Global Rules', icon: <Settings />, path: '/global-rules', permission: 'global_rules:view' },
+  { text: 'App Rules', icon: <FormatListBulleted />, path: '/app-rules', permission: 'app_rules:list' },
+  { text: 'Global Rules', icon: <Gavel />, path: '/global-rules', permission: 'global_rules:view' },
+  { text: 'Audit Logs', icon: <ReceiptLong />, path: '/audit-logs', permission: 'admin_audit_logs:view' },
+  { text: 'Login History', icon: <Login />, path: '/login-history', permission: 'login_history:list' },
   { text: 'App Management', icon: <AdminPanelSettings />, path: '/app-management', permission: 'admin:full_access' },
-  { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
+  { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   { text: 'Settings', icon: <Settings />, path: '/settings', permission: 'admin:full_access' },
 ];
 
@@ -120,13 +129,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
   const [isMounted, setIsMounted] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  const showSkeletons = !isMounted || !isInitialized || !user;
+
   const isAuthPage = pathname.startsWith('/auth');
 
-  const filteredMenuItems = React.useMemo(() => {
+  const isMenuItemActive = (item: MenuItem): boolean => {
+    if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');
+    if (item.subItems) return item.subItems.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path + '/'));
+    return false;
+  };
+
+  const filteredMenuItems = useMemo(() => {
     return menuItems
       .filter(item => !item.permission || hasPermission(item.permission))
       .map(item => {
@@ -149,10 +166,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       filteredMenuItems.forEach((item) => {
         if (item.subItems) {
-          const isChildActive = item.subItems.some(subItem =>
-            pathname === subItem.path || pathname.startsWith(subItem.path + '/')
-          );
-          // Auto-expand if child is active and it's not already open
+          const isChildActive = isMenuItemActive(item);
           if (isChildActive && !newState[item.text]) {
             newState[item.text] = true;
             changed = true;
@@ -230,16 +244,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (isMobile) setMobileOpen(false);
   };
 
-  const isMenuItemActive = (item: MenuItem): boolean => {
-    if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');
-    if (item.subItems) return item.subItems.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path + '/'));
-    return false;
-  };
-
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Toolbar sx={{ minHeight: '64px !important', height: 64, display: 'flex', alignItems: 'center', px: 2 }}>
-        <Box component="img" src="/assets/images/logo.svg" alt="Logo" sx={{ height: 40, width: 'auto', mr: 2 }} />
+        <Box component="img" src="/assets/images/email-template-logo.svg" alt="Logo" sx={{ height: 40, width: 'auto', mr: 2 }} />
       </Toolbar>
       <Divider />
       <Box sx={{ 
@@ -259,60 +267,108 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           },
         },
       }}>
-        <List>
-          {filteredMenuItems.map((item) => (
-            <React.Fragment key={item.text}>
-              <ListItem disablePadding>
-                <ListItemButton
-                  disableRipple
-                  selected={isMenuItemActive(item)}
-                  onClick={() => item.path ? handleNavigation(item.path) : setOpenSubMenus(prev => ({ ...prev, [item.text]: !prev[item.text] }))}
-                  sx={{
-                    py: 0.5,
-                    minHeight: 40,
-                    '&.Mui-selected': {
-                      background: item.subItems ? 'rgba(33, 51, 80, 0.08)' : 'linear-gradient(45deg, #213350, #6AB344)',
-                      color: item.subItems ? 'text.primary' : 'white',
-                      '& .MuiListItemIcon-root': { color: item.subItems ? '#213350' : 'white' },
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36, color: isMenuItemActive(item) ? (item.subItems ? '#213350' : 'white') : 'text.secondary' }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} sx={{ '& .MuiListItemText-primary': { fontSize: '0.78rem', fontWeight: isMenuItemActive(item) ? 600 : 400 } }} />
-                  {item.subItems && (openSubMenus[item.text] ? <ExpandLess /> : <ExpandMore />)}
-                </ListItemButton>
-              </ListItem>
-              {item.subItems && (
-                <Collapse in={openSubMenus[item.text]} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
-                    {item.subItems.map((subItem) => (
-                      <ListItemButton
-                        key={subItem.text}
-                        disableRipple
-                        selected={pathname === subItem.path}
-                        onClick={() => handleNavigation(subItem.path)}
-                        sx={{
-                          pl: 4, py: 0.4, minHeight: 32,
-                          '&.Mui-selected': { background: 'linear-gradient(45deg, #213350, #6AB344)', color: 'white', '& .MuiListItemIcon-root': { color: 'white' } }
-                        }}
-                      >
-                        <ListItemIcon sx={{ minWidth: 40, color: pathname === subItem.path ? 'white' : 'text.secondary' }}>{subItem.icon}</ListItemIcon>
-                        <ListItemText primary={subItem.text} sx={{ '& .MuiListItemText-primary': { fontSize: '0.75rem', fontWeight: pathname === subItem.path ? 600 : 400 } }} />
-                      </ListItemButton>
-                    ))}
-                  </List>
-                </Collapse>
-              )}
-            </React.Fragment>
-          ))}
+        <List sx={{ px: 1 }}>
+          {showSkeletons ? (
+            // Sidebar Skeleton
+            [...Array(10)].map((_, i) => (
+              <Box key={i} sx={{ px: 2, py: 1.2 }}>
+                <Skeleton variant="rectangular" height={32} sx={{ borderRadius: 1, opacity: 0.6 }} />
+              </Box>
+            ))
+          ) : (
+            filteredMenuItems.map((item, index) => (
+              <React.Fragment key={item.text + index}>
+                <ListItem disablePadding sx={{ mb: 0.3 }}>
+                  <ListItemButton
+                    component={item.path ? Link : 'div'}
+                    {...(item.path ? { href: item.path, prefetch: true } : {})}
+                    disableRipple
+                    selected={isMenuItemActive(item)}
+                    onClick={() => item.path ? (isMobile && setMobileOpen(false)) : setOpenSubMenus(prev => ({ ...prev, [item.text]: !prev[item.text] }))}
+                    sx={{
+                      py: 0.5,
+                      minHeight: 38,
+                      borderRadius: '8px',
+                      mx: 1,
+                      '&.Mui-selected': {
+                        background: item.subItems ? 'rgba(33, 51, 80, 0.06)' : 'linear-gradient(45deg, #213350, #6AB344)',
+                        color: item.subItems ? '#213350' : 'white',
+                        '& .MuiListItemIcon-root': { color: item.subItems ? '#213350' : 'white' },
+                      },
+                      '&:hover': {
+                        bgcolor: 'rgba(33, 51, 80, 0.04)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32, color: isMenuItemActive(item) ? (item.subItems ? '#213350' : 'white') : 'text.secondary' }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.text} 
+                      sx={{ 
+                        '& .MuiListItemText-primary': { 
+                          fontSize: '0.78rem', 
+                          fontWeight: isMenuItemActive(item) ? 600 : 500,
+                          letterSpacing: '0.01rem'
+                        } 
+                      }} 
+                    />
+                    {item.subItems && (openSubMenus[item.text] ? <ExpandLess sx={{ fontSize: '1.1rem' }} /> : <ExpandMore sx={{ fontSize: '1.1rem' }} />)}
+                  </ListItemButton>
+                </ListItem>
+                {item.subItems && (
+                  <Collapse in={openSubMenus[item.text]} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding sx={{ mb: 1 }}>
+                      {item.subItems.map((subItem) => (
+                        <ListItemButton
+                          key={subItem.text}
+                          component={Link}
+                          href={subItem.path}
+                          prefetch={true}
+                          disableRipple
+                          selected={pathname === subItem.path}
+                          onClick={() => isMobile && setMobileOpen(false)}
+                          sx={{
+                            pl: 4.5, py: 0.4, minHeight: 32,
+                            mx: 1,
+                            borderRadius: '6px',
+                            mb: 0.2,
+                            '&.Mui-selected': { 
+                              background: 'linear-gradient(45deg, #213350, #6AB344)', 
+                              color: 'white', 
+                              '& .MuiListItemIcon-root': { color: 'white' } 
+                            },
+                            '&:hover': {
+                              bgcolor: 'rgba(33, 51, 80, 0.04)',
+                            }
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 34, color: pathname === subItem.path ? 'white' : 'text.secondary' }}>
+                            <Box sx={{ scale: '0.85', display: 'flex' }}>{subItem.icon}</Box>
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={subItem.text} 
+                            sx={{ 
+                              '& .MuiListItemText-primary': { 
+                                fontSize: '0.75rem', 
+                                fontWeight: pathname === subItem.path ? 600 : 400 
+                              } 
+                            }} 
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Collapse>
+                )}
+              </React.Fragment>
+            ))
+          )}
         </List>
       </Box>
     </Box>
   );
 
-  if (!isMounted) return null;
+  // if (!isMounted) return null; // Removed to prevent flickering
 
   if (isAuthPage) return <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>{children}</Box>;
 
@@ -352,29 +408,39 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Divider />
               <MenuItem onClick={handleMarkAllNotificationsRead} sx={{ justifyContent: 'center', color: 'primary.main' }}>Read all</MenuItem>
             </Menu>
-            <Box onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', ml: 1 }}>
-              <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{user?.name}</Typography>
-                {user?.userType && 
-                 user.userType.toUpperCase() !== 'STAFF' && 
-                 user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
-                  <Typography variant="caption" color="text.secondary">
-                    {user?.userType}
-                  </Typography>
-                )}
+            {showSkeletons ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Skeleton variant="circular" width={38} height={38} />
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Skeleton width={80} height={20} />
+                  <Skeleton width={50} height={14} />
+                </Box>
               </Box>
-              <Avatar sx={{ 
-                width: 38, 
-                height: 38, 
-                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                border: '2px solid #fff', 
-                boxShadow: '0 2px 10px rgba(33, 51, 80, 0.15)',
-                fontWeight: 700,
-                fontSize: '1rem'
-              }}>
-                {user?.name?.[0]}
-              </Avatar>
-            </Box>
+            ) : (
+              <Box onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', ml: 1 }}>
+                <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{user?.name}</Typography>
+                  {user?.userType && 
+                   user.userType.toUpperCase() !== 'STAFF' && 
+                   user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
+                    <Typography variant="caption" color="text.secondary">
+                      {user?.userType}
+                    </Typography>
+                  )}
+                </Box>
+                <Avatar sx={{ 
+                  width: 38, 
+                  height: 38, 
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                  border: '2px solid #fff', 
+                  boxShadow: '0 2px 10px rgba(33, 51, 80, 0.15)',
+                  fontWeight: 700,
+                  fontSize: '1rem'
+                }}>
+                  {user?.name?.[0]}
+                </Avatar>
+              </Box>
+            )}
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{ sx: { width: 220, mt: 1.5, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', borderRadius: 2 } }}>
               <Box sx={{ px: 2, py: 1.5 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{user?.name}</Typography>
