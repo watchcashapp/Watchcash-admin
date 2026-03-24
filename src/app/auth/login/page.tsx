@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
+import Image from "next/image";
 import { Box, Paper, Typography, Grid, Link, Button, CircularProgress } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -156,12 +157,14 @@ function LoginForm() {
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-          <Box
-            component="img"
+          <Image
             src="/assets/images/logo.svg"
             alt="WatchCash Logo"
-            sx={{
-              height: 48,
+            width={180}
+            height={48}
+            priority
+            style={{
+              height: '48px',
               width: 'auto',
             }}
           />

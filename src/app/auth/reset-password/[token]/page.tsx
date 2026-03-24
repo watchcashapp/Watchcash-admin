@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, TextField, Button, Container } from "@mui/material";
+import { Box, Paper, Typography, Grid, TextField, Button, Container, CircularProgress } from "@mui/material";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useToast, Input } from "@/components/shared";
 import { useResetPasswordMutation } from "@/store/api/authApi";
@@ -45,113 +46,164 @@ export default function ResetPassword() {
     }
   };
 
-  if (!mounted) return null;
-
   return (
-    <Container maxWidth="sm">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: { xs: 2, sm: 3 },
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        position: 'relative',
+      }}
+    >
+      {/* Background decoration */}
       <Box
         sx={{
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 20% 50%, rgba(33, 51, 80, 0.3) 0%, transparent 50%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <Paper
+        elevation={12}
+        sx={{
+          width: "100%",
+          maxWidth: 420,
+          p: { xs: 3, sm: 4 },
+          borderRadius: 4,
+          bgcolor: 'background.paper',
+          backdropFilter: 'blur(20px)',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0, 0, 0, 0.6)'
+            : '0 20px 40px rgba(0, 0, 0, 0.15)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
-        <Paper
-          elevation={3}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Image
+            src="/assets/images/logo.svg"
+            alt="WatchCash Logo"
+            width={180}
+            height={48}
+            priority
+            style={{
+              height: '48px',
+              width: 'auto',
+            }}
+          />
+        </Box>
+
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          textAlign="center"
           sx={{
-            width: "100%",
-            p: { xs: 3, sm: 4 },
-            borderRadius: 4,
-            maxWidth: { xs: '100%', sm: 480 }
+            fontSize: { xs: '1.75rem', sm: '2rem' },
+            fontWeight: 700,
+            color: 'primary.main',
+            mb: 3,
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <Box
-              component="img"
-              src="/assets/images/logo.svg"
-              alt="WatchCash Logo"
-              sx={{
-                height: 48,
-                width: 'auto',
-              }}
-            />
+          Set New Password
+        </Typography>
+
+        <Typography
+          variant="body2"
+          textAlign="center"
+          color="text.secondary"
+          sx={{ mb: 3 }}
+        >
+          Enter your new password below
+        </Typography>
+
+        {!mounted ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={24} />
           </Box>
-
-          <Typography
-            variant="h4"
-            component="h1"
-            gutterBottom
-            textAlign="center"
-            sx={{
-              fontSize: { xs: '1.75rem', sm: '2rem' },
-              fontWeight: 600,
-              color: 'primary.main'
-            }}
-          >
-            Set New Password
+        ) : !token ? (
+          <Typography color="error" textAlign="center">
+            Invalid or missing token.
           </Typography>
-
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
-            Enter your new password below
-          </Typography>
-
-          {!token ? (
-            <Typography color="error" textAlign="center">
-              Invalid or missing token.
-            </Typography>
-          ) : (
-            <Box component="form" onSubmit={handleSubmit} noValidate>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                  <Input
-                    label="New Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    error={!!errors.password}
-                    helperText={errors.password}
-                    required
-                    fullWidth
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Input
-                    label="Confirm Password"
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    error={!!errors.confirm}
-                    helperText={errors.confirm}
-                    required
-                    fullWidth
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    disabled={isLoading}
-                    size="large"
-                    suppressHydrationWarning
-                  >
-                    {isLoading ? "Saving..." : "Save New Password"}
-                  </Button>
-                </Grid>
+        ) : (
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <Input
+                  label="New Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  required
+                  fullWidth
+                />
               </Grid>
-            </Box>
-          )}
-        </Paper>
-      </Box>
-    </Container>
+
+              <Grid size={{ xs: 12 }}>
+                <Input
+                  label="Confirm Password"
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  error={!!errors.confirm}
+                  helperText={errors.confirm}
+                  required
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={isLoading}
+                  size="large"
+                  sx={{
+                    height: '48px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    background: 'linear-gradient(45deg, #213350, #6AB344)',
+                    boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                      boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
+                      transform: 'translateY(-2px)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(0)',
+                    },
+                  }}
+                >
+                  {isLoading ? "Saving..." : "Save New Password"}
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+      </Paper>
+    </Box>
   );
 }

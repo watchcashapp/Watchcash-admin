@@ -2,6 +2,7 @@
 
 import React, { useState, Suspense } from "react";
 import { Box, Paper, Typography, Grid, Link, TextField, Button, CircularProgress } from "@mui/material";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { useRegisterMutation } from "@/store/api/authApi";
@@ -130,7 +131,7 @@ function SignupForm() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%)',
+          background: 'radial-gradient(circle at 20% 50%, rgba(33, 51, 80, 0.3) 0%, transparent 50%)',
           pointerEvents: 'none',
         }}
       />
@@ -142,14 +143,31 @@ function SignupForm() {
           maxWidth: 420,
           p: { xs: 3, sm: 4 },
           borderRadius: 4,
-          background: 'rgba(255, 255, 255, 0.98)',
+          bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0, 0, 0, 0.6)'
+            : '0 20px 40px rgba(0, 0, 0, 0.15)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
           position: 'relative',
           zIndex: 1,
         }}
       >
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Image
+            src="/assets/images/logo.svg"
+            alt="WatchCash Logo"
+            width={180}
+            height={48}
+            priority
+            style={{
+              height: '48px',
+              width: 'auto',
+            }}
+          />
+        </Box>
         <Typography
           variant="h4"
           component="h1"

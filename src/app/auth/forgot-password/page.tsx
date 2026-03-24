@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Box, Paper, Typography, Grid, Link, TextField, Button } from "@mui/material";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared";
 import { useForgotPasswordMutation } from "@/store/api/authApi";
@@ -82,12 +83,14 @@ export default function ForgotPassword() {
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-          <Box
-            component="img"
+          <Image
             src="/assets/images/logo.svg"
             alt="WatchCash Logo"
-            sx={{
-              height: 48,
+            width={180}
+            height={48}
+            priority
+            style={{
+              height: '48px',
               width: 'auto',
             }}
           />
