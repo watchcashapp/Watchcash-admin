@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -16,7 +16,6 @@ import {
   TextField,
 } from "@mui/material";
 import { Add } from "@mui/icons-material";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import { DataTable, useToast, ConfirmDialog } from "@/components/shared";
 import {
   useGetRolesQuery,
@@ -26,27 +25,17 @@ import {
   Role,
 } from "@/store/api/rbacApi";
 import { usePermissions } from "@/hooks/usePermissions";
+import { PermissionGuard } from "@/components/shared/PermissionGuard";
 
 export default function RbacRulesPage() {
   const router = useRouter();
-  const { hasPermission, isInitialized } = usePermissions();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
-
+  const { hasPermission } = usePermissions();
   const { showSuccess, showError } = useToast();
+  
   const { data: rolesData, isLoading, error } = useGetRolesQuery(undefined, {
-    // Don't retry on error to avoid blocking the page
     refetchOnMountOrArgChange: false,
   });
+  
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
   const [deleteRole] = useDeleteRoleMutation();
@@ -96,13 +85,12 @@ export default function RbacRulesPage() {
     setErrors({});
   };
 
-  // Auto-generate code from name
   const generateCode = (name: string): string => {
     return name
       .trim()
       .toUpperCase()
-      .replace(/[^A-Z0-9\s]/g, '') // Remove special characters
-      .replace(/\s+/g, '_'); // Replace spaces with underscores
+      .replace(/[^A-Z0-9\s]/g, '')
+      .replace(/\s+/g, '_');
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,37 +98,24 @@ export default function RbacRulesPage() {
     setFormData({
       ...formData,
       name: newName,
-      // Only auto-generate code when creating new role
       code: editingRole ? formData.code : generateCode(newName),
     });
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-    if (!formData.code.trim()) {
-      newErrors.code = "Code is required";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.code.trim()) newErrors.code = "Code is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     try {
       if (editingRole) {
-        await updateRole({
-          id: editingRole.id,
-          ...formData,
-        }).unwrap();
+        await updateRole({ id: editingRole.id, ...formData }).unwrap();
         showSuccess("Role updated successfully!");
       } else {
         await createRole(formData).unwrap();
@@ -148,25 +123,22 @@ export default function RbacRulesPage() {
       }
       handleCloseDialog();
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || "Operation failed";
-      showError(errorMessage);
+      showError(error?.data?.message || error?.message || "Operation failed");
     }
   };
 
   const handleDelete = async () => {
     if (!deleteConfirm.role) return;
-
     try {
       await deleteRole(deleteConfirm.role.id).unwrap();
       showSuccess("Role deleted successfully!");
       setDeleteConfirm({ open: false, role: null });
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || "Failed to delete role";
-      showError(errorMessage);
+      showError(error?.data?.message || error?.message || "Failed to delete role");
     }
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     { id: "name", label: "Name", minWidth: 150 },
     { id: "code", label: "Code", minWidth: 120 },
     { id: "description", label: "Description", minWidth: 200 },
@@ -174,51 +146,27 @@ export default function RbacRulesPage() {
       id: "createdAt",
       label: "Created At",
       minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleDateString(),
+      format: (value: string) => value ? new Date(value).toLocaleDateString() : 'N/A',
     },
-  ];
+  ], []);
 
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box>
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            background: "linear-gradient(45deg, #213350, #6AB344)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            mb: 1,
-          }}
-        >
-          RBAC Rules
-        </Typography>
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          Failed to load RBAC roles. The backend endpoint might not be available yet.
-          <br />
-          Error: {JSON.stringify(error)}
-        </Alert>
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          This page requires the following backend endpoint:
-          <br />
-          <code>GET /admin/rbac/roles</code>
-        </Alert>
+        <CircularProgress sx={{ color: (theme: any) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
       </Box>
     );
   }
 
   return (
-    <Box>
+    <PermissionGuard permission="rbac:manage_roles">
+      <Box>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            Failed to load RBAC roles. The backend endpoint might not be available yet.
+          </Alert>
+        )}
+        
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography
             variant="h5"
@@ -255,11 +203,10 @@ export default function RbacRulesPage() {
         <DataTable
           columns={columns}
           data={rolesData?.data || []}
-          getRowId={(row) => row.id}
-          onEdit={(row) => handleOpenDialog(row)}
+          getRowId={(row: any) => row.id}
+          onEdit={(row: any) => handleOpenDialog(row)}
         />
 
-        {/* Create/Edit Dialog */}
         <Dialog
           open={openDialog}
           onClose={handleCloseDialog}
@@ -270,7 +217,7 @@ export default function RbacRulesPage() {
               sx: {
                 borderRadius: 3,
                 bgcolor: 'background.paper',
-                boxShadow: (theme) => theme.palette.mode === 'dark'
+                boxShadow: (theme: any) => theme.palette.mode === 'dark'
                   ? '0 8px 32px rgba(0, 0, 0, 0.6)'
                   : '0 8px 32px rgba(0, 0, 0, 0.1)',
               }
@@ -365,7 +312,6 @@ export default function RbacRulesPage() {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation */}
         <ConfirmDialog
           open={deleteConfirm.open}
           title="Delete Role"
@@ -374,5 +320,6 @@ export default function RbacRulesPage() {
           onCancel={() => setDeleteConfirm({ open: false, role: null })}
         />
       </Box>
+    </PermissionGuard>
   );
 }

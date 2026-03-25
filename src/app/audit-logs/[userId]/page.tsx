@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box,
     Typography,
@@ -9,44 +9,32 @@ import {
     TextField,
     InputAdornment,
     Button,
+    IconButton,
 } from '@mui/material';
 import { Search, ArrowBack, NavigateBefore, NavigateNext } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
-
 import { useRouter, useParams } from 'next/navigation';
-
 import { DataTable, useToast } from '@/components/shared';
 import { useGetAuditLogsByUserQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 
 export default function AuditLogsUserPage() {
     const router = useRouter();
-    const { hasPermission, isInitialized } = usePermissions();
     const { showError } = useToast();
     const params = useParams();
     const userId = params.userId as string;
 
     const rowsPerPage = 6;
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
+    const { hasPermission } = usePermissions();
 
     // Filters
     const [actionSearch, setActionSearch] = useState('');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
 
-    const [isMounted, setIsMounted] = useState(false);
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (isMounted && isInitialized && !hasPermission('admin_audit_logs:view')) {
-            router.push('/dashboard');
-        }
-    }, [isMounted, isInitialized, hasPermission, router]);
-
-    const queryArgs = React.useMemo(() => ({
+    const queryArgs = useMemo(() => ({
         user_id: userId,
         cursor,
         limit: rowsPerPage,
@@ -64,17 +52,17 @@ export default function AuditLogsUserPage() {
         refetchOnMountOrArgChange: true,
     });
 
-    const columns = [
+    const columns = useMemo(() => [
         {
             id: 'createdAt',
             label: 'Date',
             minWidth: 140,
-            format: (value: string) => isMounted ? new Date(value).toLocaleString('en-US', {
+            format: (value: string) => value ? new Date(value).toLocaleString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-            }) : '',
+            }) : 'N/A',
         },
         {
             id: 'action',
@@ -88,7 +76,7 @@ export default function AuditLogsUserPage() {
                     textTransform: 'capitalize',
                     lineHeight: 1.2
                 }}>
-                    {value.toLowerCase().replace(/_/g, ' ')}
+                    {value?.toLowerCase().replace(/_/g, ' ')}
                 </Typography>
             ),
         },
@@ -137,10 +125,10 @@ export default function AuditLogsUserPage() {
                 </Typography>
             ),
         },
-    ];
+    ], []);
 
     return (
-        <>
+        <PermissionGuard permission="admin_audit_logs:view">
             <Box mb={1.5}>
                 <Button
                     startIcon={<ArrowBack />}
@@ -178,10 +166,10 @@ export default function AuditLogsUserPage() {
                     p: 1.5,
                     mb: 2,
                     bgcolor: 'background.paper',
-                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                    boxShadow: (theme: any) => theme.palette.mode === 'dark'
                         ? '0 4px 12px rgba(0, 0, 0, 0.3)'
                         : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                    border: (theme) => theme.palette.mode === 'dark'
+                    border: (theme: any) => theme.palette.mode === 'dark'
                         ? '1px solid rgba(255, 255, 255, 0.1)'
                         : '1px solid rgba(0, 0, 0, 0.08)',
                     borderRadius: 1.5,
@@ -227,6 +215,7 @@ export default function AuditLogsUserPage() {
                             value={fromDate}
                             onChange={(e) => {
                                 setFromDate(e.target.value);
+                                reset();
                             }}
                             size="small"
                             fullWidth
@@ -253,6 +242,7 @@ export default function AuditLogsUserPage() {
                             value={toDate}
                             onChange={(e) => {
                                 setToDate(e.target.value);
+                                reset();
                             }}
                             size="small"
                             fullWidth
@@ -311,6 +301,6 @@ export default function AuditLogsUserPage() {
                     </Box>
                 ) : null}
             />
-        </>
+        </PermissionGuard>
     );
 }

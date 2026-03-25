@@ -122,6 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     isMarkingAllRead: isMarkingAllNotificationsRead,
   } = useNotifications();
 
+  const isAuthPage = pathname.startsWith('/auth');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState<null | HTMLElement>(null);
@@ -150,6 +151,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsMounted(true);
   }, []);
 
+  // Client-side redirect if not authenticated and trying to access a protected route
+  useEffect(() => {
+    if (isMounted && isInitialized && !isAuthenticated && !isAuthPage) {
+      router.push(`/auth/login?returnTo=${encodeURIComponent(pathname)}`);
+    }
+  }, [isMounted, isInitialized, isAuthenticated, isAuthPage, pathname, router]);
+
   // Proactively prefetch all visible menu items once initialized
   useEffect(() => {
     if (!showSkeletons && filteredMenuItems.length > 0) {
@@ -161,8 +169,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       });
     }
   }, [showSkeletons, filteredMenuItems, router]);
-
-  const isAuthPage = pathname.startsWith('/auth');
 
   const isMenuItemActive = (item: MenuItem): boolean => {
     if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');

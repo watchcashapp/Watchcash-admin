@@ -39,24 +39,12 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
-
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const { hasPermission, isInitialized } = usePermissions();
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('users:view')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
 
   if (loadingUser) {
     return (
@@ -91,237 +79,239 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Button
-          startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
-          onClick={() => router.push('/staff/users')}
+    <PermissionGuard permission="users:view">
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Button
+            startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
+            onClick={() => router.push('/staff/users')}
+            sx={{
+              height: '28px',
+              fontSize: '0.75rem',
+              '&:hover': {
+                backgroundColor: 'rgba(33, 51, 80, 0.08)',
+              },
+            }}
+          >
+            Back to Staff Users
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
+            onClick={() => router.push(`/staff/users/${resolvedParams.id}`)}
+            sx={{
+              height: '28px',
+              fontSize: '0.75rem',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+              },
+            }}
+          >
+            Edit User
+          </Button>
+        </Box>
+
+        <Typography
+          variant="h5"
           sx={{
-            height: '28px',
-            fontSize: '0.75rem',
-            '&:hover': {
-              backgroundColor: 'rgba(33, 51, 80, 0.08)',
-            },
-          }}
-        >
-          Back to Staff Users
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
-          onClick={() => router.push(`/staff/users/${resolvedParams.id}`)}
-          sx={{
-            height: '28px',
-            fontSize: '0.75rem',
+            mb: 1,
+            fontWeight: 700,
+            fontSize: '1.1rem',
             background: 'linear-gradient(45deg, #213350, #6AB344)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-            },
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
           }}
         >
-          Edit User
-        </Button>
-      </Box>
+          Staff User Details
+        </Typography>
 
-      <Typography
-        variant="h5"
-        sx={{
-          mb: 1,
-          fontWeight: 700,
-          fontSize: '1.1rem',
-          background: 'linear-gradient(45deg, #213350, #6AB344)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        Staff User Details
-      </Typography>
+        <Paper
+          sx={{
+            bgcolor: 'background.paper',
+            p: 3,
 
-      <Paper
-        sx={{
-          bgcolor: 'background.paper',
-          p: 3,
-
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: 1.5,
-        }}
-      >
-        <Grid container spacing={1.5}>
-          {/* User Information */}
-          <Grid size={{ xs: 12 }}>
-            <Card
-              elevation={0}
-              sx={{
-                bgcolor: 'action.hover',
-                border: (theme) => theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.1)'
-                  : '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: 1,
-              }}
-            >
-              <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
-                  User Information
-                </Typography>
-                <Grid container spacing={1}>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                      Name
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                      {userResponse.name}
-                    </Typography>
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
+          }}
+        >
+          <Grid container spacing={1.5}>
+            {/* User Information */}
+            <Grid size={{ xs: 12 }}>
+              <Card
+                elevation={0}
+                sx={{
+                  bgcolor: 'action.hover',
+                  border: (theme) => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.08)',
+                  borderRadius: 1,
+                }}
+              >
+                <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
+                    User Information
+                  </Typography>
+                  <Grid container spacing={1}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                        Name
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                        {userResponse.name}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                        Email
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                        {userResponse.email}
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                        User Type
+                      </Typography>
+                      <Box mt={0.1}>
+                        <Chip
+                          label={userResponse.userType}
+                          size="small"
+                          sx={{
+                            height: '18px',
+                            fontSize: '0.65rem',
+                            background: userResponse.userType === 'ADMIN'
+                              ? 'linear-gradient(45deg, #213350, #6AB344)'
+                              : 'linear-gradient(45deg, #10b981, #059669)',
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                        Status
+                      </Typography>
+                      <Box mt={0.1}>
+                        <Chip
+                          label={userResponse.isActive ? 'Active' : 'Inactive'}
+                          size="small"
+                          sx={{
+                            height: '18px',
+                            fontSize: '0.65rem',
+                            background: userResponse.isActive
+                              ? 'linear-gradient(45deg, #10b981, #059669)'
+                              : 'linear-gradient(45deg, #6b7280, #4b5563)',
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                        Created At
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                        {userResponse.createdAt ? new Date(userResponse.createdAt).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }) : ''}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                      Email
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Roles */}
+            {userResponse.roles && userResponse.roles.length > 0 && (
+              <Grid size={{ xs: 12 }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    bgcolor: 'action.hover',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(0, 0, 0, 0.08)',
+                    borderRadius: 1,
+                  }}
+                >
+                  <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
+                      Roles
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
-                      {userResponse.email}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                      User Type
-                    </Typography>
-                    <Box mt={0.1}>
-                      <Chip
-                        label={userResponse.userType}
-                        size="small"
-                        sx={{
-                          height: '18px',
-                          fontSize: '0.65rem',
-                          background: userResponse.userType === 'ADMIN'
-                            ? 'linear-gradient(45deg, #213350, #6AB344)'
-                            : 'linear-gradient(45deg, #10b981, #059669)',
-                          color: 'white',
-                          fontWeight: 600,
-                        }}
-                      />
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                      {userResponse.roles.map((role: any) => (
+                        <Chip
+                          key={role.id}
+                          label={role.name}
+                          size="small"
+                          sx={{
+                            height: '20px',
+                            fontSize: '0.7rem',
+                            background: 'linear-gradient(45deg, #213350, #6AB344)',
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                      ))}
                     </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                      Status
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
+            {/* Permissions */}
+            {userResponse.permissions && userResponse.permissions.length > 0 && (
+              <Grid size={{ xs: 12 }}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    bgcolor: 'action.hover',
+                    border: (theme) => theme.palette.mode === 'dark'
+                      ? '1px solid rgba(255, 255, 255, 0.1)'
+                      : '1px solid rgba(0, 0, 0, 0.08)',
+                    borderRadius: 1,
+                  }}
+                >
+                  <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
+                      Permissions ({userResponse.permissions.length})
                     </Typography>
-                    <Box mt={0.1}>
-                      <Chip
-                        label={userResponse.isActive ? 'Active' : 'Inactive'}
-                        size="small"
-                        sx={{
-                          height: '18px',
-                          fontSize: '0.65rem',
-                          background: userResponse.isActive
-                            ? 'linear-gradient(45deg, #10b981, #059669)'
-                            : 'linear-gradient(45deg, #6b7280, #4b5563)',
-                          color: 'white',
-                          fontWeight: 600,
-                        }}
-                      />
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                      {userResponse.permissions.map((permission: any) => (
+                        <Chip
+                          key={permission.id}
+                          label={permission.code}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            height: '18px',
+                            fontSize: '0.65rem',
+                            borderColor: '#213350',
+                            color: 'text.primary',
+                          }}
+                        />
+                      ))}
                     </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                      Created At
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
-                      {isMounted ? new Date(userResponse.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }) : ''}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
           </Grid>
-
-          {/* Roles */}
-          {userResponse.roles && userResponse.roles.length > 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Card
-                elevation={0}
-                sx={{
-                  bgcolor: 'action.hover',
-                  border: (theme) => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(255, 255, 255, 0.1)'
-                    : '1px solid rgba(0, 0, 0, 0.08)',
-                  borderRadius: 1,
-                }}
-              >
-                <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
-                    Roles
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                    {userResponse.roles.map((role: any) => (
-                      <Chip
-                        key={role.id}
-                        label={role.name}
-                        size="small"
-                        sx={{
-                          height: '20px',
-                          fontSize: '0.7rem',
-                          background: 'linear-gradient(45deg, #213350, #6AB344)',
-                          color: 'white',
-                          fontWeight: 600,
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
-
-          {/* Permissions */}
-          {userResponse.permissions && userResponse.permissions.length > 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Card
-                elevation={0}
-                sx={{
-                  bgcolor: 'action.hover',
-                  border: (theme) => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(255, 255, 255, 0.1)'
-                    : '1px solid rgba(0, 0, 0, 0.08)',
-                  borderRadius: 1,
-                }}
-              >
-                <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 700, fontSize: '0.85rem', color: 'primary.main' }}>
-                    Permissions ({userResponse.permissions.length})
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                    {userResponse.permissions.map((permission: any) => (
-                      <Chip
-                        key={permission.id}
-                        label={permission.code}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          height: '18px',
-                          fontSize: '0.65rem',
-                          borderColor: '#213350',
-                          color: 'text.primary',
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
-        </Grid>
-      </Paper>
-    </Box>
+        </Paper>
+      </Box>
+    </PermissionGuard>
   );
 }

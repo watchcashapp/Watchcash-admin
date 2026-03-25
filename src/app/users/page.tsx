@@ -5,29 +5,17 @@ import { useRouter } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
 import UserManagementTable from "@/components/features/UserManagementTable";
 
+import { PermissionGuard } from "@/components/shared/PermissionGuard";
+
 export default function UsersPage() {
-  const router = useRouter();
-  const { hasPermission, isInitialized } = usePermissions();
-  const [isMounted, setIsMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('users:list')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
-
-  if (!isMounted) return null;
-
   return (
-    <UserManagementTable
+    <PermissionGuard permission="users:list">
+      <UserManagementTable
         title="User Management"
         defaultUserType="APP"
         hideUserTypeFilter={true}
         viewRoute="/users/view"
       />
+    </PermissionGuard>
   );
 }

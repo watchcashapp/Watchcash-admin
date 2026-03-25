@@ -12,7 +12,13 @@ export function middleware(req: NextRequest) {
   const specialRoutes = ['/auth/reset-password'];
   
   // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/admin', '/profile', '/users', '/staff', '/reward-redemptions', '/sessions', '/app-rules', '/global-rules'];
+  const protectedRoutes = [
+    '/dashboard', '/admin', '/profile', '/users', '/staff', 
+    '/reward-redemptions', '/reward-catalog', '/sessions', 
+    '/app-rules', '/global-rules', '/rbac-rules',
+    '/app-management', '/ads-management', '/audit-logs',
+    '/login-history', '/notifications', '/settings'
+  ];
 
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
   const isSpecialRoute = specialRoutes.some(route => pathname.startsWith(route));

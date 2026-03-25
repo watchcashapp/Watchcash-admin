@@ -30,9 +30,11 @@ const statusOptions = [
   { value: 'failed', label: 'Failed' },
 ];
 
+import { useMemo } from 'react';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+
 export default function SessionsPage() {
   const router = useRouter();
-  const { hasPermission, isInitialized } = usePermissions();
   const { showError } = useToast();
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
@@ -40,19 +42,8 @@ export default function SessionsPage() {
   const [deviceId, setDeviceId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [isMounted, setIsMounted] = useState(false);
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
-  const hasFilters = status || userId || deviceId || fromDate || toDate;
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('sessions:view_sessions_count') && !hasPermission('sessions:view_live')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
+  const { hasPermission } = usePermissions();
 
   // Reset page when filters change
   useEffect(() => {
@@ -96,7 +87,7 @@ export default function SessionsPage() {
     return `${minutes}m ${seconds}s`;
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       id: 'session_id',
       label: 'Session ID',
@@ -150,7 +141,7 @@ export default function SessionsPage() {
       id: 'created_at',
       label: 'Created At',
       minWidth: 180,
-      format: (value: any) => isMounted ? new Date(value).toLocaleString() : '',
+      format: (value: any) => value ? new Date(value).toLocaleString() : 'N/A',
     },
     {
       id: 'actions',
@@ -179,309 +170,311 @@ export default function SessionsPage() {
         </Tooltip>
       ),
     },
-  ];
+  ], [hasPermission, router, showError]);
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          Session Management
-        </Typography>
-        {hasPermission('sessions:view_live') && (
-          <Button
-            variant="contained"
-            onClick={() => {
-              // ... export logic
-              const queryParams = new URLSearchParams();
-              if (status) queryParams.append("status", status);
-              if (userId) queryParams.append("userId", userId);
-              if (deviceId) queryParams.append("deviceId", deviceId);
-              if (fromDate) queryParams.append("from", fromDate);
-              if (toDate) queryParams.append("to", toDate);
-
-              const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
-              const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
-
-              // Trigger download using fetch
-              fetch(url, {
-                headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'ngrok-skip-browser-warning': 'true'
-                }
-              })
-                .then(response => response.blob())
-                .then(blob => {
-                  const downloadUrl = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = downloadUrl;
-                  a.download = `sessions_export_${new Date().getTime()}.csv`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  window.URL.revokeObjectURL(downloadUrl);
-                })
-                .catch(err => {
-
-                  showError('Failed to export sessions');
-                });
-            }}
+    <PermissionGuard permission={['sessions:view_sessions_count', 'sessions:view_live']}>
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+          <Typography
             sx={{
-              height: '30px',
-              fontSize: '0.75rem',
+              fontWeight: 700,
+              fontSize: '1.1rem',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
-              boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
-              px: 2,
-              '&:hover': {
-                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
-              },
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
-            EXPORT CSV
-          </Button>
+            Session Management
+          </Typography>
+          {hasPermission('sessions:view_live') && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                // ... export logic
+                const queryParams = new URLSearchParams();
+                if (status) queryParams.append("status", status);
+                if (userId) queryParams.append("userId", userId);
+                if (deviceId) queryParams.append("deviceId", deviceId);
+                if (fromDate) queryParams.append("from", fromDate);
+                if (toDate) queryParams.append("to", toDate);
+
+                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+                const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
+
+                // Trigger download using fetch
+                fetch(url, {
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'ngrok-skip-browser-warning': 'true'
+                  }
+                })
+                  .then(response => response.blob())
+                  .then(blob => {
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `sessions_export_${new Date().getTime()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                  })
+                  .catch(err => {
+
+                    showError('Failed to export sessions');
+                  });
+              }}
+              sx={{
+                height: '30px',
+                fontSize: '0.75rem',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
+                px: 2,
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+                },
+              }}
+            >
+              EXPORT CSV
+            </Button>
+          )}
+        </Box>
+
+        {/* Filters */}
+        <Paper
+          sx={{
+            p: 1.5,
+            mb: 2,
+            bgcolor: 'background.paper',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
+          }}
+        >
+          <Grid container spacing={1.5} alignItems="center">
+            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+              <TextField
+                label="User ID"
+                value={userId}
+                onChange={(e) => {
+                  setUserId(e.target.value);
+                }}
+                size="small"
+                fullWidth
+                placeholder="Search by user ID"
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+              <TextField
+                label="Device ID"
+                value={deviceId}
+                onChange={(e) => {
+                  setDeviceId(e.target.value);
+                }}
+                size="small"
+                fullWidth
+                placeholder="Search by device ID"
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <TextField
+                select
+                label="Status"
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                }}
+                size="small"
+                fullWidth
+                slotProps={{
+                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                  '& .MuiSelect-select': {
+                    py: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }
+                }}
+              >
+                {statusOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value} sx={{ fontSize: '0.75rem' }}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <TextField
+                label="From"
+                type="date"
+                value={fromDate}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                }}
+                size="small"
+                fullWidth
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <TextField
+                label="To"
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                }}
+                size="small"
+                fullWidth
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 1 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => {
+                  setStatus('');
+                  setUserId('');
+                  setDeviceId('');
+                  setFromDate('');
+                  setToDate('');
+                  reset();
+                }}
+                sx={{
+                  height: '32px',
+                  borderColor: '#213350',
+                  color: '#213350',
+                  '&:hover': {
+                    borderColor: '#6AB344',
+                    backgroundColor: 'rgba(33, 51, 80, 0.04)',
+                  },
+                  fontSize: '0.7rem',
+                  minWidth: { xs: 'auto', md: '80px' },
+                }}
+              >
+                Clear
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Sessions Table */}
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <DataTable
+              columns={columns}
+              data={sessions}
+              getRowId={(row: any) => row.session_id || row.id}
+            />
+
+            {/* Pagination */}
+            {sessionsData && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Showing {sessions.length}{typeof pagination?.total === 'number' ? ` of ${pagination.total}` : ''} results
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <IconButton
+                    size="small"
+                    onClick={goPrevious}
+                    disabled={!canGoBack}
+                    sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
+                  >
+                    <NavigateBefore />
+                  </IconButton>
+                  <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
+                    Page {pageNumber}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => goNext(pagination?.nextCursor)}
+                    disabled={!pagination?.hasMore || !pagination?.nextCursor}
+                    sx={{ color: !pagination?.hasMore || !pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
+                  >
+                    <NavigateNext />
+                  </IconButton>
+                </Box>
+              </Box>
+            )}
+          </>
         )}
       </Box>
-
-      {/* Filters */}
-      <Paper
-        sx={{
-          p: 1.5,
-          mb: 2,
-          bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: 1.5,
-        }}
-      >
-        <Grid container spacing={1.5} alignItems="center">
-          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-            <TextField
-              label="User ID"
-              value={userId}
-              onChange={(e) => {
-                setUserId(e.target.value);
-              }}
-              size="small"
-              fullWidth
-              placeholder="Search by user ID"
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-            <TextField
-              label="Device ID"
-              value={deviceId}
-              onChange={(e) => {
-                setDeviceId(e.target.value);
-              }}
-              size="small"
-              fullWidth
-              placeholder="Search by device ID"
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              select
-              label="Status"
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-              }}
-              size="small"
-              fullWidth
-              slotProps={{
-                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                },
-                '& .MuiSelect-select': {
-                  py: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }
-              }}
-            >
-              {statusOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value} sx={{ fontSize: '0.75rem' }}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="From"
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-              }}
-              size="small"
-              fullWidth
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              label="To"
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-              }}
-              size="small"
-              fullWidth
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 1 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                setStatus('');
-                setUserId('');
-                setDeviceId('');
-                setFromDate('');
-                setToDate('');
-                reset();
-              }}
-              sx={{
-                height: '32px',
-                borderColor: '#213350',
-                color: '#213350',
-                '&:hover': {
-                  borderColor: '#6AB344',
-                  backgroundColor: 'rgba(33, 51, 80, 0.04)',
-                },
-                fontSize: '0.7rem',
-                minWidth: { xs: 'auto', md: '80px' },
-              }}
-            >
-              Clear
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Sessions Table */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          <DataTable
-            columns={columns}
-            data={sessions}
-            getRowId={(row: any) => row.session_id || row.id}
-          />
-
-          {/* Pagination */}
-          {sessionsData && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Showing {sessions.length}{typeof pagination?.total === 'number' ? ` of ${pagination.total}` : ''} results
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <IconButton
-                  size="small"
-                  onClick={goPrevious}
-                  disabled={!canGoBack}
-                  sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
-                >
-                  <NavigateBefore />
-                </IconButton>
-                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                  Page {pageNumber}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => goNext(pagination?.nextCursor)}
-                  disabled={!pagination?.hasMore || !pagination?.nextCursor}
-                  sx={{ color: !pagination?.hasMore || !pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
-                >
-                  <NavigateNext />
-                </IconButton>
-              </Box>
-            </Box>
-          )}
-        </>
-      )}
-    </Box>
+    </PermissionGuard>
   );
 }

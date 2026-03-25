@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -23,19 +23,16 @@ import {
   Avatar,
   Stack,
   Card,
-  CardContent,
   Skeleton,
-  Divider,
 } from '@mui/material';
-import { Search, FilterList, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
+import { Search, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
 import { useToast, FileUploadZone } from '@/components/shared';
 import { config } from '@/config/env';
 import { 
   useGetRewardCatalogsQuery, 
-  useUploadRewardCatalogMutation,
   RewardCatalog 
 } from '@/store/api/rewardCatalogsApi';
-import { useRef, useMemo } from 'react';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 
 function CatalogSkeleton() {
   return (
@@ -88,10 +85,8 @@ export default function RewardCatalogPage() {
   const [limit] = useState(12);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [allRewards, setAllRewards] = useState<RewardCatalog[]>([]);
-  const [uploadRewardCatalog] = useUploadRewardCatalogMutation();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isManualUploading, setIsManualUploading] = useState(false);
-  const isUploading = isManualUploading;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading, isFetching, refetch } = useGetRewardCatalogsQuery({
@@ -102,7 +97,7 @@ export default function RewardCatalogPage() {
     cursor,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (data?.items) {
       if (!cursor) {
         setAllRewards(data.items);
@@ -111,32 +106,35 @@ export default function RewardCatalogPage() {
       }
     }
   }, [data, cursor]);
+
   const showSkeletons = (isLoading || (isFetching && !cursor)) && allRewards.length === 0;
-  const displayedRewards = allRewards.length > 0 ? allRewards : (!cursor && data?.items ? data.items : []);
+  const displayedRewards = useMemo(() => {
+    if (allRewards.length > 0) return allRewards;
+    return (!cursor && data?.items) ? data.items : [];
+  }, [allRewards, cursor, data?.items]);
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
     setCursor(undefined);
+    setAllRewards([]);
   };
 
   const handleStatusChange = (val: string) => {
     setStatus(val);
     setCursor(undefined);
+    setAllRewards([]);
   };
 
   const handleCurrencyChange = (val: string) => {
     setCurrency(val);
     setCursor(undefined);
+    setAllRewards([]);
   };
 
   const handleLoadMore = () => {
     if (data?.pagination?.nextCursor) {
       setCursor(data.pagination.nextCursor);
     }
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,7 +168,6 @@ export default function RewardCatalogPage() {
       }
 
       showSuccess('Reward catalog updated successfully');
-      // Reset state for a fresh fetch
       setCursor(undefined);
       setAllRewards([]);
       refetch();
@@ -183,8 +180,6 @@ export default function RewardCatalogPage() {
   };
 
   const handleFileSelect = (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
     handleFileChange({ target: { files: [file] } } as any);
   };
 
@@ -198,7 +193,8 @@ export default function RewardCatalogPage() {
   };
 
   return (
-    <Box>
+    <PermissionGuard permission="reward_catalogs:list">
+      <Box>
         <Box 
           sx={{ 
             display: 'flex', 
@@ -487,7 +483,7 @@ export default function RewardCatalogPage() {
             </Button>
           </Box>
         )}
-        {/* Import CSV Dialog */}
+
         <Dialog 
           open={isImportDialogOpen} 
           onClose={() => !isManualUploading && setIsImportDialogOpen(false)}
@@ -530,5 +526,6 @@ export default function RewardCatalogPage() {
           </DialogActions>
         </Dialog>
       </Box>
-    );
+    </PermissionGuard>
+  );
 }

@@ -46,10 +46,12 @@ const PREDEFINED_REASONS = [
     { value: 'user_request_cancel', label: 'User Cancel' },
 ];
 
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+
 export default function RewardRedemptionDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const router = useRouter();
-    const { hasPermission, isInitialized } = usePermissions();
+    const { hasPermission } = usePermissions();
     const { showSuccess, showError } = useToast();
 
     const { data: response, isLoading, error } = useGetRewardRedemptionByIdQuery(resolvedParams.id);
@@ -68,17 +70,6 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
         admin_note: '',
         utid: '',
     });
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (isMounted && isInitialized && !hasPermission('reward_redemptions:list')) {
-            router.push('/dashboard');
-        }
-    }, [isMounted, isInitialized, hasPermission, router]);
 
     const handleReviewSubmit = async () => {
         try {
@@ -168,272 +159,284 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
     }
 
     return (
-        <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'hidden' }}>
-                {/* Header */}
-                <Box>
-                    <Box
-                        display="flex"
-                        alignItems="center"
-                        gap={0.5}
-                        sx={{
-                            cursor: 'pointer',
-                            mb: 0.5,
-                            color: 'text.secondary',
-                            '&:hover': { color: 'primary.main' },
-                            width: 'fit-content'
-                        }}
-                        onClick={() => router.push('/reward-redemptions')}
-                    >
-                        <ArrowBack sx={{ fontSize: 14 }} />
-                        <Typography variant="caption" sx={{ fontWeight: 600 }}>Back</Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Typography
-                            variant="h5"
+        <PermissionGuard permission="reward_redemptions:list">
+            <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', overflow: 'hidden' }}>
+                    {/* Header */}
+                    <Box>
+                        <Box
+                            display="flex"
+                            alignItems="center"
+                            gap={0.5}
                             sx={{
-                                fontWeight: 700,
-                                fontSize: '1.1rem',
-                                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
+                                cursor: 'pointer',
+                                mb: 0.5,
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' },
+                                width: 'fit-content'
                             }}
+                            onClick={() => router.push('/reward-redemptions')}
                         >
-                            Redemption Details
-                        </Typography>
-                        {hasPermission('reward_redemptions:mark_reviewed') && redemption.status === 'PENDING' && (
-                            <Button
-                                variant="contained"
-                                startIcon={<RateReview sx={{ fontSize: '1rem !important' }} />}
-                                onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
-                                disabled={isReviewing}
+                            <ArrowBack sx={{ fontSize: 14 }} />
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>Back</Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                            <Typography
+                                variant="h5"
                                 sx={{
-                                    height: '30px',
-                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    fontSize: '1.1rem',
                                     background: 'linear-gradient(45deg, #213350, #6AB344)',
-                                    '&:hover': { background: 'linear-gradient(45deg, #1a2940, #6AB344)' },
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text',
                                 }}
                             >
-                                {reviewDialogOpen ? 'Hide' : 'Review'}
-                            </Button>
-                        )}
-                    </Box>
-                </Box>
-
-                <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={3} alignItems="flex-start">
-                    {/* Main Content */}
-                    <Box sx={{ flex: 1, width: '100%' }}>
-                        <Paper
-                            sx={{
-                                p: 2,
-                                bgcolor: 'background.paper',
-                                boxShadow: (theme) => theme.palette.mode === 'dark'
-                                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-                                    : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                border: (theme) => theme.palette.mode === 'dark'
-                                    ? '1px solid rgba(255, 255, 255, 0.1)'
-                                    : '1px solid rgba(0, 0, 0, 0.05)',
-                                borderRadius: 1.5,
-                            }}
-                        >
-                            <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Status:</Typography>
-                                <Chip
-                                    label={redemption.status || 'UNKNOWN'}
+                                Redemption Details
+                            </Typography>
+                            {hasPermission('reward_redemptions:mark_reviewed') && redemption.status === 'PENDING' && (
+                                <Box
+                                    component="button"
+                                    onClick={() => setReviewDialogOpen(!reviewDialogOpen)}
+                                    disabled={isReviewing}
                                     sx={{
-                                        background: getStatusColor(redemption.status),
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        height: '30px',
+                                        px: 2,
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
                                         color: 'white',
-                                        fontWeight: 700,
-                                        fontSize: '0.65rem',
-                                        height: '20px',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: isReviewing ? 'not-allowed' : 'pointer',
+                                        background: 'linear-gradient(45deg, #213350, #6AB344)',
+                                        '&:hover': { background: 'linear-gradient(45deg, #1a2940, #6AB344)' },
+                                        '&:disabled': { opacity: 0.7 }
                                     }}
-                                />
-                            </Box>
+                                >
+                                    <RateReview sx={{ fontSize: '1rem' }} />
+                                    {reviewDialogOpen ? 'Hide' : 'Review'}
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
 
-                            <Divider sx={{ my: 1.5 }} />
+                    <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={3} alignItems="flex-start">
+                        {/* Main Content */}
+                        <Box sx={{ flex: 1, width: '100%' }}>
+                            <Paper
+                                sx={{
+                                    p: 2,
+                                    bgcolor: 'background.paper',
+                                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                                        ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                                        : '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    border: (theme) => theme.palette.mode === 'dark'
+                                        ? '1px solid rgba(255, 255, 255, 0.1)'
+                                        : '1px solid rgba(0, 0, 0, 0.05)',
+                                    borderRadius: 1.5,
+                                }}
+                            >
+                                <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Status:</Typography>
+                                    <Chip
+                                        label={redemption.status || 'UNKNOWN'}
+                                        sx={{
+                                            background: getStatusColor(redemption.status),
+                                            color: 'white',
+                                            fontWeight: 700,
+                                            fontSize: '0.65rem',
+                                            height: '20px',
+                                        }}
+                                    />
+                                </Box>
 
-                            <Grid container spacing={2}>
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
-                                        User Information
-                                    </Typography>
-                                    <Box display="flex" flexDirection="column" gap={1}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>User ID</Typography>
-                                            <Box
-                                                onClick={() => router.push(`/users/view/${redemption.userId}`)}
-                                                sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
-                                            >
-                                                {redemption.userId}
-                                            </Box>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Session ID</Typography>
-                                            <Box
-                                                onClick={() => router.push(`/sessions/${redemption.sessionId}`)}
-                                                sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
-                                            >
-                                                {redemption.sessionId}
-                                            </Box>
-                                        </Box>
-                                    </Box>
-                                </Grid>
+                                <Divider sx={{ my: 1.5 }} />
 
-                                <Grid size={{ xs: 12, md: 6 }}>
-                                    <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
-                                        Redemption Information
-                                    </Typography>
-                                    <Box display="flex" flexDirection="column" gap={1}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Reward Type & Value</Typography>
-                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.rewardType} - {redemption.rewardValue} {redemption.rewardCurrency}</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Points Deducted</Typography>
-                                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>-{redemption.points}</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Requested At</Typography>
-                                            <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                                                {redemption.createdAt && isMounted ? new Date(redemption.createdAt).toLocaleString() : (redemption.createdAt ? 'Loading...' : 'N/A')}
-                                            </Typography>
-                                        </Box>
-                                        {redemption.decidedAt && (
+                                <Grid container spacing={2}>
+                                    <Grid size={{ xs: 12, md: 6 }}>
+                                        <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
+                                            User Information
+                                        </Typography>
+                                        <Box display="flex" flexDirection="column" gap={1}>
                                             <Box>
-                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Decided At</Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>User ID</Typography>
+                                                <Box
+                                                    onClick={() => router.push(`/users/view/${redemption.userId}`)}
+                                                    sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
+                                                >
+                                                    {redemption.userId}
+                                                </Box>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Session ID</Typography>
+                                                <Box
+                                                    onClick={() => router.push(`/sessions/${redemption.sessionId}`)}
+                                                    sx={{ fontFamily: 'monospace', mt: 0.25, p: 0.5, bgcolor: 'action.hover', borderRadius: 0.5, cursor: 'pointer', color: 'primary.main', fontSize: '0.75rem', '&:hover': { textDecoration: 'underline' } }}
+                                                >
+                                                    {redemption.sessionId}
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid size={{ xs: 12, md: 6 }}>
+                                        <Typography variant="body2" gutterBottom sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mb: 1.5 }}>
+                                            Redemption Information
+                                        </Typography>
+                                        <Box display="flex" flexDirection="column" gap={1}>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Reward Type & Value</Typography>
+                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.rewardType} - {redemption.rewardValue} {redemption.rewardCurrency}</Typography>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Points Deducted</Typography>
+                                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>-{redemption.points}</Typography>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Requested At</Typography>
                                                 <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                                                    {isMounted ? new Date(redemption.decidedAt).toLocaleString() : 'Loading...'}
+                                                    {redemption.createdAt ? new Date(redemption.createdAt).toLocaleString() : 'N/A'}
                                                 </Typography>
                                             </Box>
-                                        )}
-                                    </Box>
-                                </Grid>
+                                            {redemption.decidedAt && (
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Decided At</Typography>
+                                                    <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                                                        {new Date(redemption.decidedAt).toLocaleString()}
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    </Grid>
 
-                                {(redemption.adminReasonCode || redemption.adminNote || redemption.tangoErrorMessage) && (
-                                    <Grid size={{ xs: 12 }}>
-                                        <Divider sx={{ my: 1 }} />
-                                        <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mt: 1, mb: 1.5 }}>
-                                            Additional Context
-                                        </Typography>
-                                        <Grid container spacing={2}>
-                                            <Grid size={{ xs: 12, md: 6 }}>
-                                                <Box display="flex" flexDirection="column" gap={1}>
-                                                    {redemption.adminReasonCode && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Reason Code</Typography>
-                                                            <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>{redemption.adminReasonCode}</Typography>
-                                                        </Box>
-                                                    )}
-                                                    {redemption.adminNote && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Note</Typography>
-                                                            <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.adminNote}</Typography>
-                                                        </Box>
-                                                    )}
-                                                </Box>
-                                            </Grid>
-                                            <Grid size={{ xs: 12, md: 6 }}>
-                                                <Box display="flex" flexDirection="column" gap={1}>
-                                                    {redemption.tangoOrderId && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Order ID</Typography>
-                                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoOrderId}</Typography>
-                                                        </Box>
-                                                    )}
-                                                    {redemption.tangoReferenceId && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Reference ID</Typography>
-                                                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoReferenceId}</Typography>
-                                                        </Box>
-                                                    )}
-                                                    {redemption.tangoErrorCode && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Code</Typography>
-                                                            <Typography variant="body2" color="error.main" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorCode}</Typography>
-                                                        </Box>
-                                                    )}
-                                                    {redemption.tangoErrorMessage && (
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Message</Typography>
-                                                            <Typography variant="body2" color="error.main" sx={{ fontStyle: 'italic', fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorMessage}</Typography>
-                                                        </Box>
-                                                    )}
-                                                </Box>
+                                    {(redemption.adminReasonCode || redemption.adminNote || redemption.tangoErrorMessage) && (
+                                        <Grid size={{ xs: 12 }}>
+                                            <Divider sx={{ my: 1 }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'primary.main', mt: 1, mb: 1.5 }}>
+                                                Additional Context
+                                            </Typography>
+                                            <Grid container spacing={2}>
+                                                <Grid size={{ xs: 12, md: 6 }}>
+                                                    <Box display="flex" flexDirection="column" gap={1}>
+                                                        {redemption.adminReasonCode && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Reason Code</Typography>
+                                                                <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>{redemption.adminReasonCode}</Typography>
+                                                            </Box>
+                                                        )}
+                                                        {redemption.adminNote && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Admin Note</Typography>
+                                                                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.adminNote}</Typography>
+                                                            </Box>
+                                                        )}
+                                                    </Box>
+                                                </Grid>
+                                                <Grid size={{ xs: 12, md: 6 }}>
+                                                    <Box display="flex" flexDirection="column" gap={1}>
+                                                        {redemption.tangoOrderId && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Order ID</Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoOrderId}</Typography>
+                                                            </Box>
+                                                        )}
+                                                        {redemption.tangoReferenceId && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Reference ID</Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoReferenceId}</Typography>
+                                                            </Box>
+                                                        )}
+                                                        {redemption.tangoErrorCode && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Code</Typography>
+                                                                <Typography variant="body2" color="error.main" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorCode}</Typography>
+                                                            </Box>
+                                                        )}
+                                                        {redemption.tangoErrorMessage && (
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Tango Error Message</Typography>
+                                                                <Typography variant="body2" color="error.main" sx={{ fontStyle: 'italic', fontWeight: 500, fontSize: '0.75rem' }}>{redemption.tangoErrorMessage}</Typography>
+                                                            </Box>
+                                                        )}
+                                                    </Box>
+                                                </Grid>
                                             </Grid>
                                         </Grid>
-                                    </Grid>
-                                )}
-                            </Grid>
-                        </Paper>
-                    </Box>
+                                    )}
+                                </Grid>
+                            </Paper>
+                        </Box>
 
-                    {/* Integrated Side Panel (Desktop) */}
-                    <Box
-                        sx={{
-                            display: { xs: 'none', lg: reviewDialogOpen ? 'flex' : 'none' },
-                            flexDirection: 'column',
-                            width: 380,
-                            flexShrink: 0,
-                            position: 'sticky',
-                            top: 24,
-                            maxHeight: 'calc(100vh - 120px)',
-                        }}
-                    >
-                        <Paper
+                        {/* Integrated Side Panel (Desktop) */}
+                        <Box
                             sx={{
-                                flex: 1,
-                                display: 'flex',
+                                display: { xs: 'none', lg: reviewDialogOpen ? 'flex' : 'none' },
                                 flexDirection: 'column',
-                                overflow: 'hidden',
-                                bgcolor: 'background.paper',
-                                boxShadow: (theme) => theme.palette.mode === 'dark'
-                                    ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-                                    : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                border: (theme) => theme.palette.mode === 'dark'
-                                    ? '1px solid rgba(255, 255, 255, 0.1)'
-                                    : '1px solid rgba(0, 0, 0, 0.08)',
-                                borderRadius: 3,
+                                width: 380,
+                                flexShrink: 0,
+                                position: 'sticky',
+                                top: 24,
+                                maxHeight: 'calc(100vh - 120px)',
                             }}
                         >
-                            {hasPermission('reward_redemptions:mark_reviewed') && (
-                                <ReviewForm
-                                    reviewForm={reviewForm}
-                                    setReviewForm={setReviewForm}
-                                    isReviewing={isReviewing}
-                                    handleReviewSubmit={handleReviewSubmit}
-                                />
-                            )}
-                        </Paper>
+                            <Paper
+                                sx={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden',
+                                    bgcolor: 'background.paper',
+                                    boxShadow: (theme) => theme.palette.mode === 'dark'
+                                        ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                                        : '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    border: (theme) => theme.palette.mode === 'dark'
+                                        ? '1px solid rgba(255, 255, 255, 0.1)'
+                                        : '1px solid rgba(0, 0, 0, 0.08)',
+                                    borderRadius: 3,
+                                }}
+                            >
+                                {hasPermission('reward_redemptions:mark_reviewed') && (
+                                    <ReviewForm
+                                        reviewForm={reviewForm}
+                                        setReviewForm={setReviewForm}
+                                        isReviewing={isReviewing}
+                                        handleReviewSubmit={handleReviewSubmit}
+                                    />
+                                )}
+                            </Paper>
+                        </Box>
                     </Box>
-                </Box>
 
-                {/* Drawer (Mobile) */}
-                <Drawer
-                    anchor="right"
-                    open={reviewDialogOpen}
-                    onClose={() => !isReviewing && setReviewDialogOpen(false)}
-                    sx={{ display: { lg: 'none' } }}
-                    PaperProps={{
-                        sx: {
-                            width: { xs: '100%', sm: 400 },
-                            borderTopLeftRadius: { xs: 16, sm: 0 },
-                            boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
-                        }
-                    }}
-                >
-                    {hasPermission('reward_redemptions:mark_reviewed') && (
-                        <ReviewForm
-                            mobile
-                            reviewForm={reviewForm}
-                            setReviewForm={setReviewForm}
-                            isReviewing={isReviewing}
-                            handleReviewSubmit={handleReviewSubmit}
-                            setReviewDialogOpen={setReviewDialogOpen}
-                        />
-                    )}
-                </Drawer>
-            </Box>
-    );
+                    {/* Drawer (Mobile) */}
+                    <Drawer
+                        anchor="right"
+                        open={reviewDialogOpen}
+                        onClose={() => !isReviewing && setReviewDialogOpen(false)}
+                        sx={{ display: { lg: 'none' } }}
+                        PaperProps={{
+                            sx: {
+                                width: { xs: '100%', sm: 400 },
+                                borderTopLeftRadius: { xs: 16, sm: 0 },
+                                boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+                            }
+                        }}
+                    >
+                        {hasPermission('reward_redemptions:mark_reviewed') && (
+                            <ReviewForm
+                                mobile
+                                reviewForm={reviewForm}
+                                setReviewForm={setReviewForm}
+                                  isReviewing={isReviewing}
+                                handleReviewSubmit={handleReviewSubmit}
+                                setReviewDialogOpen={setReviewDialogOpen}
+                            />
+                        )}
+                    </Drawer>
+                </Box>
+            </PermissionGuard>
+        );
 }
 
 interface ReviewFormProps {
