@@ -23,7 +23,6 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
   const hasTokens = !!(accessToken && refreshToken);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  // Initialize immediately if tokens exist, before profile fetch
   useEffect(() => {
     if (hasTokens && !isAuthenticated) {
       const basicUser = decodeAccessToken(accessToken!);
@@ -38,7 +37,8 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
           user: basicUser as any,
         }));
       }
-      dispatch(setInitialized(true));
+      // Note: We no longer setInitialized(true) here. 
+      // It will be set when the full profile query completes or fails.
     } else if (!hasTokens) {
       dispatch(setInitialized(true));
     }
@@ -67,6 +67,7 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
         refreshToken: refreshToken!,
         user: currentUser,
       }));
+      dispatch(setInitialized(true));
     }
   }, [dispatch, hasTokens, accessToken, refreshToken, currentUser, isSuccess]);
 
