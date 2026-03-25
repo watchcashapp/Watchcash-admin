@@ -331,15 +331,38 @@ export default function AppManagementPage() {
                         color="inherit"
                         onClick={() => refetch()}
                         disabled={isUpdating}
+                        sx={{
+                          height: '30px',
+                          minHeight: '30px',
+                          fontSize: '0.75rem',
+                          px: 2,
+                          color: 'text.secondary',
+                          borderColor: 'divider',
+                          '&:hover': {
+                            borderColor: 'text.secondary',
+                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          },
+                        }}
                       >
                         Reset Changes
                       </Button>
                       <Button
                         variant="contained"
-                        startIcon={isUpdating ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                        startIcon={isUpdating ? <CircularProgress size={16} color="inherit" /> : <Save sx={{ fontSize: '1rem !important' }} />}
                         onClick={handleSaveSettings}
                         disabled={isUpdating}
-                        sx={{ px: 4, borderRadius: 2 }}
+                        sx={{
+                          height: '30px',
+                          minHeight: '30px',
+                          fontSize: '0.75rem',
+                          background: 'linear-gradient(45deg, #213350, #6AB344)',
+                          boxShadow: '0 4px 12px rgba(33, 51, 80, 0.2)',
+                          px: 3,
+                          '&:hover': {
+                            background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                            boxShadow: '0 6px 16px rgba(33, 51, 80, 0.3)',
+                          },
+                        }}
                       >
                         {isUpdating ? "Saving..." : "Save Settings"}
                       </Button>
@@ -494,15 +517,38 @@ export default function AppManagementPage() {
                         color="inherit"
                         onClick={() => refetchPlans()}
                         disabled={isUpdatingPlans}
+                        sx={{
+                          height: '30px',
+                          minHeight: '30px',
+                          fontSize: '0.75rem',
+                          px: 2,
+                          color: 'text.secondary',
+                          borderColor: 'divider',
+                          '&:hover': {
+                            borderColor: 'text.secondary',
+                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          },
+                        }}
                       >
                         Reset Changes
                       </Button>
                       <Button
                         variant="contained"
-                        startIcon={isUpdatingPlans ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                        startIcon={isUpdatingPlans ? <CircularProgress size={16} color="inherit" /> : <Save sx={{ fontSize: '1rem !important' }} />}
                         onClick={handleSavePlanSettings}
                         disabled={isUpdatingPlans || !canUpsertPlanSettings}
-                        sx={{ px: 4, borderRadius: 2 }}
+                        sx={{
+                          height: '30px',
+                          minHeight: '30px',
+                          fontSize: '0.75rem',
+                          background: 'linear-gradient(45deg, #213350, #6AB344)',
+                          boxShadow: '0 4px 12px rgba(33, 51, 80, 0.2)',
+                          px: 3,
+                          '&:hover': {
+                            background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                            boxShadow: '0 6px 16px rgba(33, 51, 80, 0.3)',
+                          },
+                        }}
                       >
                         {isUpdatingPlans ? "Saving..." : "Save Plan Settings"}
                       </Button>

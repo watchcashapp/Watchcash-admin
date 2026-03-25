@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Grid,
@@ -18,6 +18,9 @@ import {
   Chip,
   IconButton,
   Button,
+  Avatar,
+  Stack,
+  Skeleton,
 } from '@mui/material';
 import {
   People,
@@ -57,15 +60,18 @@ export default function DashboardPage() {
   const displayHighRiskSessions = summaryError ? fallbackHighRiskSessions : (summaryData?.data?.high_risk || []);
 
   // Pagination calculations
-  const flaggedTotalPages = Math.ceil(displayFlaggedSessions.length / itemsPerPage);
-  const highRiskTotalPages = Math.ceil(displayHighRiskSessions.length / itemsPerPage);
+  const flaggedTotalPages = useMemo(() => Math.ceil(displayFlaggedSessions.length / itemsPerPage), [displayFlaggedSessions]);
+  const highRiskTotalPages = useMemo(() => Math.ceil(displayHighRiskSessions.length / itemsPerPage), [displayHighRiskSessions]);
 
-  const flaggedStartIndex = (flaggedPage - 1) * itemsPerPage;
-  const highRiskStartIndex = (highRiskPage - 1) * itemsPerPage;
+  const paginatedFlaggedSessions = useMemo(() => {
+    const startIndex = (flaggedPage - 1) * itemsPerPage;
+    return displayFlaggedSessions.slice(startIndex, startIndex + itemsPerPage);
+  }, [displayFlaggedSessions, flaggedPage]);
 
-  const paginatedFlaggedSessions = displayFlaggedSessions.slice(flaggedStartIndex, flaggedStartIndex + itemsPerPage);
-
-  const paginatedHighRiskSessions = displayHighRiskSessions.slice(highRiskStartIndex, highRiskStartIndex + itemsPerPage);
+  const paginatedHighRiskSessions = useMemo(() => {
+    const startIndex = (highRiskPage - 1) * itemsPerPage;
+    return displayHighRiskSessions.slice(startIndex, startIndex + itemsPerPage);
+  }, [displayHighRiskSessions, highRiskPage]);
 
   const handleCardClick = (title: string) => {
     switch (title) {
@@ -88,7 +94,7 @@ export default function DashboardPage() {
     }
   };
 
-  const stats = data ? [
+  const stats = useMemo(() => data ? [
     {
       title: 'Total Users',
       value: data.data.totalUsers.toString(),
@@ -131,9 +137,9 @@ export default function DashboardPage() {
       color: '#6AB344',
       bgColor: 'rgba(106, 179, 68, 0.1)',
     },
-  ] : [];
+  ] : [], [data]);
 
-  const filteredStats = stats.filter(stat => {
+  const filteredStats = useMemo(() => stats.filter((stat: any) => {
     if (stat.title === 'Total Users') return hasPermission('dashboard:view_total_users');
     if (stat.title === 'Active Users') return hasPermission('dashboard:view_active_users');
     if (stat.title === 'Total Staff') return hasPermission('dashboard:view_total_staff');
@@ -141,7 +147,7 @@ export default function DashboardPage() {
     if (stat.title === "Today's Sessions") return hasPermission('dashboard:view_total_device_sessions');
     if (stat.title === 'Banned Users') return hasPermission('dashboard:view_banned_users');
     return true;
-  });
+  }), [stats, hasPermission]);
 
   return (
     <Box>
@@ -172,12 +178,26 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         {isLoading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-            <CircularProgress />
-          </Box>
+          <Grid container spacing={1.5}>
+            {[...Array(6)].map((_, i) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
+                <Card sx={{ borderRadius: 3, border: '1px solid rgba(0,0,0,0.05)' }}>
+                  <CardContent sx={{ p: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Skeleton width="40%" height={14} sx={{ mb: 1 }} />
+                        <Skeleton width="60%" height={32} />
+                      </Box>
+                      <Skeleton variant="rounded" width={40} height={40} sx={{ borderRadius: 1.5 }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : (
           <Grid container spacing={1.5}>
-            {filteredStats.map((stat, index) => (
+            {filteredStats.map((stat: any, index: number) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                 <Card
                   sx={{
@@ -285,9 +305,11 @@ export default function DashboardPage() {
                     Flagged Sessions
                   </Typography>
                   {isLoadingSummary ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                      <CircularProgress size={24} />
-                    </Box>
+                    <Stack spacing={1} sx={{ minHeight: '200px' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <Skeleton key={i} variant="rectangular" height={32} sx={{ borderRadius: 1 }} />
+                      ))}
+                    </Stack>
                   ) : displayFlaggedSessions.length === 0 ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                       <Typography variant="body2" color="text.secondary">
@@ -430,9 +452,11 @@ export default function DashboardPage() {
                     High Risk Sessions
                   </Typography>
                   {isLoadingSummary ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                      <CircularProgress size={24} />
-                    </Box>
+                    <Stack spacing={1} sx={{ minHeight: '200px' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <Skeleton key={i} variant="rectangular" height={32} sx={{ borderRadius: 1 }} />
+                      ))}
+                    </Stack>
                   ) : displayHighRiskSessions.length === 0 ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                       <Typography variant="body2" color="text.secondary">

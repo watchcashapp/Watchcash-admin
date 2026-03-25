@@ -207,6 +207,7 @@ export default function AuditLogsPage() {
                                 onClick={handleExportCSV}
                                 sx={{
                                     height: '30px',
+                                    minHeight: '30px',
                                     fontSize: '0.75rem',
                                     background: 'linear-gradient(45deg, #213350, #6AB344)',
                                     boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
@@ -372,6 +373,7 @@ export default function AuditLogsPage() {
                                 disabled={!actionSearch && !targetUserSearch && !fromDate && !toDate}
                                 sx={{
                                     height: '32px',
+                                    minHeight: '32px',
                                     fontSize: '0.7rem',
                                     borderColor: '#213350',
                                     color: '#213350',
@@ -393,7 +395,7 @@ export default function AuditLogsPage() {
                     getRowId={(row: any) => row.id}
                     isLoading={isLoading}
                     emptyMessage="No audit logs found"
-                    onView={hasPermission('admin_audit_logs:view') ? (row) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
+                    onView={hasPermission('admin_audit_logs:view') ? (row: any) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
                     renderPagination={() => data && data.items && data.items.length > 0 ? (
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="body2" color="text.secondary">

@@ -297,6 +297,7 @@ export default function RewardRedemptionsPage() {
                 onClick={handleExportCSV}
                 sx={{
                   height: '30px',
+                  minHeight: '30px',
                   fontSize: '0.75rem',
                   background: 'linear-gradient(45deg, #213350, #6AB344)',
                   boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
@@ -457,6 +458,7 @@ export default function RewardRedemptionsPage() {
                 disabled={!hasFilters}
                 sx={{
                   height: '32px',
+                  minHeight: '32px',
                   borderColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
                   color: (theme: any) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
                   fontSize: '0.7rem',

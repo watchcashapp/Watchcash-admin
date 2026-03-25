@@ -5,15 +5,13 @@ import {
   Box,
   Paper,
   Typography,
-  Button,
   CircularProgress,
   Grid,
 } from '@mui/material';
 import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { Input, Textarea, GroupedPermissionsSelect, useToast } from '@/components/shared';
+import { Input, Textarea, GroupedPermissionsSelect, useToast, PermissionGuard, Button } from '@/components/shared';
 import { useGetRoleByIdQuery, useUpdateRoleMutation, useGetPermissionsQuery } from '@/store/api/rbacApi';
-import { usePermissions } from '@/hooks/usePermissions';
 
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -39,18 +37,6 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   const { data: roleResponse, isLoading: loadingRole } = useGetRoleByIdQuery(resolvedParams.id);
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
-  const { hasPermission, isInitialized } = usePermissions();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('rbac:manage_roles')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
 
   const role = roleResponse?.data;
 
@@ -152,150 +138,153 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
-      <Button
-        startIcon={<ArrowBack />}
-        onClick={() => router.push('/staff/roles')}
-        sx={{
-          mb: { xs: 2, sm: 3 },
-          '&:hover': {
-            backgroundColor: 'rgba(33, 51, 80, 0.08)',
-          },
-        }}
-      >
-        Back to Roles
-      </Button>
+    <PermissionGuard permission="rbac:manage_roles">
+      <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => router.push('/staff/roles')}
+          sx={{
+            mb: { xs: 2, sm: 3 },
+            '&:hover': {
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
+            },
+          }}
+        >
+          Back to Roles
+        </Button>
 
-      <Typography
-        variant="h5"
-        sx={{
-          mb: 1.5,
-          fontSize: '1.1rem',
-          fontWeight: 700,
-          background: 'linear-gradient(45deg, #213350, #6AB344)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        Edit Role
-      </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            mb: 1.5,
+            fontSize: '1.1rem',
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Edit Role
+        </Typography>
 
-      <Paper
-        sx={{
-          p: 1.5,
-          bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: 1.5,
-        }}
-      >
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Input
-              ref={nameRef}
-              label="Role Name"
-              value={formData.name}
-              onChange={handleNameChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              required
-              placeholder="e.g., Content Manager"
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' } }
-              }}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Input
-              label="Code"
-              value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              required
-              disabled
-              helperText="Code cannot be changed"
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' } }
-              }}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12 }}>
-            <Textarea
-              ref={descriptionRef}
-              label="Description"
-              value={formData.description}
-              onChange={handleDescriptionChange}
-              error={!!errors.description}
-              helperText={errors.description}
-              rows={2}
-              required
-              fullWidth
-              placeholder="Describe the role..."
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem' } },
-                inputLabel: { sx: { fontSize: '0.75rem' } }
-              }}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12 }}>
-            <GroupedPermissionsSelect
-              label="Permissions"
-              groupedPermissions={permissionsResponse?.data || {}}
-              value={formData.permissions}
-              onChange={(value) => setFormData({ ...formData, permissions: value })}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12 }}>
-            <Box
-              display="flex"
-              gap={1}
-              justifyContent="flex-end"
-              mt={1}
-              flexDirection={{ xs: 'column', sm: 'row' }}
-            >
-              <Button
-                variant="outlined"
-                onClick={() => router.push('/staff/roles')}
-                disabled={isUpdating}
-                sx={{
-                  width: { xs: '100%', sm: 'auto' },
-                  height: '32px',
-                  fontSize: '0.75rem',
+        <Paper
+          sx={{
+            p: 1.5,
+            bgcolor: 'background.paper',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
+          }}
+        >
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Input
+                ref={nameRef}
+                label="Role Name"
+                value={formData.name}
+                onChange={handleNameChange}
+                error={!!errors.name}
+                helperText={errors.name}
+                required
+                placeholder="e.g., Content Manager"
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' } }
                 }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<Save sx={{ fontSize: '1rem !important' }} />}
-                onClick={handleSubmit}
-                disabled={isUpdating}
-                sx={{
-                  width: { xs: '100%', sm: 'auto' },
-                  height: '32px',
-                  fontSize: '0.75rem',
-                  background: 'linear-gradient(45deg, #213350, #6AB344)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #5a67d8, #6a3f92)',
-                  },
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Input
+                label="Code"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                required
+                disabled
+                helperText="Code cannot be changed"
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' } }
                 }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Textarea
+                ref={descriptionRef}
+                label="Description"
+                value={formData.description}
+                onChange={handleDescriptionChange}
+                error={!!errors.description}
+                helperText={errors.description}
+                rows={2}
+                required
+                fullWidth
+                placeholder="Describe the role..."
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' } }
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <GroupedPermissionsSelect
+                label="Permissions"
+                groupedPermissions={permissionsResponse?.data || {}}
+                value={formData.permissions}
+                onChange={(value) => setFormData({ ...formData, permissions: value })}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Box
+                display="flex"
+                gap={1}
+                justifyContent="flex-end"
+                mt={1}
+                flexDirection={{ xs: 'column', sm: 'row' }}
               >
-                {isUpdating ? 'Updating...' : 'Update Role'}
-              </Button>
-            </Box>
+                <Button
+                  variant="outlined"
+                  onClick={() => router.push('/staff/roles')}
+                  disabled={isUpdating}
+                  sx={{
+                    width: { xs: '100%', sm: 'auto' },
+                    height: '32px',
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<Save sx={{ fontSize: '1rem !important' }} />}
+                  onClick={handleSubmit}
+                  disabled={isUpdating}
+                  loading={isUpdating}
+                  sx={{
+                    width: { xs: '100%', sm: 'auto' },
+                    height: '32px',
+                    fontSize: '0.75rem',
+                    background: 'linear-gradient(45deg, #213350, #6AB344)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                    },
+                  }}
+                >
+                  Update Role
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
-    </Box>
+        </Paper>
+      </Box>
+    </PermissionGuard>
   );
 }

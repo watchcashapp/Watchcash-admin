@@ -306,6 +306,13 @@ export default function AdsManagementPage() {
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               fontWeight: 600,
               fontSize: '0.75rem',
+              height: '30px',
+              minHeight: '30px',
+              px: 2,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+              },
             }}
           >
             ADD PROVIDER
@@ -320,11 +327,16 @@ export default function AdsManagementPage() {
             onClick={() => setIsEditingSettings(true)}
             sx={{
               height: '30px',
+              minHeight: '30px',
               fontSize: '0.75rem',
               color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
               px: 2,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+              },
             }}
           >
             Edit

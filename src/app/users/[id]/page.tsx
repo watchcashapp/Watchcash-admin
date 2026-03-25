@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState, useEffect, useMemo } from 'react';
+import React, { use, useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -15,22 +15,28 @@ import {
   CardContent,
   Skeleton,
 } from '@mui/material';
-import { ArrowBack, Person, AccountBalanceWallet, History } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { DataTable, Column } from '@/components/shared';
-import {
-  useGetUserByIdQuery,
-  useGetUserWalletQuery,
-  useGetUserRedeemHistoryQuery,
-  useGetUserLoginHistoryQuery,
-  useGetUserSubscriptionQuery,
-  WalletTransaction,
-  LoginHistory,
-  SubscriptionLog
-} from '@/store/api/usersApi';
+import dynamic from 'next/dynamic';
+import { useGetUserByIdQuery } from '@/store/api/usersApi';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useCursorPagination } from '@/hooks/useCursorPagination';
+import { useToast } from '@/components/shared';
+import BanUserDialog from '@/components/features/BanUserDialog';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { ArrowBack, Person, AccountBalanceWallet, History as HistoryIcon, Block } from '@mui/icons-material';
+
+// Dynamic imports for tabs
+const UserWalletTab = dynamic(() => import('@/components/features/user-details/UserWalletTab'), { 
+  loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress size={24} /></Box> 
+});
+const UserRewardsTab = dynamic(() => import('@/components/features/user-details/UserRewardsTab'), { 
+  loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress size={24} /></Box> 
+});
+const UserLoginsTab = dynamic(() => import('@/components/features/user-details/UserLoginsTab'), { 
+  loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress size={24} /></Box> 
+});
+const UserSubscriptionTab = dynamic(() => import('@/components/features/user-details/UserSubscriptionTab'), { 
+  loading: () => <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress size={24} /></Box> 
+});
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,180 +51,29 @@ const TabPanel = React.memo(({ children, value, index, ...other }: TabPanelProps
       hidden={value !== index}
       id={`user-tabpanel-${index}`}
       aria-labelledby={`user-tab-${index}`}
-      style={{ minHeight: 'auto', display: value === index ? 'block' : 'none' }}
+      style={{ minHeight: 'auto' }}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && children}
     </div>
   );
 });
 
 TabPanel.displayName = 'TabPanel';
 
-function getStatusBadgeColor(status: string) {
-  switch (status) {
-    case 'APPROVED':
-    case 'PROCESSED':
-      return 'linear-gradient(45deg, #10b981, #059669)';
-    case 'PENDING':
-      return 'linear-gradient(45deg, #f59e0b, #d97706)';
-    case 'REJECTED':
-    case 'FAILED':
-      return 'linear-gradient(45deg, #ef4444, #dc2626)';
-    default:
-      return 'linear-gradient(45deg, #9ca3af, #4b5563)';
-  }
-}
-
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { hasPermission } = usePermissions();
+  const { showSuccess, showError } = useToast();
   const [tabValue, setTabValue] = useState(0);
-  const [subscriptionSearch] = useState('');
-  
-  const walletPagination = useCursorPagination();
-  const historyPagination = useCursorPagination();
-  const loginPagination = useCursorPagination();
-
-  // Consolidate pagination resets
-  useEffect(() => {
-    walletPagination.reset();
-    historyPagination.reset();
-    loginPagination.reset();
-  }, [resolvedParams.id]);
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
 
   const { data: userResponse, isLoading: loadingUser, error: userError } = useGetUserByIdQuery(resolvedParams.id);
   
-  const { data: walletData, isLoading: loadingWallet } = useGetUserWalletQuery(
-    { userId: resolvedParams.id, cursor: walletPagination.cursor, limit: 6 },
-    { skip: tabValue !== 1 }
-  );
-  
-  const { data: historyData, isLoading: loadingHistory } = useGetUserRedeemHistoryQuery(
-    { userId: resolvedParams.id, cursor: historyPagination.cursor, limit: 6 },
-    { skip: tabValue !== 2 }
-  );
-  
-  const { data: loginData, isLoading: loadingLogins } = useGetUserLoginHistoryQuery(
-    { userId: resolvedParams.id, cursor: loginPagination.cursor, limit: 6 },
-    { skip: tabValue !== 3 }
-  );
-  
-  const { data: subscriptionData } = useGetUserSubscriptionQuery(
-    {
-      userId: resolvedParams.id,
-      search: subscriptionSearch || undefined,
-      logsLimit: 6,
-      planLimit: 6,
-    },
-    { skip: tabValue !== 4 }
-  );
-
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-
-  const walletColumns = useMemo<Column<WalletTransaction>[]>(() => [
-    {
-      id: 'createdAt',
-      label: 'Date',
-      minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleString(),
-    },
-    {
-      id: 'transactionType',
-      label: 'Type',
-      align: 'center',
-      minWidth: 100,
-      format: (value: string) => (
-        <Chip 
-          label={value} 
-          size="small" 
-          sx={{ 
-            background: value === 'CREDIT' ? 'linear-gradient(45deg, #10b981, #059669)' : 'linear-gradient(45deg, #ef4444, #dc2626)',
-            color: 'white'
-          }} 
-        />
-      ),
-    },
-    {
-      id: 'amount',
-      label: 'Amount',
-      align: 'right',
-      minWidth: 100,
-      format: (value: number, row: WalletTransaction) => (
-        <Typography sx={{ fontWeight: 600, color: row.transactionType === 'CREDIT' ? '#10b981' : '#ef4444' }}>
-          {row.transactionType === 'CREDIT' ? '+' : '-'}{Math.abs(value)}
-        </Typography>
-      ),
-    },
-    { id: 'reasonCode', label: 'Reason', minWidth: 150 },
-    { id: 'note', label: 'Note', minWidth: 200, format: (v: string) => v || 'N/A' },
-  ], []);
-
-  const historyColumns = useMemo<Column<any>[]>(() => [
-    {
-      id: 'createdAt',
-      label: 'Date',
-      minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleString(),
-    },
-    { id: 'rewardType', label: 'Reward Type', minWidth: 150 },
-    {
-      id: 'points',
-      label: 'Points',
-      align: 'right',
-      minWidth: 100,
-      format: (value: number) => (
-        <Typography sx={{ fontWeight: 600, color: '#ef4444' }}>-{value}</Typography>
-      ),
-    },
-    {
-      id: 'status',
-      label: 'Status',
-      align: 'center',
-      minWidth: 120,
-      format: (value: string) => (
-        <Chip label={value} size="small" sx={{ background: getStatusBadgeColor(value), color: 'white' }} />
-      ),
-    },
-  ], []);
-
-  const loginColumns = useMemo<Column<LoginHistory>[]>(() => [
-    {
-      id: 'createdAt',
-      label: 'Date',
-      minWidth: 150,
-      format: (value: string) => new Date(value).toLocaleString(),
-    },
-    { id: 'ip', label: 'IP Address', minWidth: 120 },
-    {
-      id: 'isAdmin',
-      label: 'Admin',
-      align: 'center',
-      minWidth: 100,
-      format: (value: boolean) => (
-        <Chip label={value ? 'Admin' : 'App User'} size="small" sx={{ background: value ? 'linear-gradient(45deg, #213350, #6AB344)' : 'linear-gradient(45deg, #10b981, #059669)', color: 'white' }} />
-      ),
-    },
-    {
-      id: 'userAgent',
-      label: 'User Agent',
-      minWidth: 250,
-      format: (value: string) => (
-        <Typography variant="caption" sx={{ display: 'block', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={value}>
-          {value}
-        </Typography>
-      )
-    }
-  ], []);
-
-  const subscriptionLogColumns = useMemo<Column<SubscriptionLog>[]>(() => [
-    { id: 'createdAt', label: 'Date', minWidth: 150, format: (v: string) => new Date(v).toLocaleString() },
-    { id: 'amount', label: 'Amount', minWidth: 100, format: (v: string, row: any) => `${v} ${row.currency}` },
-    { id: 'status', label: 'Status', minWidth: 150, format: (v: string) => <Chip label={v} size="small" sx={{ fontSize: '0.65rem' }} /> },
-  ], []);
 
   const visibleTabs = useMemo(() => {
     const tabs = [
@@ -255,81 +110,33 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         label: 'Wallet Transactions',
         icon: <AccountBalanceWallet />,
         permission: 'users:view_transactions',
-        content: (
-          <Box sx={{ p: 2 }}>
-            {walletData && (
-              <Card sx={{ mb: 3, border: '1px solid rgba(0,0,0,0.08)' }}>
-                <CardContent>
-                  <Typography variant="caption" color="text.secondary">Current Balance</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                    {walletData.walletBalance.toLocaleString()} Points
-                  </Typography>
-                </CardContent>
-              </Card>
-            )}
-            {loadingWallet ? <CircularProgress /> : walletData?.transactions.length ? (
-              <DataTable columns={walletColumns} data={walletData.transactions} getRowId={(row) => row.id} />
-            ) : <Typography color="text.secondary">No transactions found</Typography>}
-          </Box>
-        )
+        content: <UserWalletTab userId={resolvedParams.id} />
       },
       {
         id: 'rewards',
         label: 'Redemption History',
-        icon: <History />,
+        icon: <HistoryIcon />,
         permission: 'users:view_rewards',
-        content: (
-          <Box sx={{ p: 2 }}>
-            {loadingHistory ? <CircularProgress /> : historyData?.items.length ? (
-              <DataTable columns={historyColumns} data={historyData.items} getRowId={(row) => row.id} />
-            ) : <Typography color="text.secondary">No redemption history found</Typography>}
-          </Box>
-        )
+        content: <UserRewardsTab userId={resolvedParams.id} />
       },
       {
         id: 'logins',
         label: 'Login Details',
-        icon: <History />,
+        icon: <HistoryIcon />,
         permission: 'users:view_login_history',
-        content: (
-          <Box sx={{ p: 2 }}>
-            {loadingLogins ? <CircularProgress /> : loginData?.items.length ? (
-              <DataTable columns={loginColumns} data={loginData.items} getRowId={(row) => row.id} />
-            ) : <Typography color="text.secondary">No login history found</Typography>}
-          </Box>
-        )
+        content: <UserLoginsTab userId={resolvedParams.id} />
       },
       {
         id: 'subscription',
         label: 'Subscription',
-        icon: <History />,
+        icon: <HistoryIcon />,
         permission: 'users:view_subscriptions',
-        content: (
-          <Box sx={{ p: 2 }}>
-            {subscriptionData?.subscription ? (
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
-                  <Card sx={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700 }}>Active Plan</Typography>
-                      <Typography variant="body1">Plan: {subscriptionData.subscription.plan}</Typography>
-                      <Typography variant="body2" color="text.secondary">Status: {subscriptionData.subscription.status}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Typography variant="subtitle2" sx={{ mt: 2, mb: 1, fontWeight: 700 }}>Transaction Logs</Typography>
-                  <DataTable columns={subscriptionLogColumns} data={subscriptionData.logs?.items || []} getRowId={(row) => row.id} />
-                </Grid>
-              </Grid>
-            ) : <Typography color="text.secondary">No active subscription found</Typography>}
-          </Box>
-        )
+        content: <UserSubscriptionTab userId={resolvedParams.id} />
       }
     ];
 
     return tabs.filter(tab => !tab.permission || hasPermission(tab.permission));
-  }, [hasPermission, userResponse, walletData, loadingWallet, walletColumns, loadingHistory, historyData, historyColumns, loadingLogins, loginData, loginColumns, subscriptionData, subscriptionLogColumns]);
+  }, [hasPermission, userResponse, resolvedParams.id]);
 
   if (loadingUser) {
     return (
@@ -378,9 +185,46 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <PermissionGuard permission="users:view">
       <Box sx={{ p: 2 }}>
-          <Box display="flex" alignItems="center" gap={1} mb={3}>
-            <Button startIcon={<ArrowBack />} onClick={() => router.push('/users')}>Back</Button>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>User Details</Typography>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Button 
+                startIcon={<ArrowBack />} 
+                onClick={() => router.push('/users')}
+                sx={{
+                  height: '30px',
+                  minHeight: '30px',
+                  fontSize: '0.75rem',
+                  color: 'text.secondary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                Back
+              </Button>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>User Details</Typography>
+            </Box>
+            {hasPermission('users:ban') && userResponse.userType !== 'STAFF' && (
+              <Button
+                variant="contained"
+                startIcon={<Block sx={{ fontSize: '1rem !important' }} />}
+                onClick={() => setBanDialogOpen(true)}
+                sx={{
+                  height: '30px',
+                  minHeight: '30px',
+                  fontSize: '0.75rem',
+                  background: 'linear-gradient(45deg, #d32f2f, #f44336)',
+                  boxShadow: '0 4px 12px rgba(211, 47, 47, 0.2)',
+                  px: 2,
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #b71c1c, #d32f2f)',
+                    boxShadow: '0 6px 16px rgba(211, 47, 47, 0.3)',
+                  },
+                }}
+              >
+                BAN USER
+              </Button>
+            )}
           </Box>
           <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Tabs value={tabValue} onChange={handleTabChange} variant="scrollable" sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -395,6 +239,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             ))}
           </Paper>
       </Box>
+      <BanUserDialog
+        open={banDialogOpen}
+        onCancel={() => setBanDialogOpen(false)}
+        user={userResponse}
+        onSuccess={() => {
+          setBanDialogOpen(false);
+          // Mutation already happened in dialog, invalidating Users tag.
+        }}
+      />
     </PermissionGuard>
   );
 }

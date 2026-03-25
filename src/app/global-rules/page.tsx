@@ -7,15 +7,13 @@ import {
   Card,
   CardContent,
   TextField,
-  Button,
   Grid,
-  CircularProgress,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { Save, Edit } from "@mui/icons-material";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/shared";
+import { useToast, PermissionGuard, Button, Input } from "@/components/shared";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
   useGetGlobalRulesQuery,
@@ -31,17 +29,6 @@ export default function GlobalRulesPage() {
   const [updateGlobalRules, { isLoading: isUpdating }] = useUpdateGlobalRulesMutation();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('global_rules:view')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
 
   const [formData, setFormData] = useState<GlobalRules>({
     defaultPointsPerMinute: 0,
@@ -152,218 +139,136 @@ export default function GlobalRulesPage() {
     setIsEditing(false);
   };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <CircularProgress sx={{ color: '#213350' }} />
-        </Box>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          Failed to load global rules. Please try again.
-        </Alert>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          Global Rules
-        </Typography>
-        {!isEditing && (
-          <Button
-            variant="contained"
-            startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
-            onClick={() => {
-              if (hasPermission('global_rules:update')) {
-                setIsEditing(true);
-              } else {
-                showError('You do not have permission to edit global rules');
-              }
-            }}
+    <PermissionGuard permission="global_rules:view">
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography
             sx={{
-              height: '30px',
-              fontSize: '0.75rem',
+              fontWeight: 700,
+              fontSize: '1.1rem',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
-              boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
-              px: 2,
-              '&:hover': {
-                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
-              },
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
-            Edit Rules
-          </Button>
-        )}
-      </Box>
-
-      <Card
-        sx={{
-          bgcolor: 'background.paper',
-          backdropFilter: 'blur(20px)',
-          boxShadow: (theme: any) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme: any) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: 1.5,
-        }}
-      >
-        <CardContent sx={{ p: 1.5 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, fontSize: '0.85rem' }}>
-            Default Settings for All Apps
+            Global Rules
           </Typography>
+          {!isEditing && (
+            <Button
+              variant="contained"
+              startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
+              onClick={() => {
+                if (hasPermission('global_rules:update')) {
+                  setIsEditing(true);
+                } else {
+                  showError('You do not have permission to edit global rules');
+                }
+              }}
+              sx={{
+                height: '30px',
+                minHeight: '30px',
+                fontSize: '0.75rem',
+                background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
+                px: 2,
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+                },
+              }}
+            >
+              Edit Rules
+            </Button>
+          )}
+        </Box>
 
-          <Grid container spacing={1.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Default Points Per Minute"
-                name="defaultPointsPerMinute"
-                type="number"
-                value={formData.defaultPointsPerMinute}
-                onChange={handleInputChange}
-                onFocus={handleNumberFocus}
-                disabled={!isEditing}
-                error={!!formErrors.defaultPointsPerMinute}
-                helperText={formErrors.defaultPointsPerMinute}
-                required
-                fullWidth
-                inputProps={{ min: 0, step: 1 }}
-                size="small"
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
-            </Grid>
+        <Card
+          sx={{
+            bgcolor: 'background.paper',
+            backdropFilter: 'blur(20px)',
+            boxShadow: (theme: any) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme: any) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.08)',
+            borderRadius: 1.5,
+          }}
+        >
+          <CardContent sx={{ p: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, fontSize: '0.85rem' }}>
+              Default Settings for All Apps
+            </Typography>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Daily Hard Cap"
-                name="dailyHardCap"
-                type="number"
-                value={formData.dailyHardCap}
-                onChange={handleInputChange}
-                onFocus={handleNumberFocus}
-                disabled={!isEditing}
-                error={!!formErrors.dailyHardCap}
-                helperText={formErrors.dailyHardCap}
-                required
-                fullWidth
-                inputProps={{ min: 0, step: 1 }}
-                size="small"
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Daily Soft Cap"
-                name="dailySoftCap"
-                type="number"
-                value={formData.dailySoftCap}
-                onChange={handleInputChange}
-                onFocus={handleNumberFocus}
-                disabled={!isEditing}
-                error={!!formErrors.dailySoftCap}
-                helperText={formErrors.dailySoftCap}
-                required
-                fullWidth
-                inputProps={{ min: 0, step: 1 }}
-                size="small"
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Soft Cap Multiplier"
-                name="softCapMultiplier"
-                type="number"
-                value={formData.softCapMultiplier}
-                onChange={handleInputChange}
-                onFocus={handleNumberFocus}
-                disabled={!isEditing}
-                error={!!formErrors.softCapMultiplier}
-                helperText={formErrors.softCapMultiplier}
-                required
-                fullWidth
-                inputProps={{ min: 0, step: 0.1 }}
-                size="small"
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
+            <Grid container spacing={1.5}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Input
+                  label="Default Points Per Minute"
+                  name="defaultPointsPerMinute"
+                  type="number"
+                  value={formData.defaultPointsPerMinute}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.defaultPointsPerMinute}
+                  helperText={formErrors.defaultPointsPerMinute}
+                  required
+                  fullWidth
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
+                  label="Daily Hard Cap"
+                  name="dailyHardCap"
+                  type="number"
+                  value={formData.dailyHardCap}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.dailyHardCap}
+                  helperText={formErrors.dailyHardCap}
+                  required
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Input
+                  label="Daily Soft Cap"
+                  name="dailySoftCap"
+                  type="number"
+                  value={formData.dailySoftCap}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.dailySoftCap}
+                  helperText={formErrors.dailySoftCap}
+                  required
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Input
+                  label="Soft Cap Multiplier"
+                  name="softCapMultiplier"
+                  type="number"
+                  value={formData.softCapMultiplier}
+                  onChange={handleInputChange}
+                  onFocus={handleNumberFocus}
+                  disabled={!isEditing}
+                  error={!!formErrors.softCapMultiplier}
+                  helperText={formErrors.softCapMultiplier}
+                  required
+                  fullWidth
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Input
                   label="Max Session Duration(seconds)"
                   name="maxSessionDuration"
                   type="number"
@@ -375,27 +280,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.maxSessionDuration}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Min Session Duration(seconds)"
                   name="minSessionDuration"
                   type="number"
@@ -407,27 +296,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.minSessionDuration}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="Max Daily Sessions"
                   name="maxDailySessions"
                   type="number"
@@ -439,22 +312,6 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.maxDailySessions}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
@@ -465,7 +322,7 @@ export default function GlobalRulesPage() {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
+                <Input
                   label="Medium Risk Reduction %"
                   name="mediumRiskReductionPercent"
                   type="number"
@@ -477,27 +334,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.mediumRiskReductionPercent}
                   required
                   fullWidth
-                  inputProps={{ min: 0, max: 100, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
+                <Input
                   label="High Risk 1st Reduction %"
                   name="highRiskFirstReductionPercent"
                   type="number"
@@ -509,27 +350,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.highRiskFirstReductionPercent}
                   required
                   fullWidth
-                  inputProps={{ min: 0, max: 100, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
+                <Input
                   label="High Risk 2nd Reduction %"
                   name="highRiskSecondReductionPercent"
                   type="number"
@@ -541,27 +366,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.highRiskSecondReductionPercent}
                   required
                   fullWidth
-                  inputProps={{ min: 0, max: 100, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="High Risk Block Duration (mins)"
                   name="highRiskBlockMinutes"
                   type="number"
@@ -573,27 +382,11 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.highRiskBlockMinutes}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Very High Risk Block Duration (mins)"
                   name="veryHighBlockMinutes"
                   type="number"
@@ -605,22 +398,6 @@ export default function GlobalRulesPage() {
                   helperText={formErrors.veryHighBlockMinutes}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 1 }}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    },
-                    '& .MuiInputLabel-shrink': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                    }
-                  }}
                 />
               </Grid>
 
@@ -633,8 +410,15 @@ export default function GlobalRulesPage() {
                       disabled={isUpdating}
                       sx={{
                         height: '32px',
+                        minHeight: '32px',
                         fontSize: '0.75rem',
                         minWidth: 100,
+                        borderColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
+                        color: (theme: any) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
+                        '&:hover': {
+                            borderColor: '#6AB344',
+                            backgroundColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
+                        },
                       }}
                     >
                       Cancel
@@ -644,8 +428,10 @@ export default function GlobalRulesPage() {
                       startIcon={isUpdating ? null : <Save sx={{ fontSize: '1rem' }} />}
                       onClick={handleSave}
                       disabled={isUpdating}
+                      loading={isUpdating}
                       sx={{
                         height: '32px',
+                        minHeight: '32px',
                         fontSize: '0.75rem',
                         minWidth: 120,
                         background: 'linear-gradient(45deg, #213350, #6AB344)',
@@ -654,12 +440,9 @@ export default function GlobalRulesPage() {
                           background: 'linear-gradient(45deg, #1a2940, #6AB344)',
                           boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                         },
-                        '&:disabled': {
-                          background: 'rgba(33, 51, 80, 0.5)',
-                        },
                       }}
                     >
-                      {isUpdating ? <CircularProgress size={16} color="inherit" /> : 'Save Changes'}
+                      Save Changes
                     </Button>
                   </Box>
                 </Grid>
@@ -668,5 +451,6 @@ export default function GlobalRulesPage() {
           </CardContent>
         </Card>
       </Box>
+    </PermissionGuard>
   );
 }

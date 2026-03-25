@@ -228,6 +228,7 @@ export default function SessionsPage() {
               }}
               sx={{
                 height: '30px',
+                minHeight: '30px',
                 fontSize: '0.75rem',
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                 boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
@@ -414,6 +415,7 @@ export default function SessionsPage() {
                 }}
                 sx={{
                   height: '32px',
+                  minHeight: '32px',
                   borderColor: '#213350',
                   color: '#213350',
                   '&:hover': {

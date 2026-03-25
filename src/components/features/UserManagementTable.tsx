@@ -1,29 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  MenuItem,
-  Grid,
-  Chip,
-  InputAdornment,
-  Alert,
-  Button,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { 
+  Box, 
+  Typography, 
+  MenuItem, 
+  Grid, 
+  Chip, 
+  InputAdornment, 
+  Alert, 
+  IconButton, 
   Paper,
+  LinearProgress,
 } from "@mui/material";
 import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { config } from "@/config/env";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { ConfirmDialog, useToast } from "@/components/shared";
+import { ConfirmDialog, useToast, Button, Input } from "@/components/shared";
 import { useGetUsersQuery, useDeleteUserMutation, User } from "@/store/api/usersApi";
-import { useRefreshTokenMutation } from "@/store/api/authApi";
+import BanUserDialog from "@/components/features/BanUserDialog";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -37,6 +33,7 @@ interface UserManagementTableProps {
   viewRoute?: string;
   defaultUserType?: string;
   hideUserTypeFilter?: boolean;
+  showBanButton?: boolean;
 }
 
 export default function UserManagementTable({
@@ -47,6 +44,7 @@ export default function UserManagementTable({
   viewRoute = "/staff/users/view",
   defaultUserType = "",
   hideUserTypeFilter = false,
+  showBanButton = true,
 }: UserManagementTableProps) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -59,33 +57,25 @@ export default function UserManagementTable({
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
-  const hasFilters = search || isActive !== "" || userType !== defaultUserType || fromDate || toDate;
+  
+  const hasFilters = useMemo(() => 
+    !!(search || isActive !== "" || userType !== defaultUserType || fromDate || toDate),
+    [search, isActive, userType, defaultUserType, fromDate, toDate]
+  );
+
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; user: User | null }>({
     open: false,
     user: null,
   });
-
-  // Refresh token mutation
-  const [refreshToken] = useRefreshTokenMutation();
-
-  // Trigger refresh token on component mount
-  useEffect(() => {
-    const refreshTokenOnMount = async () => {
-      try {
-        await refreshToken().unwrap();
-
-      } catch (error: any) {
-
-        showError('Failed to refresh authentication token');
-      }
-    };
-
-    refreshTokenOnMount();
-  }, [refreshToken, showError]);
+  const [banConfirm, setBanConfirm] = useState<{ open: boolean; user: User | null }>({
+    open: false,
+    user: null,
+  });
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Build query params
   const effectiveUserType = hideUserTypeFilter ? defaultUserType : userType;
-  const queryParams = React.useMemo(() => {
+  const queryParams = useMemo(() => {
     const params: any = { cursor, limit };
     if (search) params.search = search;
     if (isActive !== "") params.isActive = isActive === "true";
@@ -105,28 +95,38 @@ export default function UserManagementTable({
     reset();
   }, [search, isActive, userType, fromDate, toDate, reset]);
 
-  const handleView = (user: User) => {
+  const handleView = useCallback((user: User) => {
     if (!hasPermission('users:view')) {
       showError('You do not have permission to view user details');
       return;
     }
 
-    // Secondary check: Staff cannot view other staff if that's still a requirement
     if (currentUser?.userType === 'STAFF' && user.userType === 'STAFF' && !hasPermission('admin:full_access')) {
       showError('Staff users cannot view other staff members');
       return;
     }
 
+    setIsRedirecting(true);
     router.push(`${viewRoute}/${user.id}`);
-  };
+  }, [hasPermission, currentUser, showError, router, viewRoute]);
 
-  const handleEdit = (user: User) => {
+  // Prefetch user detail pages for faster redirection
+  useEffect(() => {
+    if (data?.users && hasPermission('users:view')) {
+      data.users.forEach((user: User) => {
+        router.prefetch(`${viewRoute}/${user.id}`);
+      });
+    }
+  }, [data?.users, router, viewRoute, hasPermission]);
+
+  const handleEdit = useCallback((user: User) => {
     if (!hasPermission('users:update')) {
       showError('You do not have permission to edit users');
       return;
     }
+    setIsRedirecting(true);
     router.push(`${editRoute}/${user.id}`);
-  };
+  }, [hasPermission, showError, router, editRoute]);
 
   const handleDelete = async () => {
     if (!hasPermission('users:delete')) {
@@ -143,7 +143,7 @@ export default function UserManagementTable({
     }
   };
 
-  const columns: Column<User>[] = [
+  const columns: Column<User>[] = useMemo(() => [
     {
       id: 'name',
       label: 'Name',
@@ -203,7 +203,7 @@ export default function UserManagementTable({
         day: 'numeric',
       }),
     },
-  ];
+  ], []);
 
   const handleClearFilters = () => {
     setSearch("");
@@ -250,10 +250,6 @@ export default function UserManagementTable({
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
-
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
@@ -278,6 +274,7 @@ export default function UserManagementTable({
               onClick={handleExportCSV}
               sx={{
                 height: '30px',
+                minHeight: '30px',
                 fontSize: '0.75rem',
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
                 boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
@@ -298,9 +295,16 @@ export default function UserManagementTable({
               startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
               onClick={() => router.push(addRoute)}
               sx={{
-                height: '32px',
+                height: '30px',
+                minHeight: '30px',
                 fontSize: '0.75rem',
                 background: 'linear-gradient(45deg, #213350, #6AB344)',
+                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
+                px: 2,
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+                },
               }}
             >
               ADD USER
@@ -326,13 +330,11 @@ export default function UserManagementTable({
       >
         <Grid container spacing={1.5} alignItems="center">
           <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <Input
               label="Search"
               placeholder="Name or Email"
               value={search}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearch(e.target.value)}
               slotProps={{
                 input: {
                   sx: { fontSize: '0.75rem', height: '32px' },
@@ -342,138 +344,67 @@ export default function UserManagementTable({
                     </InputAdornment>
                   ),
                 },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
               }}
             />
           </Grid>
 
           {!hideUserTypeFilter && (
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
+              <Input
                 select
-                fullWidth
-                size="small"
                 label="User Type"
                 value={userType}
                 onChange={(e) => setUserType(e.target.value)}
                 slotProps={{
                   select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
                 }}
               >
                 <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Types</MenuItem>
                 <MenuItem value="APP" sx={{ fontSize: '0.75rem' }}>APP</MenuItem>
                 <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>ADMIN</MenuItem>
                 <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>STAFF</MenuItem>
-              </TextField>
+              </Input>
             </Grid>
           )}
 
           <Grid size={{ xs: 12, sm: 6, md: 1.5 }}>
-            <TextField
+            <Input
               select
-              fullWidth
-              size="small"
               label="Status"
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
               slotProps={{
                 select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                },
-                '& .MuiSelect-select': {
-                  py: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }
               }}
             >
               <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
               <MenuItem value="true" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
               <MenuItem value="false" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
-            </TextField>
+            </Input>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <Input
               label="From"
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
               slotProps={{
                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
+                inputLabel: { shrink: true }
               }}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <Input
               label="To"
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
               slotProps={{
                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
+                inputLabel: { shrink: true }
               }}
             />
           </Grid>
@@ -486,12 +417,13 @@ export default function UserManagementTable({
               disabled={!hasFilters}
               sx={{
                 height: '32px',
-                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
-                color: (theme) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
+                minHeight: '32px',
+                borderColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
+                color: (theme: any) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
                 fontSize: '0.7rem',
                 '&:hover': {
                   borderColor: '#6AB344',
-                  backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
+                  backgroundColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
                 },
               }}
             >
@@ -500,6 +432,15 @@ export default function UserManagementTable({
           </Grid>
         </Grid>
       </Paper>
+
+      {isRedirecting && (
+        <Box sx={{ width: '100%', mb: 2 }}>
+          <LinearProgress sx={{ height: 2, borderRadius: 1 }} />
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+            Redirecting to user details...
+          </Typography>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
@@ -511,11 +452,10 @@ export default function UserManagementTable({
         columns={columns}
         data={data?.users || []}
         isLoading={isLoading}
-        getRowId={(row) => row.id}
-        emptyMessage="No users found. Try adjusting your filters."
-        onView={hasPermission('users:view') ? handleView : undefined}
-        onEdit={showAddButton && hasPermission('users:update') ? handleEdit : undefined}
-        onDelete={showAddButton && hasPermission('users:delete') ? (row) => setDeleteConfirm({ open: true, user: row }) : undefined}
+        onView={hasPermission('users:view') ? (row: User) => handleView(row) : undefined}
+        onEdit={showAddButton && hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
+        onDelete={showAddButton && hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}
+        onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
         renderPagination={() => data ? (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
@@ -544,6 +484,7 @@ export default function UserManagementTable({
             </Box>
           </Box>
         ) : null}
+        getRowId={(row: User) => row.id}
       />
 
       {/* Delete Confirmation */}
@@ -556,6 +497,14 @@ export default function UserManagementTable({
         isLoading={isDeleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteConfirm({ open: false, user: null })}
+      />
+
+      {/* Ban User Dialog */}
+      <BanUserDialog
+        open={banConfirm.open}
+        user={banConfirm.user}
+        onCancel={() => setBanConfirm({ open: false, user: null })}
+        onSuccess={() => setBanConfirm({ open: false, user: null })}
       />
     </Box>
   );

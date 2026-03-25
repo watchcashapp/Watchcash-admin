@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 import { useTheme as useNextTheme } from 'next-themes';
 
 const lightTheme = createTheme({
@@ -46,8 +46,10 @@ const darkTheme = createTheme({
 
 export default function ThemeRegistry({
   children,
+  initialTheme,
 }: {
   children: React.ReactNode;
+  initialTheme?: string;
 }) {
   const { resolvedTheme } = useNextTheme();
   const [mounted, setMounted] = React.useState(false);
@@ -56,19 +58,9 @@ export default function ThemeRegistry({
     setMounted(true);
   }, []);
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return (
-      <AppRouterCacheProvider>
-        <ThemeProvider theme={lightTheme}>
-          <CssBaseline />
-          {children}
-        </ThemeProvider>
-      </AppRouterCacheProvider>
-    );
-  }
-
-  const theme = resolvedTheme === 'dark' ? darkTheme : lightTheme;
+  const theme = mounted 
+    ? (resolvedTheme === 'dark' ? darkTheme : lightTheme)
+    : (initialTheme === 'dark' ? darkTheme : lightTheme);
 
   return (
     <AppRouterCacheProvider>

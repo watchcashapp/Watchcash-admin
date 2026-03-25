@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, Link, TextField, Button } from "@mui/material";
+import { Box, Paper, Typography, Grid, Link } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/shared";
+import { useToast } from "@/components/shared/Toaster";
+import Input from "@/components/shared/Input";
+import Button from "@/components/shared/Button";
 import { useForgotPasswordMutation } from "@/store/api/authApi";
 
 function validateEmail(email: string) {
@@ -157,7 +159,7 @@ export default function ForgotPassword() {
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="Email"
                   type="email"
                   value={email}
@@ -166,33 +168,14 @@ export default function ForgotPassword() {
                   helperText={error || undefined}
                   required
                   fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      color: 'text.secondary',
-                      fontSize: '0.875rem',
-                      transform: 'translate(20px, -8px) scale(0.8)',
-                      fontWeight: 500,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      padding: '0 4px',
-                      borderRadius: '4px',
-                    },
-                    '& .MuiInputBase-input': {
-                      fontSize: '0.75rem',
-                    },
-                    '& .MuiFormLabel-asterisk': {
-                      color: 'error.main',
-                    },
-                  }}
                 />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
                 <Button
                   type="submit"
-                  variant="contained"
                   fullWidth
-                  disabled={isLoading}
+                  loading={isLoading}
                   size="large"
                   sx={{
                     height: '48px',
@@ -206,12 +189,9 @@ export default function ForgotPassword() {
                       boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                       transform: 'translateY(-2px)',
                     },
-                    '&:active': {
-                      transform: 'translateY(0)',
-                    },
                   }}
                 >
-                  {isLoading ? "Sending..." : "Send Reset Link"}
+                  Send Reset Link
                 </Button>
               </Grid>
 

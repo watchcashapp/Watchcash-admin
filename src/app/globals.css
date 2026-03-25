@@ -33,3 +33,11 @@ body {
 .light {
   color-scheme: light;
 }
+
+/* Hide Next.js dev indicator portal and its children */
+nextjs-portal, #nextjs-portal, [data-nextjs-toast-wrapper], .nextjs-portal, .__next-stepper_container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

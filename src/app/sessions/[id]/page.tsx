@@ -1,6 +1,7 @@
 "use client";
 
-import { use, useState, useEffect } from 'react';
+import { use, useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Box,
   Paper,
@@ -18,8 +19,14 @@ import {
 import { ArrowBack, RateReview, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useGetSessionByIdQuery, useReviewSessionMutation, ReviewSessionRequest } from '@/store/api/sessionsApi';
-import { DataTable, LocationMap, useToast } from '@/components/shared';
+import { DataTable, useToast } from '@/components/shared';
 import { usePermissions } from '@/hooks/usePermissions';
+
+// Dynamic import for heavy map component
+const LocationMap = dynamic(() => import('@/components/shared/LocationMap'), {
+  ssr: false,
+  loading: () => <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 2 }} />
+});
 import {
   Drawer,
   TextField,

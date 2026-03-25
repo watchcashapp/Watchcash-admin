@@ -280,6 +280,7 @@ export const authApi = createApi({
     getProfile: builder.query<User, void>({
       query: () => '/admin/profile',
       providesTags: ['User'],
+      keepUnusedDataFor: 300, // 5 minutes
       transformResponse: (response: ProfileResponse) => response.data,
     }),
 

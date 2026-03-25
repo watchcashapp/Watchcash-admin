@@ -260,7 +260,7 @@ export default function LoginHistoryTable({
                 columns={columns}
                 data={data?.items || []}
                 isLoading={isLoading}
-                getRowId={(row) => row.id}
+                getRowId={(row: LoginHistory) => row.id}
                 emptyMessage="No login history found."
                 renderPagination={() => data ? (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>

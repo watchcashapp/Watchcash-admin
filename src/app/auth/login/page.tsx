@@ -2,10 +2,12 @@
 
 import React, { useState, Suspense } from "react";
 import Image from "next/image";
-import { Box, Paper, Typography, Grid, Link, Button, CircularProgress } from "@mui/material";
+import { Box, Paper, Typography, Grid, Link, CircularProgress } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast, Input } from "@/components/shared";
+import { useToast } from "@/components/shared/Toaster";
+import Input from "@/components/shared/Input";
+import Button from "@/components/shared/Button";
 import { useLoginMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";

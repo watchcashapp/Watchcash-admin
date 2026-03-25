@@ -3,11 +3,11 @@
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
 import { ReactNode } from 'react';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children, initialTheme }: { children: ReactNode; initialTheme?: string }) {
   return (
     <NextThemeProvider
       attribute="class"
-      defaultTheme="system"
+      defaultTheme={initialTheme || "system"}
       enableSystem
       disableTransitionOnChange
     >

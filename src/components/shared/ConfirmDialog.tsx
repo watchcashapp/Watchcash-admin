@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -21,7 +22,7 @@ export interface ConfirmDialogProps {
   severity?: 'warning' | 'error' | 'info';
 }
 
-export default function ConfirmDialog({
+function ConfirmDialog({
   open,
   title = 'Confirm Action',
   message,
@@ -128,3 +129,5 @@ export default function ConfirmDialog({
     </Dialog>
   );
 }
+
+export default React.memo(ConfirmDialog);

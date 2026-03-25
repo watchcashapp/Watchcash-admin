@@ -24,7 +24,7 @@ import {
 import { useDispatch } from 'react-redux';
 import { clearAuth, updatePermissionsAndRoles, Permission, Role } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/shared';
+import { useToast } from '@/components/shared/Toaster';
 import { rbacApi } from '@/store/api/rbacApi';
 import { usersApi } from '@/store/api/usersApi';
 

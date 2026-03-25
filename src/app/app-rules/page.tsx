@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
   Paper,
   Typography,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -22,8 +21,7 @@ import {
 } from "@mui/material";
 import { Add, NavigateBefore, NavigateNext, Search } from "@mui/icons-material";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { useToast, ConfirmDialog, MultiSelect } from "@/components/shared";
-import { usePermissions } from "@/hooks/usePermissions";
+import { useToast, ConfirmDialog, MultiSelect, PermissionGuard, Button, Input } from "@/components/shared";
 import {
   useGetAppRulesQuery,
   useGetAppRuleByIdQuery,
@@ -54,14 +52,12 @@ const initialFormData: FormData = {
 export default function AppRulesPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { hasPermission, isInitialized } = usePermissions();
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
   const hasFilters = fromDate || toDate;
-  const [isMounted, setIsMounted] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   // Debounce search query
@@ -73,16 +69,7 @@ export default function AppRulesPage() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('app_rules:list')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
-
+  // Data fetching
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
     from: fromDate,
     to: toDate,
@@ -93,8 +80,8 @@ export default function AppRulesPage() {
   const [deleteAppRule] = useDeleteAppRuleMutation();
   const [toggleStatus] = useToggleAppRuleStatusMutation();
 
-  const totalPages = Math.ceil((appRules?.length || 0) / itemsPerPage);
-  const paginatedRules = appRules?.slice((page - 1) * itemsPerPage, page * itemsPerPage) || [];
+  const totalPages = useMemo(() => Math.ceil((appRules?.length || 0) / itemsPerPage), [appRules?.length]);
+  const paginatedRules = useMemo(() => appRules?.slice((page - 1) * itemsPerPage, page * itemsPerPage) || [], [appRules, page]);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
@@ -131,7 +118,7 @@ export default function AppRulesPage() {
     ruleToDelete: null as AppRule | null,
   });
 
-  const columns: Column<AppRule>[] = [
+  const columns: Column<AppRule>[] = useMemo(() => [
     { id: 'appName', label: 'App Name', minWidth: 150 },
     {
       id: 'pointsPerMinute',
@@ -174,14 +161,10 @@ export default function AppRulesPage() {
         />
       ),
     },
-  ];
+  ], []);
 
   const handleOpenDialog = (rule?: AppRule) => {
     if (rule) {
-      if (!hasPermission('app_rules:update')) {
-        showError('You do not have permission to update app rules');
-        return;
-      }
       setEditingRule(rule);
       // Pre-fill from the list data first while the detail is fetching
       setFormData({
@@ -197,10 +180,6 @@ export default function AppRulesPage() {
         permissions: rule.permissions || [],
       });
     } else {
-      if (!hasPermission('app_rules:create')) {
-        showError('You do not have permission to create app rules');
-        return;
-      }
       setEditingRule(null);
       setFormData(initialFormData);
     }
@@ -298,10 +277,6 @@ export default function AppRulesPage() {
   };
 
   const handleDelete = async (rule: AppRule) => {
-    if (!hasPermission('app_rules:delete')) {
-      showError('You do not have permission to delete app rules');
-      return;
-    }
     setConfirmDialog({
       open: true,
       ruleToDelete: rule,
@@ -326,10 +301,6 @@ export default function AppRulesPage() {
   };
 
   const handleToggle = async (rule: AppRule) => {
-    if (!hasPermission('app_rules:toggle_status')) {
-      showError('You do not have permission to toggle rule status');
-      return;
-    }
     try {
       await toggleStatus({ id: rule.id, enabled: !rule.enabled }).unwrap();
       showSuccess(`App rule ${rule.enabled ? 'disabled' : 'enabled'} successfully!`);
@@ -340,7 +311,8 @@ export default function AppRulesPage() {
   };
 
   return (
-    <Box>
+    <PermissionGuard permission="app_rules:list">
+      <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography
             variant="h5"
@@ -355,29 +327,28 @@ export default function AppRulesPage() {
           >
             App Rules
           </Typography>
-          {hasPermission('app_rules:create') && (
-            <Button
-              variant="contained"
-              startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
-              onClick={() => {
-                setEditingRule(null);
-                setOpenDialog(true);
-              }}
-              sx={{
-                height: '30px',
-                fontSize: '0.75rem',
-                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
-                px: 2,
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                  boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
-                },
-              }}
-            >
-              Add New Rule
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+            onClick={() => {
+              setEditingRule(null);
+              setOpenDialog(true);
+            }}
+            sx={{
+              height: '30px',
+              minHeight: '30px',
+              fontSize: '0.75rem',
+              background: 'linear-gradient(45deg, #213350, #6AB344)',
+              boxShadow: '0 2px 8px rgba(33, 51, 80, 0.3)',
+              px: 2,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                boxShadow: '0 4px 12px rgba(33, 51, 80, 0.4)',
+              },
+            }}
+          >
+            Add New Rule
+          </Button>
         </Box>
 
         <Paper
@@ -385,12 +356,6 @@ export default function AppRulesPage() {
             p: 1.5,
             mb: 2,
             bgcolor: 'background.paper',
-            boxShadow: (theme: any) => theme.palette.mode === 'dark'
-              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-              : '0 4px 12px rgba(0, 0, 0, 0.05)',
-            border: (theme: any) => theme.palette.mode === 'dark'
-              ? '1px solid rgba(255, 255, 255, 0.1)'
-              : '1px solid rgba(0, 0, 0, 0.08)',
             borderRadius: 1.5,
           }}
         >
@@ -407,16 +372,6 @@ export default function AppRulesPage() {
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
                 }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -431,22 +386,11 @@ export default function AppRulesPage() {
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
                 }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 12, md: 5 }}>
-              <TextField
+              <Input
                 fullWidth
-                size="small"
                 label="Search"
                 placeholder="Search by Rule Name"
                 value={searchQuery}
@@ -459,17 +403,6 @@ export default function AppRulesPage() {
                         <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
                       </InputAdornment>
                     ),
-                  },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
                   },
                 }}
               />
@@ -487,12 +420,13 @@ export default function AppRulesPage() {
                 disabled={!fromDate && !toDate && !searchQuery}
                 sx={{
                   height: '32px',
-                  borderColor: '#213350',
-                  color: '#213350',
+                  minHeight: '32px',
+                  borderColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#213350',
+                  color: (theme: any) => theme.palette.mode === 'dark' ? 'text.secondary' : '#213350',
                   fontSize: '0.7rem',
                   '&:hover': {
                     borderColor: '#6AB344',
-                    backgroundColor: 'rgba(33, 51, 80, 0.04)',
+                    backgroundColor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(106, 179, 68, 0.08)' : 'rgba(33, 51, 80, 0.04)',
                   },
                 }}
               >
@@ -502,75 +436,40 @@ export default function AppRulesPage() {
           </Grid>
         </Paper>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-            Failed to load app rules. Please try again.
-          </Alert>
-        )}
-
         <DataTable
           columns={columns}
           data={paginatedRules}
           isLoading={isLoading}
-          onEdit={hasPermission('app_rules:update') ? handleOpenDialog : undefined}
-          onDelete={hasPermission('app_rules:delete') ? handleDelete : undefined}
-          onToggle={hasPermission('app_rules:toggle_status') ? handleToggle : undefined}
-          getRowId={(row) => row.id}
-          emptyMessage="No app rules found. Create your first rule!"
+          onEdit={handleOpenDialog}
+          onDelete={handleDelete}
+          onToggle={handleToggle}
+          getRowId={(row: any) => row.id}
         />
 
         {/* Pagination */}
         {!isLoading && appRules && appRules.length > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Showing {paginatedRules.length} of {appRules.length} results
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <IconButton
-                size="small"
-                onClick={() => setPage(page - 1)}
-                disabled={page <= 1}
-                sx={{ color: page <= 1 ? 'text.disabled' : 'text.secondary' }}
-              >
+              <IconButton size="small" onClick={() => setPage(page - 1)} disabled={page <= 1}>
                 <NavigateBefore />
               </IconButton>
-              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                {page} / {totalPages || 1}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setPage(page + 1)}
-                disabled={page >= (totalPages || 1)}
-                sx={{ color: page >= (totalPages || 1) ? 'text.disabled' : 'text.secondary' }}
-              >
+              <Typography variant="body2">{page} / {totalPages || 1}</Typography>
+              <IconButton size="small" onClick={() => setPage(page + 1)} disabled={page >= (totalPages || 1)}>
                 <NavigateNext />
               </IconButton>
             </Box>
           </Box>
         )}
 
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          maxWidth="md"
-          fullWidth
-          slotProps={{
-            paper: {
-              sx: {
-                borderRadius: 3,
-                bgcolor: 'background.paper',
-                backdropFilter: 'blur(20px)',
-              }
-            }
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 600, fontSize: '1.5rem' }}>
-            {editingRule ? 'Edit App Rule' : 'Create New App Rule'}
-          </DialogTitle>
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+          <DialogTitle>{editingRule ? 'Edit App Rule' : 'Create New App Rule'}</DialogTitle>
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="App Name"
                   name="appName"
                   value={formData.appName}
@@ -581,9 +480,8 @@ export default function AppRulesPage() {
                   fullWidth
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Points Per Minute"
                   name="pointsPerMinute"
                   type="number"
@@ -594,12 +492,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.pointsPerMinute}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Daily Hard Cap"
                   name="dailyHardCap"
                   type="number"
@@ -610,12 +506,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.dailyHardCap}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Daily Soft Cap"
                   name="dailySoftCap"
                   type="number"
@@ -626,12 +520,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.dailySoftCap}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Soft Cap Multiplier"
                   name="softCapMultiplier"
                   type="number"
@@ -642,12 +534,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.softCapMultiplier}
                   required
                   fullWidth
-                  inputProps={{ min: 0, step: 0.1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Max Session Duration"
                   name="maxSessionDuration"
                   type="number"
@@ -658,12 +548,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.maxSessionDuration}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
+                <Input
                   label="Min Session Duration"
                   name="minSessionDuration"
                   type="number"
@@ -674,12 +562,10 @@ export default function AppRulesPage() {
                   helperText={formErrors.minSessionDuration}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="Max Daily Sessions"
                   name="maxDailySessions"
                   type="number"
@@ -690,49 +576,20 @@ export default function AppRulesPage() {
                   helperText={formErrors.maxDailySessions}
                   required
                   fullWidth
-                  inputProps={{ min: 1, step: 1 }}
                 />
               </Grid>
-
-
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.enabled}
-                      onChange={handleInputChange}
-                      name="enabled"
-                      sx={{
-                        '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#6AB344',
-                        },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#6AB344',
-                        },
-                      }}
-                    />
-                  }
+                  control={<Switch checked={formData.enabled} onChange={handleInputChange} name="enabled" />}
                   label="Enabled"
                 />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button onClick={handleCloseDialog} disabled={isCreating || isUpdating}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              disabled={isCreating || isUpdating}
-              sx={{
-                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                },
-              }}
-            >
-              {isCreating || isUpdating || isFetchingDetail ? 'Saving...' : editingRule ? 'Update' : 'Create'}
+            <Button onClick={handleCloseDialog} disabled={isCreating || isUpdating}>Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained" loading={isCreating || isUpdating || isFetchingDetail}>
+              {editingRule ? 'Update' : 'Create'}
             </Button>
           </DialogActions>
         </Dialog>
@@ -742,11 +599,11 @@ export default function AppRulesPage() {
           title="Delete App Rule"
           message={`Are you sure you want to delete "${confirmDialog.ruleToDelete?.appName}"? This action cannot be undone.`}
           confirmText="Delete"
-          cancelText="Cancel"
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
           severity="error"
         />
       </Box>
-    );
+    </PermissionGuard>
+  );
 }

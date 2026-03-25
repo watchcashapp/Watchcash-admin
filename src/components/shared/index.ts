@@ -17,5 +17,4 @@ export type { MultiSelectOption } from './MultiSelect';
 
 export { default as GroupedPermissionsSelect } from './GroupedPermissionsSelect';
 
-export { default as LocationMap } from './LocationMap';
-export { default as FileUploadZone } from './FileUploadZone';
+export { PermissionGuard } from './PermissionGuard';

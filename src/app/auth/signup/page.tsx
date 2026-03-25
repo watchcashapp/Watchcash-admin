@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import { Box, Paper, Typography, Grid, Link, TextField, Button, CircularProgress } from "@mui/material";
+import { Box, Paper, Typography, Grid, Link, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/shared";
+import { useToast } from "@/components/shared/Toaster";
+import Input from "@/components/shared/Input";
+import Button from "@/components/shared/Button";
 import { useRegisterMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
@@ -200,38 +202,19 @@ function SignupForm() {
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Full Name"
-                type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 error={!!errors.name}
                 helperText={errors.name}
                 required
                 fullWidth
-                size="small"
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    padding: '0 4px',
-                    borderRadius: '4px',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Email"
                 type="email"
                 value={email}
@@ -240,29 +223,11 @@ function SignupForm() {
                 helperText={errors.email}
                 required
                 fullWidth
-                size="small"
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    padding: '0 4px',
-                    borderRadius: '4px',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Password"
                 type="password"
                 value={password}
@@ -271,29 +236,11 @@ function SignupForm() {
                 helperText={errors.password}
                 required
                 fullWidth
-                size="small"
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    padding: '0 4px',
-                    borderRadius: '4px',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
+              <Input
                 label="Confirm Password"
                 type="password"
                 value={confirmPassword}
@@ -302,33 +249,14 @@ function SignupForm() {
                 helperText={errors.confirmPassword}
                 required
                 fullWidth
-                size="small"
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                    transform: 'translate(20px, -8px) scale(0.8)',
-                    fontWeight: 500,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    padding: '0 4px',
-                    borderRadius: '4px',
-                  },
-                  '& .MuiInputBase-input': {
-                    fontSize: '0.75rem',
-                  },
-                  '& .MuiFormLabel-asterisk': {
-                    color: 'error.main',
-                  },
-                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
               <Button
                 type="submit"
-                variant="contained"
                 fullWidth
-                disabled={isLoading}
+                loading={isLoading}
                 size="large"
                 sx={{
                   height: '48px',
@@ -342,12 +270,9 @@ function SignupForm() {
                     boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                     transform: 'translateY(-2px)',
                   },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                  },
                 }}
               >
-                {isLoading ? "Creating account..." : "Create Account"}
+                Create Account
               </Button>
             </Grid>
 

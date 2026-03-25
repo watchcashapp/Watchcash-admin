@@ -1,43 +1,42 @@
-"use client";
-
-import ThemeRegistry from './ThemeRegistry';
-import { Provider } from 'react-redux';
-import { store } from '@/store';
-import { ToastProvider } from '@/components/shared';
-import AuthInitializer from '@/components/AuthInitializer';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { NotificationsProvider } from '@/components/notifications/NotificationsProvider';
+import React from 'react';
+import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
+import Providers from '@/components/Providers';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
-export default function RootLayout({
+export const metadata: Metadata = {
+  title: 'WatchCash Admin',
+  description: 'WatchCash Administration Panel',
+  icons: {
+    icon: '/assets/images/favicon.svg',
+    shortcut: '/assets/images/favicon.svg',
+    apple: '/assets/images/favicon.svg',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#213350',
+};
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) { 
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
+  const theme = cookieStore.get('theme')?.value || 'light';
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <title>WatchCash</title>
-        <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg" />
-        <link rel="alternate icon" href="/assets/images/favicon.svg" />
-        <link rel="preload" as="image" href="/assets/images/email-template-logo.svg" type="image/svg+xml" />
-        <meta name="theme-color" content="#213350" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={theme}>
+      <head />
       <body suppressHydrationWarning>
-        <ThemeProvider>
-          <Provider store={store}>
-            <AuthInitializer />
-            <ToastProvider>
-              <NotificationsProvider>
-                <ThemeRegistry>
-                  <DashboardLayout>
-                    {children}
-                  </DashboardLayout>
-                </ThemeRegistry>
-              </NotificationsProvider>
-            </ToastProvider>
-          </Provider>
-        </ThemeProvider>
+        <Providers initialAuth={{ accessToken, refreshToken }} initialTheme={theme}>
+          <DashboardLayout>
+            {children}
+          </DashboardLayout>
+        </Providers>
       </body>
     </html>
   );

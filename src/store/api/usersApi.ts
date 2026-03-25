@@ -9,6 +9,37 @@ import {
   readCollection,
 } from './pagination';
 
+export enum BanReasonCode {
+  ACCOUNT_DELETED = 'ACCOUNT_DELETED',
+  USER_BANNED = 'USER_BANNED',
+  KYC_VERIFICATION_FAILED = 'KYC_VERIFICATION_FAILED',
+  IDENTITY_MISMATCH = 'IDENTITY_MISMATCH',
+  FRAUD_SUSPICION = 'FRAUD_SUSPICION',
+  CHARGEBACK_DISPUTE = 'CHARGEBACK_DISPUTE',
+  PAYMENT_FRAUD = 'PAYMENT_FRAUD',
+  PAYMENT_ABUSE = 'PAYMENT_ABUSE',
+  MULTI_ACCOUNTING = 'MULTI_ACCOUNTING',
+  BOT_ACTIVITY = 'BOT_ACTIVITY',
+  TERMS_VIOLATION = 'TERMS_VIOLATION',
+  ILLEGAL_ACTIVITY = 'ILLEGAL_ACTIVITY',
+  SCAM_REPORT = 'SCAM_REPORT',
+  CHEATING_OR_EXPLOITING = 'CHEATING_OR_EXPLOITING',
+  REWARD_MANIPULATION = 'REWARD_MANIPULATION',
+  WALLET_ABUSE = 'WALLET_ABUSE',
+  LEDGER_DISPUTE = 'LEDGER_DISPUTE',
+  DOUBLE_SPEND_SUSPECTED = 'DOUBLE_SPEND_SUSPECTED',
+  RISK_SCORE_HIGH = 'RISK_SCORE_HIGH',
+  REPEATED_POLICY_VIOLATIONS = 'REPEATED_POLICY_VIOLATIONS',
+  SPAM_OR_ABUSE = 'SPAM_OR_ABUSE',
+  HARASSMENT = 'HARASSMENT',
+  CONTENT_VIOLATION = 'CONTENT_VIOLATION',
+  ACCOUNT_TAKEOVER = 'ACCOUNT_TAKEOVER',
+  UNAUTHORIZED_ACCESS = 'UNAUTHORIZED_ACCESS',
+  REFERRAL_ABUSE = 'REFERRAL_ABUSE',
+  DEVICE_TAMPERING = 'DEVICE_TAMPERING',
+  SYSTEM_ERROR_MITIGATION = 'SYSTEM_ERROR_MITIGATION',
+}
+
 export interface User {
   id: string;
   name: string;
@@ -90,6 +121,12 @@ export interface UpdateUserRequest {
   permissions?: string[];
   roles?: string[];
   isActive?: boolean;
+}
+
+export interface BanUserRequest {
+  reasonCode: BanReasonCode;
+  durationSeconds: number;
+  note: string;
 }
 
 export interface UserDetailResponse {
@@ -305,6 +342,14 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['Users'],
     }),
+    banUser: builder.mutation<void, { id: string; data: BanUserRequest }>({
+      query: ({ id, data }) => ({
+        url: `/admin/users/${id}/ban`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Users'],
+    }),
     getUserWallet: builder.query<UserWalletResponse['data'], { userId: string } & CursorPaginationParams>({
       query: ({ userId, cursor, limit = 20 }) => {
         const queryParams = new URLSearchParams();
@@ -423,4 +468,5 @@ export const {
   useGetLoginHistoryQuery,
   useGetUserLoginHistoryQuery,
   useGetUserSubscriptionQuery,
+  useBanUserMutation,
 } = usersApi;

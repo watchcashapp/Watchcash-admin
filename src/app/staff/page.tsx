@@ -388,10 +388,10 @@ export default function StaffPage() {
           <DataTable
             columns={columns}
             data={data?.staff || []}
-            getRowId={(row) => row.id}
-            onEdit={hasPermission('staff:update') ? (staff) => handleOpenDialog(staff as Staff) : undefined}
-            onDelete={hasPermission('staff:delete') ? (staff) => setDeleteConfirm(staff as Staff) : undefined}
-            onToggle={hasPermission('staff:toggle_status') ? (staff) => handleToggleStatus(staff as Staff) : undefined}
+            getRowId={(row: any) => row.id}
+            onEdit={hasPermission('staff:update') ? (staff: any) => handleOpenDialog(staff as Staff) : undefined}
+            onDelete={hasPermission('staff:delete') ? (staff: any) => setDeleteConfirm(staff as Staff) : undefined}
+            onToggle={hasPermission('staff:toggle_status') ? (staff: any) => handleToggleStatus(staff as Staff) : undefined}
             emptyMessage="No staff found. Try adjusting your filters."
           />
 

@@ -26,7 +26,13 @@ import {
   Skeleton,
 } from '@mui/material';
 import { Search, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
-import { useToast, FileUploadZone } from '@/components/shared';
+import dynamic from 'next/dynamic';
+import { useToast } from '@/components/shared';
+
+const FileUploadZone = dynamic(() => import('@/components/shared/FileUploadZone'), {
+  ssr: false,
+  loading: () => <Skeleton variant="rectangular" width="100%" height={150} sx={{ borderRadius: 2 }} />
+});
 import { config } from '@/config/env';
 import { 
   useGetRewardCatalogsQuery, 
@@ -102,10 +108,15 @@ export default function RewardCatalogPage() {
       if (!cursor) {
         setAllRewards(data.items);
       } else {
-        setAllRewards(prev => [...prev, ...data.items]);
+        setAllRewards(prev => {
+          // Create a Map of existing IDs to ensure uniqueness
+          const existingIds = new Set(prev.map(r => r.id));
+          const newItems = data.items.filter(r => !existingIds.has(r.id));
+          return [...prev, ...newItems];
+        });
       }
     }
-  }, [data, cursor]);
+  }, [data]); // Removed 'cursor' dependency to fix duplication race condition
 
   const showSkeletons = (isLoading || (isFetching && !cursor)) && allRewards.length === 0;
   const displayedRewards = useMemo(() => {

@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Paper, Typography, Grid, TextField, Button, Container, CircularProgress } from "@mui/material";
+import { Box, Paper, Typography, Grid, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useToast, Input } from "@/components/shared";
+import { useToast } from "@/components/shared/Toaster";
+import Input from "@/components/shared/Input";
+import Button from "@/components/shared/Button";
 import { useResetPasswordMutation } from "@/store/api/authApi";
 
 export default function ResetPassword() {
@@ -176,9 +178,8 @@ export default function ResetPassword() {
               <Grid size={{ xs: 12 }}>
                 <Button
                   type="submit"
-                  variant="contained"
                   fullWidth
-                  disabled={isLoading}
+                  loading={isLoading}
                   size="large"
                   sx={{
                     height: '48px',
@@ -192,12 +193,9 @@ export default function ResetPassword() {
                       boxShadow: '0 6px 16px rgba(33, 51, 80, 0.5)',
                       transform: 'translateY(-2px)',
                     },
-                    '&:active': {
-                      transform: 'translateY(0)',
-                    },
                   }}
                 >
-                  {isLoading ? "Saving..." : "Save New Password"}
+                  Save New Password
                 </Button>
               </Grid>
             </Grid>
