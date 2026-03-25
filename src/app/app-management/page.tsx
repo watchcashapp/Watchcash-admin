@@ -20,17 +20,20 @@ import {
   useTheme,
   useMediaQuery,
   Alert,
+  IconButton,
+  Chip,
 } from "@mui/material";
 import {
   Settings,
   Assignment,
   Save,
-  RocketLaunch,
-  CheckCircle,
-  AccountBalanceWallet,
+  Add,
 } from "@mui/icons-material";
 import { useToast } from "@/components/shared";
 import { useGetSettingsQuery, useUpdateSettingsMutation } from "@/store/api/settingsApi";
+import { useGetPlanSettingsQuery, useUpdatePlanSettingsMutation } from "@/store/api/planSettingsApi";
+import { usePermissions } from "@/hooks/usePermissions";
+import { WorkspacePremium } from "@mui/icons-material";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -59,6 +62,19 @@ export default function AppManagementPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { showSuccess, showError } = useToast();
   const [tabValue, setTabValue] = useState(0);
+  const { hasPermission } = usePermissions();
+
+  const canViewSettings = hasPermission('settings:view') || true;
+  const canUpdateSettings = hasPermission('settings:update') || true;
+  const canViewPlanSettings = hasPermission('plan_settings:list');
+  const canUpsertPlanSettings = hasPermission('plan_settings:upsert');
+
+  // Adjust active tab if needed
+  useEffect(() => {
+    if (tabValue === 1 && !canViewPlanSettings) {
+        setTabValue(0);
+    }
+  }, [canViewPlanSettings, tabValue]);
 
   // App Settings State
   const { data: settingsData, isLoading: isLoadingSettings, refetch } = useGetSettingsQuery();
@@ -86,6 +102,74 @@ export default function AppManagementPage() {
       refetch();
     } catch (err: any) {
       showError(err?.data?.message || "Failed to update settings");
+    }
+  };
+
+  // Plan Settings State
+  const { data: planData, isLoading: isLoadingPlans, refetch: refetchPlans } = useGetPlanSettingsQuery(undefined, { skip: !canViewPlanSettings });
+  const [updatePlanSettings, { isLoading: isUpdatingPlans }] = useUpdatePlanSettingsMutation();
+  const [plansList, setPlansList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (planData?.plans) {
+      setPlansList(planData.plans);
+    }
+  }, [planData]);
+
+  const handlePlanInputChange = (index: number, key: string, value: any) => {
+    setPlansList((prev) => {
+      const newList = [...prev];
+      newList[index] = { ...newList[index], [key]: value };
+      return newList;
+    });
+  };
+
+  const handleAddFeature = (index: number, feature: string) => {
+    if (!feature.trim()) return;
+    setPlansList((prev) => {
+      const newList = [...prev];
+      const features = [...(newList[index].features || [])];
+      if (!features.includes(feature.trim())) {
+        features.push(feature.trim());
+      }
+      newList[index] = { ...newList[index], features };
+      return newList;
+    });
+  };
+
+  const handleRemoveFeature = (planIndex: number, featureIndex: number) => {
+    setPlansList((prev) => {
+      const newList = [...prev];
+      const features = (newList[planIndex].features || []).filter((_: any, i: number) => i !== featureIndex);
+      newList[planIndex] = { ...newList[planIndex], features };
+      return newList;
+    });
+  };
+
+  const [newFeatureText, setNewFeatureText] = useState<{ [key: number]: string }>({});
+
+  const handleNewFeatureTextChange = (index: number, text: string) => {
+    setNewFeatureText(prev => ({ ...prev, [index]: text }));
+  };
+
+  const handleSavePlanSettings = async () => {
+    try {
+      // Map to snake_case for API request as per error messages
+      const payloadPlans = plansList.map(plan => ({
+        code: plan.code,
+        name: plan.name,
+        price_usd: Number(plan.priceUsd) || 0,
+        earning_points_per_min: Number(plan.earningPointsPerMin) || 0,
+        daily_limit_minutes: Number(plan.dailyLimitMinutes) || 0,
+        is_active: plan.isActive,
+        features: plan.features || []
+      }));
+      
+      await updatePlanSettings({ plans: payloadPlans }).unwrap();
+      showSuccess("Plan settings updated successfully");
+      refetchPlans();
+    } catch (err: any) {
+      showError(err?.data?.message || "Failed to update plan settings");
     }
   };
 
@@ -134,122 +218,13 @@ export default function AppManagementPage() {
               },
             }}
           >
-            <Tab icon={<RocketLaunch sx={{ mr: 1 }} />} iconPosition="start" label="Plan" />
             <Tab icon={<Settings sx={{ mr: 1 }} />} iconPosition="start" label="App Settings" />
+            {canViewPlanSettings && <Tab icon={<WorkspacePremium sx={{ mr: 1 }} />} iconPosition="start" label="Plan Settings" />}
           </Tabs>
 
           <Box>
-            {/* PLAN TAB */}
-            <TabPanel value={tabValue} index={0}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 8 }}>
-                  <Card 
-                    elevation={0} 
-                    sx={{ 
-                      borderRadius: 3, 
-                      background: "linear-gradient(135deg, #213350 0%, #1a2a44 100%)",
-                      color: "white",
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <Box 
-                      sx={{ 
-                        position: 'absolute', 
-                        top: -20, 
-                        right: -20, 
-                        width: 150, 
-                        height: 150, 
-                        background: 'rgba(106, 179, 68, 0.1)', 
-                        borderRadius: '50%',
-                        zIndex: 0
-                      }} 
-                    />
-                    <CardContent sx={{ position: 'relative', zIndex: 1, p: 4 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                        <Box>
-                          <Typography variant="overline" sx={{ opacity: 0.8, letterSpacing: 1.5, fontWeight: 700 }}>
-                            CURRENT PLAN
-                          </Typography>
-                          <Typography sx={{ fontWeight: 800, mt: 0.5, fontSize: '1.5rem' }}>
-                            Enterprise Pro
-                          </Typography>
-                        </Box>
-                        <Chip 
-                          label="ACTIVE" 
-                          icon={<CheckCircle sx={{ color: '#6AB344 !important' }} />}
-                          sx={{ 
-                            bgcolor: 'rgba(106, 179, 68, 0.2)', 
-                            color: '#6AB344', 
-                            fontWeight: 700,
-                            border: '1px solid rgba(106, 179, 68, 0.3)'
-                          }} 
-                        />
-                      </Stack>
-                      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 3 }} />
-                      <Grid container spacing={2}>
-                        {[
-                          { label: 'Users Cap', val: 'Unlimited' },
-                          { label: 'API Access', val: 'Full Priority' },
-                          { label: 'Support', val: '24/7 Dedicated' },
-                          { label: 'Next Renewal', val: 'Oct 12, 2026' },
-                        ].map((stat, i) => (
-                          <Grid size={{ xs: 6, sm: 3 }} key={i}>
-                            <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', fontSize: '0.65rem' }}>{stat.label}</Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{stat.val}</Typography>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </CardContent>
-                  </Card>
-
-                  <Box sx={{ mt: 3 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, fontSize: '0.9rem' }}>Plan Features</Typography>
-                    <Grid container spacing={2}>
-                      {[
-                        'Global Rewards Distribution',
-                        'Advanced Fraud Prevention',
-                        'Custom Branding & White-labeling',
-                        'Real-time Analytics Dashboard',
-                        'Multi-currency Support',
-                        'Priority API Endpoints'
-                      ].map((feature, i) => (
-                        <Grid size={{ xs: 12, sm: 6 }} key={i}>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <CheckCircle sx={{ color: '#6AB344', fontSize: '1.2rem' }} />
-                            <Typography variant="body2">{feature}</Typography>
-                          </Stack>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Card elevation={0} sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, bgcolor: 'rgba(106, 179, 68, 0.03)' }}>
-                    <CardContent sx={{ p: 3 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>Payment Method</Typography>
-                      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <AccountBalanceWallet color="primary" />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>•••• •••• •••• 4242</Typography>
-                          <Typography variant="caption" color="text.secondary">Expires 12/28</Typography>
-                        </Box>
-                      </Paper>
-                      <Button variant="contained" fullWidth sx={{ borderRadius: 2, py: 1.2, fontWeight: 700 }}>
-                        UPGRADE PLAN
-                      </Button>
-                      <Button variant="text" fullWidth color="inherit" sx={{ mt: 1, fontSize: '0.75rem' }}>
-                        Manage Subscriptions
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </TabPanel>
-
             {/* SETTINGS TAB */}
-            <TabPanel value={tabValue} index={1}>
+            <TabPanel value={tabValue} index={0}>
               {isLoadingSettings ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
                   <CircularProgress />
@@ -257,7 +232,7 @@ export default function AppManagementPage() {
               ) : (
                 <Grid container spacing={4}>
                   <Grid size={{ xs: 12, lg: 8 }}>
-                    <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Global Application Settings</Typography>
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700, fontSize: '1.1rem' }}>Global Application Settings</Typography>
                     <Stack spacing={3}>
                       <Card variant="outlined" sx={{ borderRadius: 2 }}>
                         <CardContent>
@@ -380,29 +355,165 @@ export default function AppManagementPage() {
                 </Grid>
               )}
             </TabPanel>
+
+            {/* PLAN SETTINGS TAB */}
+            {canViewPlanSettings && (
+              <TabPanel value={tabValue} index={1}>
+                {isLoadingPlans ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700, fontSize: '1.1rem' }}>Subscription Plan Configurations</Typography>
+                    <Grid container spacing={3}>
+                      {plansList.map((plan, index) => (
+                        <Grid size={{ xs: 12, lg: 4 }} key={plan.code}>
+                          <Card 
+                            variant="outlined" 
+                            sx={{ 
+                              borderRadius: 2,
+                              height: '100%',
+                              borderColor: plan.is_active ? 'primary.main' : 'divider',
+                              boxShadow: plan.is_active ? '0 4px 12px rgba(106, 179, 68, 0.1)' : 'none'
+                            }}
+                          >
+                            <CardContent>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography sx={{ fontWeight: 700, color: 'primary.main' }}>{plan.code}</Typography>
+                                <FormControlLabel
+                                  control={
+                                    <Switch 
+                                      size="small"
+                                      checked={plan.isActive} 
+                                      onChange={(e) => handlePlanInputChange(index, "isActive", e.target.checked)}
+                                      disabled={!canUpsertPlanSettings}
+                                    />
+                                  }
+                                  label="Active"
+                                  labelPlacement="start"
+                                />
+                              </Box>
+                              
+                              <Stack spacing={2}>
+                                <TextField
+                                  fullWidth
+                                  label="Plan Name"
+                                  size="small"
+                                  value={plan.name}
+                                  onChange={(e) => handlePlanInputChange(index, "name", e.target.value)}
+                                  disabled={!canUpsertPlanSettings}
+                                />
+                                <TextField
+                                  fullWidth
+                                  label="Price (USD)"
+                                  type="number"
+                                  size="small"
+                                  value={plan.priceUsd}
+                                  onChange={(e) => handlePlanInputChange(index, "priceUsd", Number(e.target.value))}
+                                  disabled={!canUpsertPlanSettings}
+                                />
+                                <TextField
+                                  fullWidth
+                                  label="Earning Points / min"
+                                  type="number"
+                                  size="small"
+                                  value={plan.earningPointsPerMin}
+                                  onChange={(e) => handlePlanInputChange(index, "earningPointsPerMin", Number(e.target.value))}
+                                  disabled={!canUpsertPlanSettings}
+                                />
+                                <TextField
+                                  fullWidth
+                                  label="Daily Limit (minutes)"
+                                  type="number"
+                                  size="small"
+                                  value={plan.dailyLimitMinutes}
+                                  onChange={(e) => handlePlanInputChange(index, "dailyLimitMinutes", Number(e.target.value))}
+                                  disabled={!canUpsertPlanSettings}
+                                />
+                                <Box sx={{ mt: 1 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>Features</Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
+                                        {plan.features?.map((feature: string, i: number) => (
+                                            <Chip 
+                                                key={i} 
+                                                label={feature} 
+                                                onDelete={canUpsertPlanSettings ? () => handleRemoveFeature(index, i) : undefined}
+                                                sx={{ 
+                                                    bgcolor: 'rgba(106, 179, 68, 0.08)', 
+                                                    height: 24, 
+                                                    fontSize: '0.7rem',
+                                                    '& .MuiChip-deleteIcon': { fontSize: '0.8rem' }
+                                                }} 
+                                            />
+                                        ))}
+                                    </Box>
+                                    
+                                    {canUpsertPlanSettings && (
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                            <TextField
+                                                size="small"
+                                                placeholder="New feature..."
+                                                value={newFeatureText[index] || ""}
+                                                onChange={(e) => handleNewFeatureTextChange(index, e.target.value)}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        handleAddFeature(index, newFeatureText[index] || "");
+                                                        handleNewFeatureTextChange(index, "");
+                                                    }
+                                                }}
+                                                sx={{ 
+                                                    flexGrow: 1,
+                                                    '& .MuiInputBase-input': { py: 0.5, px: 1, fontSize: '0.75rem' }
+                                                }}
+                                            />
+                                            <IconButton 
+                                                size="small" 
+                                                color="primary"
+                                                onClick={() => {
+                                                    handleAddFeature(index, newFeatureText[index] || "");
+                                                    handleNewFeatureTextChange(index, "");
+                                                }}
+                                                sx={{ bgcolor: 'rgba(106, 179, 68, 0.1)' }}
+                                            >
+                                                <Add sx={{ fontSize: '1.2rem' }} />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+                                </Box>
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                      <Button 
+                        variant="outlined" 
+                        color="inherit"
+                        onClick={() => refetchPlans()}
+                        disabled={isUpdatingPlans}
+                      >
+                        Reset Changes
+                      </Button>
+                      <Button
+                        variant="contained"
+                        startIcon={isUpdatingPlans ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                        onClick={handleSavePlanSettings}
+                        disabled={isUpdatingPlans || !canUpsertPlanSettings}
+                        sx={{ px: 4, borderRadius: 2 }}
+                      >
+                        {isUpdatingPlans ? "Saving..." : "Save Plan Settings"}
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+              </TabPanel>
+            )}
           </Box>
         </Paper>
       </Box>
     );
 }
 
-// Helper Chip component for internal use
-function Chip({ label, icon, sx }: { label: string; icon?: React.ReactNode; sx?: any }) {
-  return (
-    <Box 
-      sx={{ 
-        px: 1.5, 
-        py: 0.5, 
-        borderRadius: '12px', 
-        fontSize: '0.75rem', 
-        display: 'flex', 
-        alignItems: 'center',
-        gap: 0.5,
-        ...sx 
-      }}
-    >
-      {icon}
-      {label}
-    </Box>
-  );
-}

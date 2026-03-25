@@ -14,6 +14,7 @@ import { dashboardApi } from './api/dashboardApi';
 import { auditLogsApi } from './api/auditLogsApi';
 import { notificationsApi } from './api/notificationsApi';
 import { adsApi } from './api/adsApi';
+import { planSettingsApi } from './api/planSettingsApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -34,6 +35,7 @@ export const store = configureStore({
     [auditLogsApi.reducerPath]: auditLogsApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [adsApi.reducerPath]: adsApi.reducer,
+    [planSettingsApi.reducerPath]: planSettingsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -51,7 +53,8 @@ export const store = configureStore({
       .concat(dashboardApi.middleware)
       .concat(auditLogsApi.middleware)
       .concat(notificationsApi.middleware)
-      .concat(adsApi.middleware),
+      .concat(adsApi.middleware)
+      .concat(planSettingsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -256,7 +256,7 @@ export default function EditUserPage() {
       </Button>
 
       <Typography
-        variant="h4"
+        variant="h5"
         sx={{
           mb: 2,
           fontWeight: 700,

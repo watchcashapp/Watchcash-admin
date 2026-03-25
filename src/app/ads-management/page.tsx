@@ -35,6 +35,7 @@ import {
   Refresh,
 } from '@mui/icons-material';
 import { useToast } from '@/components/shared';
+import { usePermissions } from '@/hooks/usePermissions';
 import {
   useGetAdSettingsQuery,
   useUpdateAdSettingsMutation,
@@ -92,6 +93,20 @@ function TabPanel(props: TabPanelProps) {
 export default function AdsManagementPage() {
   const [activeTab, setActiveTab] = useState(0);
   const { showSuccess, showError } = useToast();
+  const { hasPermission } = usePermissions();
+
+  const canViewProviders = hasPermission('ad_providers:list');
+  const canUpsertProviders = hasPermission('ad_providers:upsert');
+  const canToggleProviders = hasPermission('ad_providers:toggle_status');
+  const canViewAdSettings = hasPermission('ad_settings:view');
+  const canUpdateAdSettings = hasPermission('ad_settings:update');
+
+  // Adjust active tab if first one is not allowed
+  useEffect(() => {
+    if (!canViewProviders && activeTab === 0 && canViewAdSettings) {
+      setActiveTab(1);
+    }
+  }, [canViewProviders, canViewAdSettings, activeTab]);
 
   // Ad Settings State
   const [isEditingSettings, setIsEditingSettings] = useState(false);
@@ -280,7 +295,7 @@ export default function AdsManagementPage() {
           Ads Management
         </Typography>
 
-        {activeTab === 0 && (
+        {activeTab === 0 && canUpsertProviders && (
           <Button
             variant="contained"
             size="small"
@@ -297,7 +312,7 @@ export default function AdsManagementPage() {
           </Button>
         )}
 
-        {activeTab === 1 && !isEditingSettings && (
+        {activeTab === 1 && !isEditingSettings && canUpdateAdSettings && (
           <Button
             variant="contained"
             size="small"
@@ -344,12 +359,13 @@ export default function AdsManagementPage() {
             }
           }}
         >
-          <Tab icon={<Dns sx={{ fontSize: '1.1rem !important' }} />} iconPosition="start" label="Ad Providers" />
-          <Tab icon={<Settings sx={{ fontSize: '1.1rem !important' }} />} iconPosition="start" label="Ad Settings" />
+          {canViewProviders && <Tab icon={<Dns sx={{ fontSize: '1.1rem !important' }} />} iconPosition="start" label="Ad Providers" />}
+          {canViewAdSettings && <Tab icon={<Settings sx={{ fontSize: '1.1rem !important' }} />} iconPosition="start" label="Ad Settings" />}
         </Tabs>
 
         {/* --- SERVICE TAB (CRUD) --- */}
-        <TabPanel value={activeTab} index={0}>
+        {canViewProviders && (
+          <TabPanel value={activeTab} index={0}>
           <Grid container spacing={2}>
             {allProviders.map((provider) => (
               <Grid size={{ xs: 12, md: 6, lg: 4 }} key={provider.provider_code}>
@@ -383,17 +399,19 @@ export default function AdsManagementPage() {
                         size="small"
                         checked={provider.is_enabled}
                         onChange={() => handleProviderToggle(provider.provider_code, provider.is_enabled)}
-                        disabled={isUpdatingStatus}
+                        disabled={isUpdatingStatus || !canToggleProviders}
                       />
                     </Box>
                     <Box display="flex" justifyContent="flex-end" mt={2} gap={1}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(provider)}
-                        sx={{ color: 'primary.main', bgcolor: 'rgba(33, 51, 80, 0.05)' }}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
+                      {canUpsertProviders && (
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(provider)}
+                          sx={{ color: 'primary.main', bgcolor: 'rgba(33, 51, 80, 0.05)' }}
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
@@ -426,9 +444,11 @@ export default function AdsManagementPage() {
             </Box>
           )}
         </TabPanel>
+        )}
 
         {/* --- AD SETTINGS TAB --- */}
-        <TabPanel value={activeTab} index={1}>
+        {canViewAdSettings && (
+          <TabPanel value={activeTab} index={1}>
           <form onSubmit={handleSettingsSubmit}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 3, fontSize: '0.9rem' }}>
               Global Ad Reward Parameters
@@ -554,6 +574,7 @@ export default function AdsManagementPage() {
             </Grid>
           </form>
         </TabPanel>
+        )}
       </Paper>
 
       {/* --- PROVIDER DIALOG --- */}
