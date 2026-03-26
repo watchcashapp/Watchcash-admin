@@ -137,6 +137,7 @@ export default function AdsManagementPage() {
     is_enabled: true,
     config: {}
   });
+  const [providerTouched, setProviderTouched] = useState<Set<string>>(new Set());
 
   const isSettingsChanged = React.useMemo(() => {
     if (!adSettings) return false;
@@ -251,6 +252,7 @@ export default function AdsManagementPage() {
         config: {}
       });
     }
+    setProviderTouched(new Set());
     setOpenProviderDialog(true);
   };
 
@@ -280,6 +282,7 @@ export default function AdsManagementPage() {
   };
 
   const handleNameChange = (name: string) => {
+    setProviderTouched(prev => new Set(prev).add('provider_name'));
     setProviderForm(prev => {
       const updates: any = { provider_name: name };
       // Only auto-generate code if we're creating a new provider
@@ -288,6 +291,11 @@ export default function AdsManagementPage() {
       }
       return { ...prev, ...updates };
     });
+  };
+
+  const handleProviderInputChange = (key: string, value: any) => {
+    setProviderTouched(prev => new Set(prev).add(key));
+    setProviderForm(prev => ({ ...prev, [key]: value }));
   };
 
   if (isLoadingSettings || isLoadingProviders) {
@@ -501,40 +509,64 @@ export default function AdsManagementPage() {
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
-                  label="Points Per Ad"
+                  label="Points Per Ad *"
                   type="number"
-                  value={settingsForm.points_per_ad}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, points_per_ad: Number(e.target.value) || 0 })}
+                  value={settingsForm.points_per_ad === 0 ? '' : settingsForm.points_per_ad}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Number(e.target.value);
+                    setSettingsForm({ ...settingsForm, points_per_ad: val });
+                  }}
+                  onBlur={() => {
+                    if (settingsForm.points_per_ad <= 0) setSettingsForm(prev => ({ ...prev, points_per_ad: 1 }));
+                  }}
                   disabled={!isEditingSettings}
                   fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
-                  label="Cooldown Seconds"
+                  label="Cooldown Seconds *"
                   type="number"
-                  value={settingsForm.cooldown_seconds}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, cooldown_seconds: Number(e.target.value) || 0 })}
+                  value={settingsForm.cooldown_seconds === 0 ? '' : settingsForm.cooldown_seconds}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Number(e.target.value);
+                    setSettingsForm({ ...settingsForm, cooldown_seconds: val });
+                  }}
+                  onBlur={() => {
+                    if (settingsForm.cooldown_seconds <= 0) setSettingsForm(prev => ({ ...prev, cooldown_seconds: 1 }));
+                  }}
                   disabled={!isEditingSettings}
                   fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
-                  label="Max Ads Per Day"
+                  label="Max Ads Per Day *"
                   type="number"
-                  value={settingsForm.max_ads_per_day}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, max_ads_per_day: Number(e.target.value) || 0 })}
+                  value={settingsForm.max_ads_per_day === 0 ? '' : settingsForm.max_ads_per_day}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Number(e.target.value);
+                    setSettingsForm({ ...settingsForm, max_ads_per_day: val });
+                  }}
+                  onBlur={() => {
+                    if (settingsForm.max_ads_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_ads_per_day: 1 }));
+                  }}
                   disabled={!isEditingSettings}
                   fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
-                  label="Max Points Per Day"
+                  label="Max Points Per Day *"
                   type="number"
-                  value={settingsForm.max_points_per_day}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, max_points_per_day: Number(e.target.value) || 0 })}
+                  value={settingsForm.max_points_per_day === 0 ? '' : settingsForm.max_points_per_day}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Number(e.target.value);
+                    setSettingsForm({ ...settingsForm, max_points_per_day: val });
+                  }}
+                  onBlur={() => {
+                    if (settingsForm.max_points_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_points_per_day: 1 }));
+                  }}
                   disabled={!isEditingSettings}
                   fullWidth
                 />
@@ -596,8 +628,8 @@ export default function AdsManagementPage() {
                 placeholder="e.g., Google AdMob"
                 size="small"
                 required
-                error={!providerForm.provider_name.trim()}
-                helperText={!providerForm.provider_name.trim() ? "Provider Name is required" : ""}
+                error={providerTouched.has('provider_name') && !providerForm.provider_name.trim()}
+                helperText={providerTouched.has('provider_name') && !providerForm.provider_name.trim() ? "Provider Name is required" : ""}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -606,12 +638,12 @@ export default function AdsManagementPage() {
                 label="Provider Code"
                 disabled={!!editingProvider}
                 value={providerForm.provider_code}
-                onChange={(e) => setProviderForm({ ...providerForm, provider_code: e.target.value.toUpperCase() })}
+                onChange={(e) => handleProviderInputChange('provider_code', e.target.value.toUpperCase())}
                 placeholder="e.g., ADMOB"
                 size="small"
                 required
-                error={!providerForm.provider_code.trim()}
-                helperText={!editingProvider ? (providerForm.provider_code.trim() ? "Auto-generated from name" : "Provider Code is required") : ""}
+                error={providerTouched.has('provider_code') && !providerForm.provider_code.trim()}
+                helperText={providerTouched.has('provider_code') && !providerForm.provider_code.trim() ? "Provider Code is required" : (providerTouched.has('provider_name') && !editingProvider ? "Auto-generated from name" : "")}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -623,11 +655,11 @@ export default function AdsManagementPage() {
                 multiline
                 rows={4}
                 value={typeof providerForm.config === 'object' ? JSON.stringify(providerForm.config, null, 2) : providerForm.config}
-                onChange={(e) => setProviderForm({ ...providerForm, config: e.target.value })}
+                onChange={(e) => handleProviderInputChange('config', e.target.value)}
                 placeholder='{ "app_id": "...", "unit_id": "..." }'
                 slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: '0.8rem' } } }}
-                error={!isJsonValid}
-                helperText={!isJsonValid ? "Invalid JSON format" : ""}
+                error={providerTouched.has('config') && !isJsonValid}
+                helperText={providerTouched.has('config') && !isJsonValid ? "Invalid JSON format" : ""}
               />
             </Grid>
           </Grid>

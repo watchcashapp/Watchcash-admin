@@ -80,6 +80,7 @@ export default function AppManagementPage() {
   const { data: settingsData, isLoading: isLoadingSettings, refetch } = useGetSettingsQuery();
   const [updateSettings, { isLoading: isUpdating }] = useUpdateSettingsMutation();
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (settingsData?.settings) {
@@ -92,6 +93,7 @@ export default function AppManagementPage() {
   };
 
   const handleInputChange = (key: string, value: any) => {
+    setTouchedFields(prev => new Set(prev).add(key));
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -265,8 +267,8 @@ export default function AppManagementPage() {
                                     required
                                     value={formData.appName || ""}
                                     onChange={(e) => handleInputChange("appName", e.target.value)}
-                                    error={!formData.appName}
-                                    helperText={!formData.appName ? "App Name is required" : ""}
+                                    error={touchedFields.has('appName') && !formData.appName}
+                                    helperText={touchedFields.has('appName') && !formData.appName ? "App Name is required" : ""}
                                   />
                               </Grid>
                               <Grid size={{ xs: 12, sm: 6 }}>
@@ -277,8 +279,8 @@ export default function AppManagementPage() {
                                     required
                                     value={formData.supportEmail || ""}
                                     onChange={(e) => handleInputChange("supportEmail", e.target.value)}
-                                    error={!formData.supportEmail}
-                                    helperText={!formData.supportEmail ? "Support Email is required" : ""}
+                                    error={touchedFields.has('supportEmail') && !formData.supportEmail}
+                                    helperText={touchedFields.has('supportEmail') && !formData.supportEmail ? "Support Email is required" : ""}
                                   />
                               </Grid>
                               <Grid size={12}>

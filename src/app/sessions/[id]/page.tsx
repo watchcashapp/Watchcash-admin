@@ -329,7 +329,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           label={value}
           color={value === 'CREDIT' ? 'success' : 'error'}
           size="small"
-          sx={{ fontWeight: 500 }}
+          sx={{ fontWeight: 600, color: 'white' }}
         />
       ),
     },

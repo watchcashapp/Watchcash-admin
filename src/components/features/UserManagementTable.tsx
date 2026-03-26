@@ -34,6 +34,8 @@ interface UserManagementTableProps {
   defaultUserType?: string;
   hideUserTypeFilter?: boolean;
   showBanButton?: boolean;
+  showEditAction?: boolean;
+  showDeleteAction?: boolean;
 }
 
 export default function UserManagementTable({
@@ -45,6 +47,8 @@ export default function UserManagementTable({
   defaultUserType = "",
   hideUserTypeFilter = false,
   showBanButton = true,
+  showEditAction = true,
+  showDeleteAction = true,
 }: UserManagementTableProps) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -453,8 +457,8 @@ export default function UserManagementTable({
         data={data?.users || []}
         isLoading={isLoading}
         onView={hasPermission('users:view') ? (row: User) => handleView(row) : undefined}
-        onEdit={hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
-        onDelete={hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}
+        onEdit={showEditAction && hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
+        onDelete={showDeleteAction && hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}
         onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
         renderPagination={() => data ? (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>

@@ -80,7 +80,7 @@ export default function DashboardPage() {
         break;
       case 'Active Users':
       case 'Banned Users':
-        router.push('/staff/users');
+        router.push('/users');
         break;
       case 'Total Staff':
       case 'Active Staff':

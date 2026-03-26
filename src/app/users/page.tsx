@@ -15,6 +15,8 @@ export default function UsersPage() {
         defaultUserType="APP"
         hideUserTypeFilter={true}
         viewRoute="/users/view"
+        showEditAction={false}
+        showDeleteAction={false}
       />
     </PermissionGuard>
   );
