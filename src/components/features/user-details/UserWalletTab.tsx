@@ -58,7 +58,11 @@ export default function UserWalletTab({ userId }: UserWalletTabProps) {
     { id: 'note', label: 'Note', minWidth: 200, format: (v: string) => v || 'N/A' },
   ], []);
 
-  if (isLoading && !data) return <CircularProgress />;
+  if (isLoading && !data) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+      <CircularProgress size={32} />
+    </Box>
+  );
 
   return (
     <Box>
@@ -84,7 +88,11 @@ export default function UserWalletTab({ userId }: UserWalletTabProps) {
             </Box>
           </Box>
         </>
-      ) : <Typography color="text.secondary">No transactions found</Typography>}
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+          <Typography color="text.secondary">No transactions found</Typography>
+        </Box>
+      )}
     </Box>
   );
 }

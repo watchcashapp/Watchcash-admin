@@ -65,7 +65,11 @@ export default function UserRewardsTab({ userId }: UserRewardsTabProps) {
     },
   ], []);
 
-  if (isLoading && !data) return <CircularProgress />;
+  if (isLoading && !data) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+      <CircularProgress size={32} />
+    </Box>
+  );
 
   return (
     <Box>
@@ -81,7 +85,11 @@ export default function UserRewardsTab({ userId }: UserRewardsTabProps) {
             </Box>
           </Box>
         </>
-      ) : <Typography color="text.secondary">No redemption history found</Typography>}
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
+          <Typography color="text.secondary">No redemption history found</Typography>
+        </Box>
+      )}
     </Box>
   );
 }

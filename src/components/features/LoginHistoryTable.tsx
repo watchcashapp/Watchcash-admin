@@ -27,7 +27,7 @@ interface LoginHistoryTableProps {
 
 export default function LoginHistoryTable({
     title = "Login History",
-    userId: initialUserId = "",
+    userId: initialUserId = "", // Keeping the variable name for now but it will hold userName
 }: LoginHistoryTableProps) {
     const { showError } = useToast();
     const [limit] = useState(6);
@@ -42,7 +42,7 @@ export default function LoginHistoryTable({
 
     const queryParams = React.useMemo(() => {
         const params: any = { cursor, limit };
-        if (userId) params.user_id = userId;
+        if (userId) params.userName = userId;
         if (isAdmin !== "") params.is_admin = isAdmin === "true";
         return params;
     }, [cursor, limit, userId, isAdmin]);
@@ -168,8 +168,8 @@ export default function LoginHistoryTable({
                         <TextField
                             fullWidth
                             size="small"
-                            label="User ID"
-                            placeholder="Search by User ID"
+                            label="Username"
+                            placeholder="Search by Username"
                             value={userId}
                             onChange={(e) => setUserId(e.target.value)}
                             slotProps={{

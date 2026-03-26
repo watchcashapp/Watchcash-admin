@@ -64,7 +64,7 @@ export default function RolesPage() {
   const paginatedRoles = useMemo(() => filteredRoles.slice((page - 1) * itemsPerPage, page * itemsPerPage), [filteredRoles, page]);
 
   return (
-    <PermissionGuard permission="rbac:manage_roles">
+    <PermissionGuard permission="staff:assign_roles">
       <Box>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography
@@ -80,7 +80,7 @@ export default function RolesPage() {
           >
             User Roles
           </Typography>
-          <PermissionGuard permission="roles:create">
+          <PermissionGuard permission="roles:create" simple>
             <Button
               variant="contained"
               startIcon={<Add sx={{ fontSize: '1rem !important' }} />}

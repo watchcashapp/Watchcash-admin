@@ -119,13 +119,13 @@ export default function AddRolePage() {
   }
 
   return (
-    <PermissionGuard permission="rbac:manage_roles">
+    <PermissionGuard permission="staff:assign_roles">
       <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
         <Button
           startIcon={<ArrowBack />}
           onClick={() => router.push('/staff/roles')}
-          sx={{
-            mb: { xs: 2, sm: 3 },
+          sx={{ 
+            mb: { xs: 2, sm: 3 }, 
             '&:hover': {
               backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
@@ -135,10 +135,10 @@ export default function AddRolePage() {
         </Button>
 
         <Typography
-          variant="h4"
+          variant="h5"
           sx={{
             mb: { xs: 2, sm: 3 },
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+            fontSize: '0.9rem',
             fontWeight: 700,
             background: 'linear-gradient(45deg, #213350, #6AB344)',
             WebkitBackgroundClip: 'text',

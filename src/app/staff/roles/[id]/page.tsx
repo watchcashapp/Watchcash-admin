@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect, useRef } from 'react';
+import { use, useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -50,6 +50,15 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       });
     }
   }, [role]);
+
+  const isChanged = useMemo(() => {
+    if (!role) return false;
+    const originalPermissions = role.permissions?.map((p: any) => p.id) || [];
+    
+    return formData.name !== role.name ||
+           formData.description !== role.description ||
+           JSON.stringify([...formData.permissions].sort()) !== JSON.stringify([...originalPermissions].sort());
+  }, [formData, role]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, name: e.target.value });
@@ -122,9 +131,16 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     return (
       <Box>
         <Button
-          startIcon={<ArrowBack />}
+          variant="text"
+          startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
           onClick={() => router.push('/staff/roles')}
-          sx={{ mb: 3 }}
+          sx={{ 
+            mb: 3, 
+            height: '28px', 
+            fontSize: '0.75rem', 
+            color: 'text.secondary', 
+            textTransform: 'uppercase' 
+          }}
         >
           Back to Roles
         </Button>
@@ -138,13 +154,18 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <PermissionGuard permission="rbac:manage_roles">
+    <PermissionGuard permission="staff:assign_roles">
       <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
         <Button
-          startIcon={<ArrowBack />}
+          variant="text"
+          startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
           onClick={() => router.push('/staff/roles')}
-          sx={{
-            mb: { xs: 2, sm: 3 },
+          sx={{ 
+            mb: { xs: 2, sm: 3 }, 
+            height: '28px', 
+            fontSize: '0.75rem', 
+            color: 'text.secondary', 
+            textTransform: 'uppercase',
             '&:hover': {
               backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
@@ -266,7 +287,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                   variant="contained"
                   startIcon={<Save sx={{ fontSize: '1rem !important' }} />}
                   onClick={handleSubmit}
-                  disabled={isUpdating}
+                  disabled={isUpdating || !isChanged}
                   loading={isUpdating}
                   sx={{
                     width: { xs: '100%', sm: 'auto' },

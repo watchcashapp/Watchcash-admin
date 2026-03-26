@@ -73,7 +73,7 @@ interface MenuItem {
   icon?: React.ReactNode;
   path?: string;
   permission?: string;
-  subItems?: { text: string; icon: React.ReactNode; path: string; permission?: string }[];
+  subItems?: { text: string; icon: React.ReactNode; path: string; permission?: string | string[] }[];
   isHeader?: boolean;
 }
 
@@ -88,7 +88,7 @@ const menuItems: MenuItem[] = [
     permission: 'staff:list',
     subItems: [
       { text: 'Staff Users', icon: <PersonOutline />, path: '/staff/users', permission: 'staff:list' },
-      { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'rbac:manage_roles' },
+      { text: 'Roles', icon: <AdminPanelSettings />, path: '/staff/roles', permission: 'staff:assign_roles' },
     ]
   },
   { text: 'Reward Redemptions', icon: <AccountBalance />, path: '/reward-redemptions', permission: 'reward_redemptions:list' },
@@ -128,6 +128,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
+  const [activeOverride, setActiveOverride] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   // Skeletons should show until the full profile (and permissions) has finished loading
@@ -159,8 +160,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
 
   const isMenuItemActive = (item: MenuItem): boolean => {
-    if (item.path) return pathname === item.path || pathname.startsWith(item.path + '/');
-    if (item.subItems) return item.subItems.some(subItem => pathname === subItem.path || pathname.startsWith(subItem.path + '/'));
+    const currentPath = activeOverride || pathname;
+    if (item.path) return currentPath === item.path || currentPath.startsWith(item.path + '/');
+    if (item.subItems) return item.subItems.some(subItem => currentPath === subItem.path || currentPath.startsWith(subItem.path + '/'));
     return false;
   };
 
@@ -185,6 +187,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       return changed ? newState : prev;
     });
   }, [pathname, filteredMenuItems]);
+
+  // Sync activeOverride with pathname
+  useEffect(() => {
+    if (activeOverride && (pathname === activeOverride || pathname.startsWith(activeOverride + '/'))) {
+      setActiveOverride(null);
+    }
+  }, [pathname, activeOverride]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
@@ -233,8 +242,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <Image src="/assets/images/email-template-logo.svg" alt="Logo" width={120} height={40} priority style={{ height: 40, width: 'auto' }} />
       </Toolbar>
       <Divider />
-      <Box sx={{ 
-        flexGrow: 1, 
+      <Box sx={{
+        flexGrow: 1,
         overflowY: 'auto',
         '&::-webkit-scrollbar': { width: '4px' },
         '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
@@ -256,7 +265,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     {...(item.path ? { href: item.path, prefetch: true } : {})}
                     disableRipple
                     selected={isMenuItemActive(item)}
-                    onClick={() => item.path ? (isMobile && setMobileOpen(false)) : setOpenSubMenus(prev => ({ ...prev, [item.text]: !prev[item.text] }))}
+                    onClick={() => {
+                      if (item.path) {
+                        setActiveOverride(item.path);
+                        if (isMobile) setMobileOpen(false);
+                      } else {
+                        setOpenSubMenus(prev => ({ ...prev, [item.text]: !prev[item.text] }));
+                      }
+                    }}
                     sx={{
                       py: 0.5, minHeight: 38, borderRadius: '8px', mx: 1,
                       '&.Mui-selected': {
@@ -270,9 +286,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     <ListItemIcon sx={{ minWidth: 32, color: isMenuItemActive(item) ? (item.subItems ? '#213350' : 'white') : 'text.secondary' }}>
                       {item.icon}
                     </ListItemIcon>
-                    <ListItemText 
-                      primary={item.text} 
-                      sx={{ '& .MuiListItemText-primary': { fontSize: '0.78rem', fontWeight: isMenuItemActive(item) ? 600 : 500 } }} 
+                    <ListItemText
+                      primary={item.text}
+                      sx={{ '& .MuiListItemText-primary': { fontSize: '0.78rem', fontWeight: isMenuItemActive(item) ? 600 : 500 } }}
                     />
                     {item.subItems && (openSubMenus[item.text] ? <ExpandLess sx={{ fontSize: '1.1rem' }} /> : <ExpandMore sx={{ fontSize: '1.1rem' }} />)}
                   </ListItemButton>
@@ -287,24 +303,27 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                           href={subItem.path}
                           prefetch={true}
                           disableRipple
-                          selected={pathname === subItem.path}
-                          onClick={() => isMobile && setMobileOpen(false)}
+                          selected={pathname === subItem.path || pathname.startsWith(subItem.path + '/')}
+                          onClick={() => {
+                            setActiveOverride(subItem.path);
+                            if (isMobile) setMobileOpen(false);
+                          }}
                           sx={{
                             pl: 4.5, py: 0.4, minHeight: 32, mx: 1, borderRadius: '6px', mb: 0.2,
-                            '&.Mui-selected': { 
-                              background: 'linear-gradient(45deg, #213350, #6AB344)', 
-                              color: 'white', 
-                              '& .MuiListItemIcon-root': { color: 'white' } 
+                            '&.Mui-selected': {
+                              background: 'linear-gradient(45deg, #213350, #6AB344)',
+                              color: 'white',
+                              '& .MuiListItemIcon-root': { color: 'white' }
                             },
                             '&:hover': { bgcolor: 'rgba(33, 51, 80, 0.04)' }
                           }}
                         >
-                          <ListItemIcon sx={{ minWidth: 34, color: pathname === subItem.path ? 'white' : 'text.secondary' }}>
+                          <ListItemIcon sx={{ minWidth: 34, color: (pathname === subItem.path || pathname.startsWith(subItem.path + '/')) ? 'white' : 'text.secondary' }}>
                             <Box sx={{ scale: '0.85', display: 'flex' }}>{subItem.icon}</Box>
                           </ListItemIcon>
-                          <ListItemText 
-                            primary={subItem.text} 
-                            sx={{ '& .MuiListItemText-primary': { fontSize: '0.75rem', fontWeight: pathname === subItem.path ? 600 : 400 } }} 
+                          <ListItemText
+                            primary={subItem.text}
+                            sx={{ '& .MuiListItemText-primary': { fontSize: '0.75rem', fontWeight: (subItem.path === (activeOverride || pathname)) ? 600 : 400 } }}
                           />
                         </ListItemButton>
                       ))}
@@ -345,7 +364,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Notifications</Typography>
               </Box>
               <Divider />
-              {bellItems.length === 0 ? <Box sx={{ p: 2 }}><Typography variant="body2">No notifications</Typography></Box> : 
+              {bellItems.length === 0 ? <Box sx={{ p: 2 }}><Typography variant="body2">No notifications</Typography></Box> :
                 bellItems.map(n => (
                   <MuiMenuItem key={n.id} onClick={() => handleNotificationClick(n.id, n.is_read)} sx={{ bgcolor: n.is_read ? 'transparent' : 'rgba(33, 51, 80, 0.04)' }}>
                     <Box><Typography variant="body2" sx={{ fontWeight: n.is_read ? 400 : 600 }}>{n.title}</Typography></Box>
@@ -367,16 +386,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <Box onClick={handleMenuOpen} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', ml: 1 }}>
                 <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
                   <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{user?.name}</Typography>
-                  {user?.userType && 
-                   user.userType.toUpperCase() !== 'STAFF' && 
-                   user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
-                    <Typography variant="caption" color="text.secondary">
-                      {user?.userType}
-                    </Typography>
-                  )}
+                  {user?.userType &&
+                    user.userType.toUpperCase() !== 'STAFF' &&
+                    user.userType.toLowerCase() !== user?.name?.toLowerCase() && (
+                      <Typography variant="caption" color="text.secondary">
+                        {user?.userType}
+                      </Typography>
+                    )}
                 </Box>
-                <Avatar sx={{ 
-                  width: 38, height: 38, 
+                <Avatar sx={{
+                  width: 38, height: 38,
                   background: 'linear-gradient(45deg, #213350, #6AB344)',
                   border: '2px solid #fff', boxShadow: '0 2px 10px rgba(33, 51, 80, 0.15)',
                   fontWeight: 700, fontSize: '1rem'
@@ -392,7 +411,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </Box>
               <Divider />
               <MuiMenuItem onClick={() => { handleMenuClose(); router.push('/profile'); }} sx={{ fontSize: '0.85rem' }}>Profile</MuiMenuItem>
-              <MuiMenuItem onClick={() => { handleMenuClose(); router.push('/app-management'); }} sx={{ fontSize: '0.85rem' }}>Settings</MuiMenuItem>
+              {hasPermission('admin:full_access') && (
+                <MuiMenuItem onClick={() => { handleMenuClose(); router.push('/settings'); }} sx={{ fontSize: '0.85rem' }}>Settings</MuiMenuItem>
+              )}
               <MuiMenuItem onClick={() => { handleMenuClose(); setThemeDialogOpen(true); }} sx={{ fontSize: '0.85rem' }}>Theme</MuiMenuItem>
               <Divider />
               <MuiMenuItem onClick={() => { handleMenuClose(); setLogoutConfirmOpen(true); }} sx={{ fontSize: '0.85rem', color: 'error.main' }}>Logout</MuiMenuItem>

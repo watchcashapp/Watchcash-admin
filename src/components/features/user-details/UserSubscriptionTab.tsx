@@ -22,7 +22,13 @@ export default function UserSubscriptionTab({ userId }: UserSubscriptionTabProps
     { id: 'status', label: 'Status', minWidth: 150, format: (v: string) => <Chip label={v} size="small" sx={{ fontSize: '0.65rem' }} /> },
   ], []);
 
-  if (isLoading && !subscriptionData) return <CircularProgress />;
+  if (isLoading && !subscriptionData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress size={24} />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -47,7 +53,11 @@ export default function UserSubscriptionTab({ userId }: UserSubscriptionTabProps
             />
           </Grid>
         </Grid>
-      ) : <Typography color="text.secondary">No active subscription found</Typography>}
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Typography color="text.secondary">No active subscription found</Typography>
+        </Box>
+      )}
     </Box>
   );
 }

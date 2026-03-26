@@ -49,7 +49,13 @@ export default function UserLoginsTab({ userId }: UserLoginsTabProps) {
     }
   ], []);
 
-  if (isLoading && !data) return <CircularProgress />;
+  if (isLoading && !data) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress size={24} />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -65,7 +71,11 @@ export default function UserLoginsTab({ userId }: UserLoginsTabProps) {
             </Box>
           </Box>
         </>
-      ) : <Typography color="text.secondary">No login history found</Typography>}
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Typography color="text.secondary">No login history found</Typography>
+        </Box>
+      )}
     </Box>
   );
 }

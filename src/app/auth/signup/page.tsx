@@ -97,7 +97,8 @@ function SignupForm() {
       dispatch(setUser({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
-        user: userData
+        user: userData,
+        isFullProfile: true,
       }));
 
       showSuccess('Account created successfully!');

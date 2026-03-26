@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
-import { Input, GroupedPermissionsSelect, useToast } from '@/components/shared';
+import { Input, GroupedPermissionsSelect, useToast, PermissionGuard } from '@/components/shared';
 import { useGetUserByIdQuery, useUpdateUserMutation } from '@/store/api/usersApi';
 import { useGetPermissionsQuery, useGetRolesQuery } from '@/store/api/rbacApi';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -51,18 +51,6 @@ export default function EditUserPage() {
   const { data: permissionsResponse, isLoading: loadingPermissions } = useGetPermissionsQuery(undefined);
   const { data: rolesResponse, isLoading: loadingRoles } = useGetRolesQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-  const { hasPermission, isInitialized } = usePermissions();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('users:update')) {
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router]);
 
   useEffect(() => {
     if (user) {
@@ -92,6 +80,17 @@ export default function EditUserPage() {
     });
     return enriched;
   }, [permissionsResponse?.data, user?.permissions]);
+
+  const isChanged = useMemo(() => {
+    if (!user) return false;
+    const originalPermissions = user.permissions?.map((p) => p.id) || [];
+    const originalRoles = user.roles?.map((r) => r.id) || [];
+    
+    return formData.name !== user.name ||
+           formData.email !== user.email ||
+           JSON.stringify([...formData.permissions].sort()) !== JSON.stringify([...originalPermissions].sort()) ||
+           JSON.stringify([...formData.roles].sort()) !== JSON.stringify([...originalRoles].sort());
+  }, [formData, user]);
 
   const handleRoleToggle = (roleId: string) => {
     setFormData(prev => ({
@@ -241,174 +240,176 @@ export default function EditUserPage() {
   }
 
   return (
-    <Box>
-      <Button
-        startIcon={<ArrowBack />}
-        onClick={() => router.push('/staff/users')}
-        sx={{
-          mb: 1.5,
-          '&:hover': {
-            backgroundColor: 'rgba(33, 51, 80, 0.08)',
-          },
-        }}
-      >
-        Back to Staff Users
-      </Button>
+    <PermissionGuard permission="staff:update">
+      <Box>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => router.push('/staff/users')}
+          sx={{
+            mb: 1.5,
+            '&:hover': {
+              backgroundColor: 'rgba(33, 51, 80, 0.08)',
+            },
+          }}
+        >
+          Back to Staff Users
+        </Button>
 
-      <Typography
-        variant="h5"
-        sx={{
-          mb: 2,
-          fontWeight: 700,
-          background: 'linear-gradient(45deg, #213350, #6AB344)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        Edit User
-      </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            mb: 2,
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #213350, #6AB344)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Edit User
+        </Typography>
 
-      <Paper
-        sx={{
-          p: 4,
-          bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0, 0, 0, 0.3)'
-            : '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: (theme) => theme.palette.mode === 'dark'
-            ? '1px solid rgba(255, 255, 255, 0.1)'
-            : '1px solid rgba(0, 0, 0, 0.08)',
-        }}
-      >
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Input
-              ref={nameRef}
-              label="Name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              error={!!errors.name}
-              helperText={errors.name}
-              required
-              placeholder="Enter user name"
-            />
-          </Grid>
+        <Paper
+          sx={{
+            p: 4,
+            bgcolor: 'background.paper',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+              : '0 4px 12px rgba(0, 0, 0, 0.05)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Input
+                ref={nameRef}
+                label="Name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                error={!!errors.name}
+                helperText={errors.name}
+                required
+                placeholder="Enter user name"
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Input
-              ref={emailRef}
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              error={!!errors.email}
-              helperText={errors.email}
-              required
-              placeholder="user@example.com"
-            />
-          </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Input
+                ref={emailRef}
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                error={!!errors.email}
+                helperText={errors.email}
+                required
+                placeholder="user@example.com"
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12 }}>
-            <Box
-              ref={rolesRef}
-              sx={{
-                p: 2,
-                bgcolor: 'background.paper',
-                border: (theme) => theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.1)'
-                  : '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: 2,
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
-                Roles <span style={{ color: '#d32f2f' }}>*</span>
-              </Typography>
+            <Grid size={{ xs: 12 }}>
+              <Box
+                ref={rolesRef}
+                sx={{
+                  p: 2,
+                  bgcolor: 'background.paper',
+                  border: (theme) => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.08)',
+                  borderRadius: 2,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+                  Roles <span style={{ color: '#d32f2f' }}>*</span>
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                    gap: 1,
+                  }}
+                >
+                  {rolesResponse?.data?.map((role) => (
+                    <FormControlLabel
+                      key={role.id}
+                      control={
+                        <Checkbox
+                          checked={formData.roles.includes(role.id)}
+                          onChange={() => handleRoleToggle(role.id)}
+                          sx={{
+                            color: '#213350',
+                            '&.Mui-checked': {
+                              color: '#213350',
+                            },
+                            py: 0.5,
+                          }}
+                        />
+                      }
+                      label={role.name}
+                      sx={{
+                        m: 0,
+                        '& .MuiFormControlLabel-label': {
+                          fontSize: '0.9rem',
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
               <Box
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                  gap: 1,
+                  p: 2,
+                  bgcolor: 'background.paper',
+                  border: (theme) => theme.palette.mode === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.1)'
+                    : '1px solid rgba(0, 0, 0, 0.08)',
+                  borderRadius: 2,
                 }}
               >
-                {rolesResponse?.data?.map((role) => (
-                  <FormControlLabel
-                    key={role.id}
-                    control={
-                      <Checkbox
-                        checked={formData.roles.includes(role.id)}
-                        onChange={() => handleRoleToggle(role.id)}
-                        sx={{
-                          color: '#213350',
-                          '&.Mui-checked': {
-                            color: '#213350',
-                          },
-                          py: 0.5,
-                        }}
-                      />
-                    }
-                    label={role.name}
-                    sx={{
-                      m: 0,
-                      '& .MuiFormControlLabel-label': {
-                        fontSize: '0.9rem',
-                      },
-                    }}
-                  />
-                ))}
+                <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+                  Permissions
+                </Typography>
+                <GroupedPermissionsSelect
+                  groupedPermissions={enrichedGroupedPermissions || {}}
+                  value={formData.permissions}
+                  onChange={(value) => setFormData({ ...formData, permissions: value })}
+                />
               </Box>
-            </Box>
-          </Grid>
+            </Grid>
 
-          <Grid size={{ xs: 12 }}>
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: 'background.paper',
-                border: (theme) => theme.palette.mode === 'dark'
-                  ? '1px solid rgba(255, 255, 255, 0.1)'
-                  : '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: 2,
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
-                Permissions
-              </Typography>
-              <GroupedPermissionsSelect
-                groupedPermissions={enrichedGroupedPermissions || {}}
-                value={formData.permissions}
-                onChange={(value) => setFormData({ ...formData, permissions: value })}
-              />
-            </Box>
+            <Grid size={{ xs: 12 }}>
+              <Box display="flex" gap={2} justifyContent="flex-end" mt={1}>
+                <Button
+                  variant="outlined"
+                  onClick={() => router.push('/staff/users')}
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<Save />}
+                  onClick={handleSubmit}
+                  disabled={isUpdating || !isChanged}
+                  sx={{
+                    background: 'linear-gradient(45deg, #213350, #6AB344)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #1a2940, #6AB344)',
+                    },
+                  }}
+                >
+                  {isUpdating ? 'Updating...' : 'Update User'}
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-
-          <Grid size={{ xs: 12 }}>
-            <Box display="flex" gap={2} justifyContent="flex-end" mt={1}>
-              <Button
-                variant="outlined"
-                onClick={() => router.push('/staff/users')}
-                disabled={isUpdating}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<Save />}
-                onClick={handleSubmit}
-                disabled={isUpdating}
-                sx={{
-                  background: 'linear-gradient(45deg, #213350, #6AB344)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                  },
-                }}
-              >
-                {isUpdating ? 'Updating...' : 'Update User'}
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Box>
+        </Paper>
+      </Box>
+    </PermissionGuard>
   );
 }

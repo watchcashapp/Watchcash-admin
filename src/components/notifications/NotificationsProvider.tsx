@@ -360,14 +360,16 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         return;
       }
 
-      // Update permissions and roles without logout
-      dispatch(updatePermissionsAndRoles({ permissions: newPermissions, roles: newRoles }));
+      if (newPermissions?.length > 0 || newRoles?.length > 0) {
+        // Update permissions and roles without logout
+        dispatch(updatePermissionsAndRoles({ permissions: newPermissions, roles: newRoles }));
 
-      // Invalidate tags to force re-fetch of relevant data
-      dispatch(rbacApi.util.invalidateTags(['Roles', 'Permissions']));
-      dispatch(usersApi.util.invalidateTags(['Users']));
+        // Invalidate tags to force re-fetch of relevant data
+        dispatch(rbacApi.util.invalidateTags(['Roles', 'Permissions']));
+        dispatch(usersApi.util.invalidateTags(['Users']));
 
-      showSuccess('Your permissions have been updated in real-time.');
+        showSuccess('Your permissions have been updated in real-time.');
+      }
     });
 
     const handleOnline = () => {

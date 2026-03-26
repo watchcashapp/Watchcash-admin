@@ -52,6 +52,11 @@ export default function GlobalRulesPage() {
     }
   }, [globalRules]);
 
+  const isChanged = React.useMemo(() => {
+    if (!globalRules) return false;
+    return JSON.stringify(formData) !== JSON.stringify(globalRules);
+  }, [formData, globalRules]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -98,20 +103,20 @@ export default function GlobalRulesPage() {
     if (formData.maxDailySessions < 1) {
       errors.maxDailySessions = "Must be at least 1";
     }
-    if (formData.mediumRiskReductionPercent < 0 || formData.mediumRiskReductionPercent > 100) {
-      errors.mediumRiskReductionPercent = "Must be between 0 and 100";
+    if (formData.mediumRiskReductionPercent < 1 || formData.mediumRiskReductionPercent > 100) {
+      errors.mediumRiskReductionPercent = "Must be between 1 and 100";
     }
-    if (formData.highRiskFirstReductionPercent < 0 || formData.highRiskFirstReductionPercent > 100) {
-      errors.highRiskFirstReductionPercent = "Must be between 0 and 100";
+    if (formData.highRiskFirstReductionPercent < 1 || formData.highRiskFirstReductionPercent > 100) {
+      errors.highRiskFirstReductionPercent = "Must be between 1 and 100";
     }
-    if (formData.highRiskSecondReductionPercent < 0 || formData.highRiskSecondReductionPercent > 100) {
-      errors.highRiskSecondReductionPercent = "Must be between 0 and 100";
+    if (formData.highRiskSecondReductionPercent < 1 || formData.highRiskSecondReductionPercent > 100) {
+      errors.highRiskSecondReductionPercent = "Must be between 1 and 100";
     }
-    if (formData.highRiskBlockMinutes < 0) {
-      errors.highRiskBlockMinutes = "Must be 0 or greater";
+    if (formData.highRiskBlockMinutes < 1) {
+      errors.highRiskBlockMinutes = "Must be 1 or greater";
     }
-    if (formData.veryHighBlockMinutes < 0) {
-      errors.veryHighBlockMinutes = "Must be 0 or greater";
+    if (formData.veryHighBlockMinutes < 1) {
+      errors.veryHighBlockMinutes = "Must be 1 or greater";
     }
 
     setFormErrors(errors);
@@ -427,7 +432,7 @@ export default function GlobalRulesPage() {
                       variant="contained"
                       startIcon={isUpdating ? null : <Save sx={{ fontSize: '1rem' }} />}
                       onClick={handleSave}
-                      disabled={isUpdating}
+                      disabled={isUpdating || !isChanged}
                       loading={isUpdating}
                       sx={{
                         height: '32px',

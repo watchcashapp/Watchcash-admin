@@ -95,7 +95,8 @@ function LoginForm() {
       dispatch(setUser({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
-        user: userData
+        user: userData,
+        isFullProfile: true,
       }));
 
 

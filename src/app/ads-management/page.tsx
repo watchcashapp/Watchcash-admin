@@ -34,7 +34,7 @@ import {
   Code,
   Refresh,
 } from '@mui/icons-material';
-import { useToast } from '@/components/shared';
+import { useToast, Input, PermissionGuard } from '@/components/shared';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
   useGetAdSettingsQuery,
@@ -137,6 +137,38 @@ export default function AdsManagementPage() {
     is_enabled: true,
     config: {}
   });
+
+  const isSettingsChanged = React.useMemo(() => {
+    if (!adSettings) return false;
+    return JSON.stringify(settingsForm) !== JSON.stringify(adSettings);
+  }, [settingsForm, adSettings]);
+
+  const isProviderChanged = React.useMemo(() => {
+    if (!openProviderDialog) return false;
+    if (!editingProvider) {
+      return providerForm.provider_name.trim() !== '' || providerForm.provider_code.trim() !== '';
+    }
+    
+    const currentConfig = typeof providerForm.config === 'object' 
+      ? JSON.stringify(providerForm.config) 
+      : providerForm.config;
+    const originalConfig = typeof editingProvider.config === 'object'
+      ? JSON.stringify(editingProvider.config)
+      : editingProvider.config;
+
+    return providerForm.provider_name !== editingProvider.provider_name || 
+           currentConfig !== originalConfig;
+  }, [providerForm, editingProvider, openProviderDialog]);
+
+  const isJsonValid = React.useMemo(() => {
+    if (typeof providerForm.config === 'object') return true;
+    try {
+      JSON.parse(providerForm.config);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }, [providerForm.config]);
 
   // Handle accumulating providers
   useEffect(() => {
@@ -280,7 +312,8 @@ export default function AdsManagementPage() {
   }
 
   return (
-    <Box>
+    <PermissionGuard permission={['ad_providers:list', 'ad_settings:view']}>
+      <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography
           sx={{
@@ -467,91 +500,43 @@ export default function AdsManagementPage() {
             </Typography>
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
+                <Input
                   label="Points Per Ad"
                   type="number"
                   value={settingsForm.points_per_ad}
                   onChange={(e) => setSettingsForm({ ...settingsForm, points_per_ad: Number(e.target.value) || 0 })}
                   disabled={!isEditingSettings}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.8rem', height: '36px' } },
-                    inputLabel: { sx: { fontSize: '0.8rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    }
-                  }}
+                  fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
+                <Input
                   label="Cooldown Seconds"
                   type="number"
                   value={settingsForm.cooldown_seconds}
                   onChange={(e) => setSettingsForm({ ...settingsForm, cooldown_seconds: Number(e.target.value) || 0 })}
                   disabled={!isEditingSettings}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.8rem', height: '36px' } },
-                    inputLabel: { sx: { fontSize: '0.8rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    }
-                  }}
+                  fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
+                <Input
                   label="Max Ads Per Day"
                   type="number"
                   value={settingsForm.max_ads_per_day}
                   onChange={(e) => setSettingsForm({ ...settingsForm, max_ads_per_day: Number(e.target.value) || 0 })}
                   disabled={!isEditingSettings}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.8rem', height: '36px' } },
-                    inputLabel: { sx: { fontSize: '0.8rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    }
-                  }}
+                  fullWidth
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
+                <Input
                   label="Max Points Per Day"
                   type="number"
                   value={settingsForm.max_points_per_day}
                   onChange={(e) => setSettingsForm({ ...settingsForm, max_points_per_day: Number(e.target.value) || 0 })}
                   disabled={!isEditingSettings}
-                  size="small"
-                  slotProps={{
-                    input: { sx: { fontSize: '0.8rem', height: '36px' } },
-                    inputLabel: { sx: { fontSize: '0.8rem' }, shrink: true }
-                  }}
-                  sx={{
-                    '& .MuiInputLabel-root': {
-                      transform: 'translate(14px, -6px) scale(0.75)',
-                      bgcolor: 'background.paper',
-                      px: 0.5,
-                    }
-                  }}
+                  fullWidth
                 />
               </Grid>
 
@@ -570,7 +555,7 @@ export default function AdsManagementPage() {
                       type="submit"
                       variant="contained"
                       startIcon={<Save fontSize="small" />}
-                      disabled={isUpdatingSettings}
+                      disabled={isUpdatingSettings || !isSettingsChanged}
                       sx={{
                         height: 32,
                         fontSize: '0.75rem',
@@ -610,6 +595,9 @@ export default function AdsManagementPage() {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., Google AdMob"
                 size="small"
+                required
+                error={!providerForm.provider_name.trim()}
+                helperText={!providerForm.provider_name.trim() ? "Provider Name is required" : ""}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -621,7 +609,9 @@ export default function AdsManagementPage() {
                 onChange={(e) => setProviderForm({ ...providerForm, provider_code: e.target.value.toUpperCase() })}
                 placeholder="e.g., ADMOB"
                 size="small"
-                helperText={!editingProvider ? "Auto-generated from name" : ""}
+                required
+                error={!providerForm.provider_code.trim()}
+                helperText={!editingProvider ? (providerForm.provider_code.trim() ? "Auto-generated from name" : "Provider Code is required") : ""}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -636,6 +626,8 @@ export default function AdsManagementPage() {
                 onChange={(e) => setProviderForm({ ...providerForm, config: e.target.value })}
                 placeholder='{ "app_id": "...", "unit_id": "..." }'
                 slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: '0.8rem' } } }}
+                error={!isJsonValid}
+                helperText={!isJsonValid ? "Invalid JSON format" : ""}
               />
             </Grid>
           </Grid>
@@ -645,19 +637,24 @@ export default function AdsManagementPage() {
           <Button
             variant="contained"
             onClick={handleSaveProvider}
-            disabled={isSavingProvider}
+            disabled={isSavingProvider || !isProviderChanged || !isJsonValid || !providerForm.provider_name.trim() || !providerForm.provider_code.trim()}
             size="small"
             sx={{
               color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
               fontWeight: 600,
-              px: 3
+              px: 3,
+              '&:disabled': {
+                opacity: 0.6,
+                background: 'gray'
+              }
             }}
           >
             {isSavingProvider ? 'Saving...' : 'Save Provider'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+      </Box>
+    </PermissionGuard>
   );
 }

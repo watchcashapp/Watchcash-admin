@@ -14,7 +14,7 @@ import {
   Button,
   Grid,
 } from '@mui/material';
-import { Visibility, NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { Visibility, NavigateBefore, NavigateNext, GetApp } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
 import { DataTable, useToast } from '@/components/shared';
@@ -38,24 +38,35 @@ export default function SessionsPage() {
   const { showError } = useToast();
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
-  const [userId, setUserId] = useState('');
+  const [userName, setUserName] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [debouncedUserName, setDebouncedUserName] = useState('');
+  const [debouncedDeviceId, setDebouncedDeviceId] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const { hasPermission } = usePermissions();
 
+  // Debounce User Name and Device ID
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedUserName(userName);
+      setDebouncedDeviceId(deviceId);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [userName, deviceId]);
+
   // Reset page when filters change
   useEffect(() => {
     reset();
-  }, [status, userId, deviceId, fromDate, toDate, reset]);
+  }, [status, debouncedUserName, debouncedDeviceId, fromDate, toDate, reset]);
 
   const { data: sessionsData, isLoading } = useGetSessionsQuery({
     cursor,
     limit,
     status: status || undefined,
-    userId: userId || undefined,
-    deviceId: deviceId || undefined,
+    userName: debouncedUserName || undefined,
+    deviceId: debouncedDeviceId || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
   }, {
@@ -102,11 +113,35 @@ export default function SessionsPage() {
       id: 'user_name',
       label: 'User Name',
       minWidth: 150,
+      format: (value: any, row: any) => (
+        <Typography 
+          variant="body2" 
+          onClick={() => router.push(`/users/view/${row.user_id}`)}
+          sx={{ 
+            color: 'primary.main', 
+            cursor: 'pointer', 
+            fontWeight: 600,
+            '&:hover': { textDecoration: 'underline' } 
+          }}
+        >
+          {value}
+        </Typography>
+      ),
     },
     {
       id: 'user_email',
       label: 'User Email',
       minWidth: 200,
+    },
+    {
+      id: 'device_id',
+      label: 'Device ID',
+      minWidth: 150,
+      format: (value: any) => (
+        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+          {value}
+        </Typography>
+      ),
     },
     {
       id: 'status',
@@ -191,19 +226,18 @@ export default function SessionsPage() {
           {hasPermission('sessions:view_live') && (
             <Button
               variant="contained"
+              startIcon={<GetApp sx={{ fontSize: '1rem !important' }} />}
               onClick={() => {
-                // ... export logic
                 const queryParams = new URLSearchParams();
                 if (status) queryParams.append("status", status);
-                if (userId) queryParams.append("userId", userId);
-                if (deviceId) queryParams.append("deviceId", deviceId);
+                if (debouncedUserName) queryParams.append("userName", debouncedUserName);
+                if (debouncedDeviceId) queryParams.append("deviceId", debouncedDeviceId);
                 if (fromDate) queryParams.append("from", fromDate);
                 if (toDate) queryParams.append("to", toDate);
 
                 const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
                 const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
 
-                // Trigger download using fetch
                 fetch(url, {
                   headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -222,7 +256,6 @@ export default function SessionsPage() {
                     window.URL.revokeObjectURL(downloadUrl);
                   })
                   .catch(err => {
-
                     showError('Failed to export sessions');
                   });
               }}
@@ -239,7 +272,7 @@ export default function SessionsPage() {
                 },
               }}
             >
-              EXPORT CSV
+              EXPORT
             </Button>
           )}
         </Box>
@@ -260,16 +293,16 @@ export default function SessionsPage() {
           }}
         >
           <Grid container spacing={1.5} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <TextField
-                label="User ID"
-                value={userId}
+                label="User Name"
+                value={userName}
                 onChange={(e) => {
-                  setUserId(e.target.value);
+                  setUserName(e.target.value);
                 }}
                 size="small"
                 fullWidth
-                placeholder="Search by user ID"
+                placeholder="Search name"
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
@@ -286,7 +319,7 @@ export default function SessionsPage() {
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <TextField
                 label="Device ID"
                 value={deviceId}
@@ -295,7 +328,7 @@ export default function SessionsPage() {
                 }}
                 size="small"
                 fullWidth
-                placeholder="Search by device ID"
+                placeholder="Search device"
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
@@ -407,7 +440,7 @@ export default function SessionsPage() {
                 variant="outlined"
                 onClick={() => {
                   setStatus('');
-                  setUserId('');
+                  setUserName('');
                   setDeviceId('');
                   setFromDate('');
                   setToDate('');

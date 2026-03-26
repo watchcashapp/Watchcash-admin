@@ -10,6 +10,7 @@ interface PermissionGuardProps {
   permission?: string | string[];
   children: React.ReactNode;
   fallback?: React.ReactNode;
+  simple?: boolean;
 }
 
 /**
@@ -19,14 +20,19 @@ interface PermissionGuardProps {
 export const PermissionGuard: React.FC<PermissionGuardProps> = ({ 
   permission, 
   children, 
-  fallback 
+  fallback,
+  simple = false
 }) => {
   const { isAuthenticated, isInitialized: isAuthInitialized } = useAuth();
-  const { hasPermission, isInitialized: isPermissionsInitialized } = usePermissions();
+  const { hasPermission, isInitialized: isPermissionsInitialized, isFullProfileLoaded } = usePermissions();
   const router = useRouter();
   const pathname = usePathname();
 
   const isInitialized = isAuthInitialized && isPermissionsInitialized;
+  const isWaitState = isAuthenticated && !isFullProfileLoaded;
+  
+  // Track denial after grace period
+  const [isDenied, setIsDenied] = React.useState(false);
 
   const hasRequiredPermission = React.useMemo(() => {
     if (!permission) return true;
@@ -37,21 +43,38 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   }, [permission, hasPermission]);
 
   useEffect(() => {
-    if (isInitialized) {
-      if (!isAuthenticated) {
-        // Not authenticated, redirect to login with returnTo path
-        router.push(`/auth/login?returnTo=${encodeURIComponent(pathname)}`);
-        return;
-      }
+    // Simple guards (button-level) should NEVER redirect. They only hide/show content.
+    if (simple) return;
 
-      if (permission && !hasRequiredPermission) {
-        // Authenticated but lacks required permission, redirect to dashboard
-        router.push('/dashboard');
-      }
+    // If initialization is still in progress, we're not denied yet
+    if (!isInitialized || isWaitState) {
+      setIsDenied(false);
+      return;
     }
-  }, [isInitialized, isAuthenticated, permission, hasRequiredPermission, router, pathname]);
 
-  if (!isInitialized) {
+    // If perfectly authenticated and permitted, we're definitely not denied
+    if (isAuthenticated && hasRequiredPermission) {
+      setIsDenied(false);
+      return;
+    }
+
+    // If not authenticated, redirect to login immediately
+    if (!isAuthenticated) {
+      router.push(`/auth/login?returnTo=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    // If authenticated but missing permissions, redirect to dashboard
+    if (permission && !hasRequiredPermission) {
+      router.push('/dashboard');
+    }
+  }, [isInitialized, isWaitState, isAuthenticated, hasRequiredPermission, permission, router, pathname, simple]);
+
+  if (!isInitialized || isWaitState) {
+    if (simple) {
+      return null; // Don't show any loader for button-level guards during init
+    }
+
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px" flexDirection="column" gap={2}>
         <CircularProgress size={40} thickness={4} />
@@ -65,6 +88,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     return <>{children}</>;
   }
 
-  // If fallback is provided, show it while redirecting or if denied
+  // Permission denied — simple guards just hide content, page guards are already redirecting
   return fallback || null;
+
 };

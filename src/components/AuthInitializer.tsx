@@ -66,6 +66,7 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
         accessToken: accessToken!,
         refreshToken: refreshToken!,
         user: currentUser,
+        isFullProfile: true,
       }));
       dispatch(setInitialized(true));
     }

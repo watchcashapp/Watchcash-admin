@@ -104,6 +104,7 @@ export interface ReviewSessionRequest {
 export interface GetSessionsParams extends CursorPaginationParams {
   status?: string;
   userId?: string;
+  userName?: string;
   deviceId?: string;
   from?: string;
   to?: string;
@@ -121,6 +122,7 @@ export const sessionsApi = createApi({
         appendCursorPagination(queryParams, params);
         if (params.status) queryParams.append('status', params.status);
         if (params.userId) queryParams.append('userId', params.userId);
+        if (params.userName) queryParams.append('userName', params.userName);
         if (params.deviceId) queryParams.append('deviceId', params.deviceId);
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);

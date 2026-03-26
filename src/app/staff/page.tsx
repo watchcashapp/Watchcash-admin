@@ -19,7 +19,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
-import { DataTable, ConfirmDialog, useToast, Input } from "@/components/shared";
+import { DataTable, ConfirmDialog, useToast, Input, PermissionGuard } from "@/components/shared";
 import {
   useGetStaffQuery,
   useCreateStaffMutation,
@@ -56,16 +56,6 @@ export default function StaffPage() {
   const [isMounted, setIsMounted] = useState(false);
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && isInitialized && !hasPermission('staff:list')) {
-      showError("You don't have permission to view staff");
-      router.push('/dashboard');
-    }
-  }, [isMounted, isInitialized, hasPermission, router, showError]);
 
   const { data, isLoading, error } = useGetStaffQuery({
     cursor,
@@ -233,342 +223,344 @@ export default function StaffPage() {
   }
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            background: "linear-gradient(45deg, #213350, #6AB344)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          Staff Management
-        </Typography>
-        {hasPermission('staff:create') && (
-          <Button
-            variant="contained"
-            startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
-            onClick={() => handleOpenDialog()}
+    <PermissionGuard permission="staff:list">
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Typography
             sx={{
-              height: '32px',
-              fontSize: '0.75rem',
+              fontWeight: 700,
+              fontSize: '1.1rem',
               background: "linear-gradient(45deg, #213350, #6AB344)",
-              boxShadow: "0 4px 12px rgba(33, 51, 80, 0.4)",
-              "&:hover": {
-                background: "linear-gradient(45deg, #1a2940, #6AB344)",
-                boxShadow: "0 6px 16px rgba(33, 51, 80, 0.5)",
-              },
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
-            Add Staff
-          </Button>
-        )}
-      </Box>
-
-      {/* Filters */}
-      <Paper
-        sx={{
-          mb: 2,
-          p: 1.5,
-          bgcolor: "background.paper",
-          boxShadow: (theme: any) => theme.palette.mode === 'dark'
-            ? "0 4px 12px rgba(0, 0, 0, 0.3)"
-            : "0 4px 12px rgba(0, 0, 0, 0.05)",
-          border: (theme: any) => theme.palette.mode === 'dark'
-            ? "1px solid rgba(255, 255, 255, 0.1)"
-            : "1px solid rgba(0, 0, 0, 0.08)",
-          borderRadius: 1.5,
-        }}
-      >
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <TextField
-              label="Search"
-              placeholder="Search by name or email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              fullWidth
-              size="small"
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
+            Staff Management
+          </Typography>
+          {hasPermission('staff:create') && (
+            <Button
+              variant="contained"
+              startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+              onClick={() => handleOpenDialog()}
               sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
+                height: '32px',
+                fontSize: '0.75rem',
+                background: "linear-gradient(45deg, #213350, #6AB344)",
+                boxShadow: "0 4px 12px rgba(33, 51, 80, 0.4)",
+                "&:hover": {
+                  background: "linear-gradient(45deg, #1a2940, #6AB344)",
+                  boxShadow: "0 6px 16px rgba(33, 51, 80, 0.5)",
                 },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <TextField
-              label="Role"
-              select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              fullWidth
-              size="small"
-              slotProps={{
-                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                },
-                '& .MuiSelect-select': {
-                  py: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }
               }}
             >
-              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Roles</MenuItem>
-              <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>Admin</MenuItem>
-              <MenuItem value="MANAGER" sx={{ fontSize: '0.75rem' }}>Manager</MenuItem>
-              <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>Staff</MenuItem>
-            </TextField>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <TextField
-              label="Status"
-              select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              fullWidth
-              size="small"
-              slotProps={{
-                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-              }}
-              sx={{
-                '& .MuiInputLabel-root': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                  bgcolor: 'background.paper',
-                  px: 0.5,
-                },
-                '& .MuiInputLabel-shrink': {
-                  transform: 'translate(14px, -6px) scale(0.75)',
-                },
-                '& .MuiSelect-select': {
-                  py: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                }
-              }}
-            >
-              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
-              <MenuItem value="active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
-              <MenuItem value="inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Data Table */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" py={8}>
-          <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
-        </Box>
-      ) : (
-        <>
-          <DataTable
-            columns={columns}
-            data={data?.staff || []}
-            getRowId={(row: any) => row.id}
-            onEdit={hasPermission('staff:update') ? (staff: any) => handleOpenDialog(staff as Staff) : undefined}
-            onDelete={hasPermission('staff:delete') ? (staff: any) => setDeleteConfirm(staff as Staff) : undefined}
-            onToggle={hasPermission('staff:toggle_status') ? (staff: any) => handleToggleStatus(staff as Staff) : undefined}
-            emptyMessage="No staff found. Try adjusting your filters."
-          />
-
-          {/* Pagination Controls */}
-          {data && (canGoBack || data.pagination?.hasMore) && (
-            <Box
-              sx={{
-                mt: 3,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Button
-                onClick={goPrevious}
-                disabled={!canGoBack}
-                variant="outlined"
-                size="small"
-                sx={{
-                  borderColor: "#213350",
-                  color: "#213350",
-                  "&:hover": {
-                    borderColor: "#6AB344",
-                    backgroundColor: "rgba(33, 51, 80, 0.04)",
-                  },
-                }}
-              >
-                Previous
-              </Button>
-              <Typography variant="body2" color="text.secondary">
-                Page {pageNumber}
-              </Typography>
-              <Button
-                onClick={() => goNext(data.pagination?.nextCursor)}
-                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
-                variant="outlined"
-                size="small"
-                sx={{
-                  borderColor: "#213350",
-                  color: "#213350",
-                  "&:hover": {
-                    borderColor: "#6AB344",
-                    backgroundColor: "rgba(33, 51, 80, 0.04)",
-                  },
-                }}
-              >
-                Next
-              </Button>
-            </Box>
+              Add Staff
+            </Button>
           )}
-        </>
-      )}
+        </Box>
 
-      {/* Add/Edit Dialog */}
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        slotProps={{
-          paper: {
-            sx: {
-              borderRadius: 3,
-              bgcolor: 'background.paper',
-              backdropFilter: 'blur(20px)',
-            }
-          }
-        }}
-      >
-        <DialogTitle
+        {/* Filters */}
+        <Paper
           sx={{
-            fontWeight: 600,
-            background: "linear-gradient(45deg, #213350, #6AB344)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            mb: 2,
+            p: 1.5,
+            bgcolor: "background.paper",
+            boxShadow: (theme: any) => theme.palette.mode === 'dark'
+              ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+              : "0 4px 12px rgba(0, 0, 0, 0.05)",
+            border: (theme: any) => theme.palette.mode === 'dark'
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: 1.5,
           }}
         >
-          {editingStaff ? "Edit Staff" : "Add New Staff"}
-        </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12 }}>
-              <Input
-                label="Full Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                error={!!formErrors.name}
-                helperText={formErrors.name}
-                required
+          <Grid container spacing={1.5}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                label="Search"
+                placeholder="Search by name or email"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 fullWidth
+                size="small"
+                slotProps={{
+                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  }
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
-              <Input
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                error={!!formErrors.email}
-                helperText={formErrors.email}
-                required
-                fullWidth
-              />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <TextField
                 label="Role"
                 select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                error={!!formErrors.role}
-                helperText={formErrors.role}
-                required
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
                 fullWidth
+                size="small"
+                slotProps={{
+                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
                 sx={{
-                  "& .MuiInputBase-input": {
-                    fontSize: "0.875rem",
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
                   },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                  '& .MuiSelect-select': {
+                    py: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }
                 }}
               >
-                <MenuItem value="ADMIN">Admin</MenuItem>
-                <MenuItem value="MANAGER">Manager</MenuItem>
-                <MenuItem value="STAFF">Staff</MenuItem>
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Roles</MenuItem>
+                <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>Admin</MenuItem>
+                <MenuItem value="MANAGER" sx={{ fontSize: '0.75rem' }}>Manager</MenuItem>
+                <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>Staff</MenuItem>
               </TextField>
             </Grid>
-            {!editingStaff && (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                label="Status"
+                select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                fullWidth
+                size="small"
+                slotProps={{
+                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
+                }}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                    bgcolor: 'background.paper',
+                    px: 0.5,
+                  },
+                  '& .MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -6px) scale(0.75)',
+                  },
+                  '& .MuiSelect-select': {
+                    py: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
+                <MenuItem value="active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
+                <MenuItem value="inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Data Table */}
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" py={8}>
+            <CircularProgress sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main' }} />
+          </Box>
+        ) : (
+          <>
+            <DataTable
+              columns={columns}
+              data={data?.staff || []}
+              getRowId={(row: any) => row.id}
+              onEdit={hasPermission('staff:update') ? (staff: any) => handleOpenDialog(staff as Staff) : undefined}
+              onDelete={hasPermission('staff:delete') ? (staff: any) => setDeleteConfirm(staff as Staff) : undefined}
+              onToggle={hasPermission('staff:toggle_status') ? (staff: any) => handleToggleStatus(staff as Staff) : undefined}
+              emptyMessage="No staff found. Try adjusting your filters."
+            />
+
+            {/* Pagination Controls */}
+            {data && (canGoBack || data.pagination?.hasMore) && (
+              <Box
+                sx={{
+                  mt: 3,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
+                <Button
+                  onClick={goPrevious}
+                  disabled={!canGoBack}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderColor: "#213350",
+                    color: "#213350",
+                    "&:hover": {
+                      borderColor: "#6AB344",
+                      backgroundColor: "rgba(33, 51, 80, 0.04)",
+                    },
+                  }}
+                >
+                  Previous
+                </Button>
+                <Typography variant="body2" color="text.secondary">
+                  Page {pageNumber}
+                </Typography>
+                <Button
+                  onClick={() => goNext(data.pagination?.nextCursor)}
+                  disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderColor: "#213350",
+                    color: "#213350",
+                    "&:hover": {
+                      borderColor: "#6AB344",
+                      backgroundColor: "rgba(33, 51, 80, 0.04)",
+                    },
+                  }}
+                >
+                  Next
+                </Button>
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* Add/Edit Dialog */}
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: 3,
+                bgcolor: 'background.paper',
+                backdropFilter: 'blur(20px)',
+              }
+            }
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: 600,
+              background: "linear-gradient(45deg, #213350, #6AB344)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            {editingStaff ? "Edit Staff" : "Add New Staff"}
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3 }}>
+            <Grid container spacing={2.5}>
               <Grid size={{ xs: 12 }}>
                 <Input
-                  label="Password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  error={!!formErrors.password}
-                  helperText={formErrors.password}
+                  label="Full Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  error={!!formErrors.name}
+                  helperText={formErrors.name}
                   required
                   fullWidth
                 />
               </Grid>
-            )}
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleCloseDialog} disabled={isCreating || isUpdating}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={isCreating || isUpdating}
-            sx={{
-              background: "linear-gradient(45deg, #213350, #6AB344)",
-              "&:hover": {
-                background: "linear-gradient(45deg, #1a2940, #6AB344)",
-              },
-            }}
-          >
-            {isCreating || isUpdating ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : editingStaff ? (
-              "Update"
-            ) : (
-              "Create"
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <Grid size={{ xs: 12 }}>
+                <Input
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  error={!!formErrors.email}
+                  helperText={formErrors.email}
+                  required
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  label="Role"
+                  select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  error={!!formErrors.role}
+                  helperText={formErrors.role}
+                  required
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-input": {
+                      fontSize: "0.875rem",
+                    },
+                  }}
+                >
+                  <MenuItem value="ADMIN">Admin</MenuItem>
+                  <MenuItem value="MANAGER">Manager</MenuItem>
+                  <MenuItem value="STAFF">Staff</MenuItem>
+                </TextField>
+              </Grid>
+              {!editingStaff && (
+                <Grid size={{ xs: 12 }}>
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
+                    required
+                    fullWidth
+                  />
+                </Grid>
+              )}
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button onClick={handleCloseDialog} disabled={isCreating || isUpdating}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              disabled={isCreating || isUpdating}
+              sx={{
+                background: "linear-gradient(45deg, #213350, #6AB344)",
+                "&:hover": {
+                  background: "linear-gradient(45deg, #1a2940, #6AB344)",
+                },
+              }}
+            >
+              {isCreating || isUpdating ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : editingStaff ? (
+                "Update"
+              ) : (
+                "Create"
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Delete Confirmation */}
-      <ConfirmDialog
-        open={!!deleteConfirm}
-        title="Delete Staff"
-        message={`Are you sure you want to delete ${deleteConfirm?.name}? This action cannot be undone.`}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteConfirm(null)}
-      />
-    </Box>
+        {/* Delete Confirmation */}
+        <ConfirmDialog
+          open={!!deleteConfirm}
+          title="Delete Staff"
+          message={`Are you sure you want to delete ${deleteConfirm?.name}? This action cannot be undone.`}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteConfirm(null)}
+        />
+      </Box>
+    </PermissionGuard>
   );
 }

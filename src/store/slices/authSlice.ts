@@ -29,6 +29,7 @@ export interface AuthState {
   user: User | null;
   isInitialized: boolean;
   isLoading: boolean;
+  isFullProfileLoaded: boolean;
 }
 
 const initialState: AuthState = {
@@ -38,18 +39,24 @@ const initialState: AuthState = {
   user: null,
   isInitialized: false,
   isLoading: false,
+  isFullProfileLoaded: false,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: User }>) => {
+    setUser: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: User; isFullProfile?: boolean }>) => {
       state.isAuthenticated = true;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
       state.user = action.payload.user;
       state.isLoading = false;
+      
+      // Mark as full profile loaded if explicitly told or if permissions exist (even empty array)
+      if (action.payload.isFullProfile || action.payload.user.permissions !== undefined) {
+        state.isFullProfileLoaded = true;
+      }
     },
     clearAuth: (state) => {
       state.isAuthenticated = false;
@@ -58,6 +65,7 @@ const authSlice = createSlice({
       state.user = null;
       state.isInitialized = true;
       state.isLoading = false;
+      state.isFullProfileLoaded = false;
     },
     setAuthenticatedWithTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
       state.isAuthenticated = true;
