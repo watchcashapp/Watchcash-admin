@@ -122,10 +122,15 @@ export default function AddRolePage() {
     <PermissionGuard permission="staff:assign_roles">
       <Box sx={{ px: { xs: 2, sm: 3, md: 0 } }}>
         <Button
-          startIcon={<ArrowBack />}
+          variant="text"
+          startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
           onClick={() => router.push('/staff/roles')}
           sx={{ 
             mb: { xs: 2, sm: 3 }, 
+            height: '28px',
+            fontSize: '0.75rem',
+            color: 'text.secondary',
+            textTransform: 'uppercase',
             '&:hover': {
               backgroundColor: 'rgba(33, 51, 80, 0.08)',
             },
