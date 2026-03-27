@@ -227,112 +227,129 @@ function DataTable<T extends Record<string, any>>({
                   >
                     <Box display="flex" gap={1} justifyContent="center">
                       {onMarkReview && (
-                        <Tooltip title="Review" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onMarkReview(row)}
-                            sx={{
-                              color: '#f59e0b',
-                              '&:hover': {
-                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            <RateReview fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="Review" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onMarkReview(row)}
+                              sx={{
+                                color: '#f59e0b',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <RateReview fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                       {onView && (
-                        <Tooltip title="View Details" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onView(row)}
-                            sx={{
-                              color: '#10b981',
-                              '&:hover': {
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            <Visibility fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="View Details" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onView(row)}
+                              sx={{
+                                color: '#10b981',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <Visibility fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                       {onToggle && (
-                        <Tooltip title="Toggle Status" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onToggle(row)}
-                            sx={{
-                              color: row.enabled ? '#10b981' : '#9ca3af',
-                              '&:hover': {
-                                backgroundColor: row.enabled ? 'rgba(16, 185, 129, 0.1)' : 'rgba(156, 163, 175, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            {row.enabled ? <ToggleOn fontSize="medium" /> : <ToggleOff fontSize="medium" />}
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="Toggle Status" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onToggle(row)}
+                              sx={{
+                                color: row.enabled ? '#10b981' : '#9ca3af',
+                                '&:hover': {
+                                  backgroundColor: row.enabled ? 'rgba(16, 185, 129, 0.1)' : 'rgba(156, 163, 175, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              {row.enabled ? <ToggleOn fontSize="medium" /> : <ToggleOff fontSize="medium" />}
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                       {onEdit && (
-                        <Tooltip title="Edit" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onEdit(row)}
-                            sx={{
-                              color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main',
-                              '&:hover': {
-                                backgroundColor: 'rgba(33, 51, 80, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            <Edit fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="Edit" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onEdit(row)}
+                              sx={{
+                                color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(33, 51, 80, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                       {onDelete && (
-                        <Tooltip title="Delete" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onDelete(row)}
-                            sx={{
-                              color: '#ef4444',
-                              '&:hover': {
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="Delete" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onDelete(row)}
+                              sx={{
+                                color: '#ef4444',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                       {onBan && (
-                        <Tooltip title="Ban User" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => onBan(row)}
-                            sx={{
-                              color: '#dc2626',
-                              '&:hover': {
-                                backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                                transform: 'scale(1.1)',
-                              },
-                              transition: 'all 0.2s ease',
-                            }}
-                          >
-                            <Block fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ 
+                          width: 34, 
+                          display: 'flex', 
+                          justifyContent: 'center',
+                          visibility: row.isBanned ? 'hidden' : 'visible' 
+                        }}>
+                          <Tooltip title="Ban User" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onBan(row)}
+                              sx={{
+                                color: '#dc2626',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <Block fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                     </Box>
                   </TableCell>

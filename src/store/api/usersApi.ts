@@ -46,6 +46,7 @@ export interface User {
   email: string;
   userType: 'APP' | 'ADMIN' | 'STAFF';
   isActive: boolean;
+  isBanned: boolean;
   createdAt: string;
   updatedAt: string;
   permissions?: Array<{
@@ -139,6 +140,7 @@ export interface UserDetailResponse {
     totalPoints: number;
     sessionsCount: number;
     devicesCount: number;
+    isBanned: boolean;
     permissions: Array<{
       id: string;
       code: string;
@@ -304,6 +306,7 @@ export const usersApi = createApi({
         // Merge permissions and roles from the data level into the user object
         return {
           ...response.data.user,
+          isBanned: response.data.isBanned,
           permissions: response.data.permissions.map(p => ({
             id: p.id,
             code: p.code,

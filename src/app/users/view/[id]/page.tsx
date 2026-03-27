@@ -173,7 +173,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               </Typography>
             </Box>
 
-            {hasPermission('users:ban') && userResponse && userResponse.userType !== 'STAFF' && (
+            {hasPermission('users:ban') && userResponse && userResponse.userType !== 'STAFF' && !userResponse.isBanned && (
               <Button
                 variant="contained"
                 startIcon={<Block sx={{ fontSize: '1rem !important' }} />}

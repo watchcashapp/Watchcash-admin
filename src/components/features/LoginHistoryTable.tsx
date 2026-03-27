@@ -259,7 +259,7 @@ export default function LoginHistoryTable({
                 </Grid>
             </Paper>
 
-            {error && (
+            {error && !data?.items?.length && (
                 <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: '0.8rem' }}>
                     Failed to load login history.
                 </Alert>
