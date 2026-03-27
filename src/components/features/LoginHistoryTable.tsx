@@ -33,19 +33,28 @@ export default function LoginHistoryTable({
     const [limit] = useState(6);
     const [userId, setUserId] = useState(initialUserId);
     const [isAdmin, setIsAdmin] = useState<string>("");
+    const [debouncedUserName, setDebouncedUserName] = useState(initialUserId);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
+
+    // Debounce Username
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedUserName(userId);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [userId]);
 
     // Reset page when filters change
     useEffect(() => {
         reset();
-    }, [userId, isAdmin, reset]);
+    }, [debouncedUserName, isAdmin, reset]);
 
     const queryParams = React.useMemo(() => {
         const params: any = { cursor, limit };
-        if (userId) params.userName = userId;
+        if (debouncedUserName) params.userName = debouncedUserName;
         if (isAdmin !== "") params.is_admin = isAdmin === "true";
         return params;
-    }, [cursor, limit, userId, isAdmin]);
+    }, [cursor, limit, debouncedUserName, isAdmin]);
 
     const { data, isLoading, error } = useGetLoginHistoryQuery(queryParams, {
         refetchOnMountOrArgChange: true,

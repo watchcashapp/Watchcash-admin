@@ -198,7 +198,7 @@ export default function AuditLogsPage() {
                     >
                         Audit Logs
                     </Typography>
-                    <Box display="flex" gap={1}>
+                    {/* <Box display="flex" gap={1}>
                         {hasPermission('admin_audit_logs:export') && (
                             <Button
                                 variant="contained"
@@ -221,7 +221,7 @@ export default function AuditLogsPage() {
                                 EXPORT
                             </Button>
                         )}
-                    </Box>
+                    </Box> */}
                 </Box>
 
                 {/* Filters */}

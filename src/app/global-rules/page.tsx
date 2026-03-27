@@ -82,6 +82,15 @@ export default function GlobalRulesPage() {
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof GlobalRules, string>> = {};
 
+    // Check if each field is provided
+    Object.keys(formData).forEach((key) => {
+      const fieldKey = key as keyof GlobalRules;
+      const value = formData[fieldKey];
+      if (value === undefined || value === null || value.toString() === '') {
+        errors[fieldKey] = "All fields are required";
+      }
+    });
+
     if (formData.defaultPointsPerMinute < 0) {
       errors.defaultPointsPerMinute = "Must be 0 or greater";
     }

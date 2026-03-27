@@ -102,6 +102,14 @@ export default function RbacRulesPage() {
     });
   };
 
+  const isChanged = useMemo(() => {
+    if (!editingRole) return true; // Always allow create
+    return (
+      formData.name !== editingRole.name ||
+      formData.description !== editingRole.description
+    );
+  }, [formData, editingRole]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
@@ -293,7 +301,7 @@ export default function RbacRulesPage() {
             <Button
               onClick={handleSubmit}
               variant="contained"
-              disabled={isCreating || isUpdating}
+              disabled={isCreating || isUpdating || !isChanged}
               sx={{
                 background: "linear-gradient(45deg, #213350, #6AB344)",
                 "&:hover": {

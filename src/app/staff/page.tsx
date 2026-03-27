@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -96,6 +96,15 @@ export default function StaffPage() {
     setFormErrors({});
     setOpenDialog(true);
   };
+
+  const isChanged = useMemo(() => {
+    if (!editingStaff) return true; // Always allow create
+    return (
+      formData.name !== editingStaff.name ||
+      formData.email !== editingStaff.email ||
+      formData.role !== editingStaff.role
+    );
+  }, [formData, editingStaff]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -533,7 +542,7 @@ export default function StaffPage() {
             <Button
               onClick={handleSubmit}
               variant="contained"
-              disabled={isCreating || isUpdating}
+              disabled={isCreating || isUpdating || !isChanged}
               sx={{
                 background: "linear-gradient(45deg, #213350, #6AB344)",
                 "&:hover": {

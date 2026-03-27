@@ -95,6 +95,7 @@ export interface LoginHistory {
 
 export interface GetLoginHistoryParams extends CursorPaginationParams {
   user_id?: string;
+  userName?: string;
   is_admin?: boolean;
 }
 
@@ -397,6 +398,7 @@ export const usersApi = createApi({
         const queryParams = new URLSearchParams();
         appendCursorPagination(queryParams, params);
         if (params.user_id) queryParams.append('user_id', params.user_id);
+        if (params.userName) queryParams.append('userName', params.userName);
         if (params.is_admin !== undefined) queryParams.append('is_admin', params.is_admin.toString());
 
         const queryString = queryParams.toString();
