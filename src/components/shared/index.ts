@@ -18,3 +18,4 @@ export type { MultiSelectOption } from './MultiSelect';
 export { default as GroupedPermissionsSelect } from './GroupedPermissionsSelect';
 
 export { PermissionGuard } from './PermissionGuard';
+export { default as TablePagination } from './TablePagination';

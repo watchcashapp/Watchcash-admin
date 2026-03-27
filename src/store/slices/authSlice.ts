@@ -46,7 +46,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: User; isFullProfile?: boolean }>) => {
+    setUser: (state, action: PayloadAction<{ accessToken: string | null; refreshToken: string | null; user: User; isFullProfile?: boolean }>) => {
       state.isAuthenticated = true;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
@@ -67,7 +67,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.isFullProfileLoaded = false;
     },
-    setAuthenticatedWithTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
+    setAuthenticatedWithTokens: (state, action: PayloadAction<{ accessToken: string | null; refreshToken: string | null }>) => {
       state.isAuthenticated = true;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;

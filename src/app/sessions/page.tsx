@@ -17,7 +17,7 @@ import {
 import { Visibility, NavigateBefore, NavigateNext, GetApp } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable, useToast } from '@/components/shared';
+import { DataTable, useToast, TablePagination } from '@/components/shared';
 import { useGetSessionsQuery } from '@/store/api/sessionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -32,16 +32,15 @@ const statusOptions = [
 
 import { useMemo } from 'react';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { getTokenFromCookie } from "@/utils/auth";
 
 export default function SessionsPage() {
   const router = useRouter();
   const { showError } = useToast();
   const [limit, setLimit] = useState(6);
   const [status, setStatus] = useState('');
-  const [userName, setUserName] = useState('');
-  const [deviceId, setDeviceId] = useState('');
-  const [debouncedUserName, setDebouncedUserName] = useState('');
-  const [debouncedDeviceId, setDebouncedDeviceId] = useState('');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
@@ -50,23 +49,21 @@ export default function SessionsPage() {
   // Debounce User Name and Device ID
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedUserName(userName);
-      setDebouncedDeviceId(deviceId);
+      setDebouncedSearch(search);
     }, 500);
     return () => clearTimeout(timer);
-  }, [userName, deviceId]);
+  }, [search]);
 
   // Reset page when filters change
   useEffect(() => {
     reset();
-  }, [status, debouncedUserName, debouncedDeviceId, fromDate, toDate, reset]);
+  }, [status, debouncedSearch, fromDate, toDate, reset]);
 
   const { data: sessionsData, isLoading } = useGetSessionsQuery({
     cursor,
     limit,
     status: status || undefined,
-    userName: debouncedUserName || undefined,
-    deviceId: debouncedDeviceId || undefined,
+    search: debouncedSearch || undefined,
     from: fromDate || undefined,
     to: toDate || undefined,
   }, {
@@ -230,12 +227,11 @@ export default function SessionsPage() {
               onClick={() => {
                 const queryParams = new URLSearchParams();
                 if (status) queryParams.append("status", status);
-                if (debouncedUserName) queryParams.append("userName", debouncedUserName);
-                if (debouncedDeviceId) queryParams.append("deviceId", debouncedDeviceId);
+                if (debouncedSearch) queryParams.append("search", debouncedSearch);
                 if (fromDate) queryParams.append("from", fromDate);
                 if (toDate) queryParams.append("to", toDate);
 
-                const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+                const accessToken = getTokenFromCookie("accessToken");
                 const url = `${config.apiUrl}/admin/sessions/export?${queryParams.toString()}`;
 
                 fetch(url, {
@@ -293,42 +289,16 @@ export default function SessionsPage() {
           }}
         >
           <Grid container spacing={1.5} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <TextField
-                label="User Name"
-                value={userName}
+                label="Search"
+                value={search}
                 onChange={(e) => {
-                  setUserName(e.target.value);
+                  setSearch(e.target.value);
                 }}
                 size="small"
                 fullWidth
-                placeholder="Search name"
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
-                label="Device ID"
-                value={deviceId}
-                onChange={(e) => {
-                  setDeviceId(e.target.value);
-                }}
-                size="small"
-                fullWidth
-                placeholder="Search device"
+                placeholder="Name, Email or Session ID"
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
@@ -440,8 +410,7 @@ export default function SessionsPage() {
                 variant="outlined"
                 onClick={() => {
                   setStatus('');
-                  setUserName('');
-                  setDeviceId('');
+                  setSearch('');
                   setFromDate('');
                   setToDate('');
                   reset();
@@ -478,35 +447,21 @@ export default function SessionsPage() {
               getRowId={(row: any) => row.session_id || row.id}
             />
 
-            {/* Pagination */}
-            {sessionsData && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Showing {sessions.length}{typeof pagination?.total === 'number' ? ` of ${pagination.total}` : ''} results
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                  <IconButton
-                    size="small"
-                    onClick={goPrevious}
-                    disabled={!canGoBack}
-                    sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
-                  >
-                    <NavigateBefore />
-                  </IconButton>
-                  <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                    Page {pageNumber}
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => goNext(pagination?.nextCursor)}
-                    disabled={!pagination?.hasMore || !pagination?.nextCursor}
-                    sx={{ color: !pagination?.hasMore || !pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
-                  >
-                    <NavigateNext />
-                  </IconButton>
-                </Box>
-              </Box>
-            )}
+            <TablePagination
+              pageNumber={pageNumber}
+              limit={limit}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                reset();
+              }}
+              canGoBack={canGoBack}
+              hasMore={!!pagination?.hasMore && !!pagination?.nextCursor}
+              onNext={() => goNext(pagination?.nextCursor)}
+              onPrevious={goPrevious}
+              totalResults={pagination?.total}
+              resultsOnPage={sessions.length}
+              isLoading={isLoading}
+            />
           </>
         )}
       </Box>

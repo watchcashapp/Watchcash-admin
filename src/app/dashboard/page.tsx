@@ -40,10 +40,12 @@ import { usePermissions } from '@/hooks/usePermissions';
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
-  const { data, isLoading } = useGetDashboardStatsQuery();
+  const { data, isLoading: isLoadingStats } = useGetDashboardStatsQuery();
   const { data: summaryData, isLoading: isLoadingSummary, error: summaryError } = useGetSessionsSummaryQuery();
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isFullProfileLoaded, isInitialized: isPermsInitialized } = usePermissions();
+
+  const isLoading = isLoadingStats || !isFullProfileLoaded || !isPermsInitialized;
 
   // Pagination states
   const [flaggedPage, setFlaggedPage] = React.useState(1);
@@ -317,7 +319,23 @@ export default function DashboardPage() {
                       </Typography>
                     </Box>
                   ) : (
-                    <TableContainer component={Paper} sx={{ bgcolor: 'transparent', boxShadow: 'none' }}>
+                    <TableContainer 
+                      component={Paper} 
+                      sx={{ 
+                        bgcolor: 'transparent', 
+                        boxShadow: 'none',
+                        '&::-webkit-scrollbar': {
+                          height: '4px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          backgroundColor: 'transparent',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: 'rgba(33, 51, 80, 0.1)',
+                          borderRadius: '10px',
+                        },
+                      }}
+                    >
                       <Table size="small">
                         <TableHead>
                           <TableRow>
@@ -464,7 +482,23 @@ export default function DashboardPage() {
                       </Typography>
                     </Box>
                   ) : (
-                    <TableContainer component={Paper} sx={{ bgcolor: 'transparent', boxShadow: 'none' }}>
+                    <TableContainer 
+                      component={Paper} 
+                      sx={{ 
+                        bgcolor: 'transparent', 
+                        boxShadow: 'none',
+                        '&::-webkit-scrollbar': {
+                          height: '4px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          backgroundColor: 'transparent',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: 'rgba(33, 51, 80, 0.1)',
+                          borderRadius: '10px',
+                        },
+                      }}
+                    >
                       <Table size="small">
                         <TableHead>
                           <TableRow>

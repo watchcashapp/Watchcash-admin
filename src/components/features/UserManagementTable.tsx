@@ -17,13 +17,15 @@ import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/ic
 import { useRouter } from "next/navigation";
 import { config } from "@/config/env";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { ConfirmDialog, useToast, Button, Input } from "@/components/shared";
+import { ConfirmDialog, useToast, Button, Input, TablePagination } from "@/components/shared";
 import { useGetUsersQuery, useDeleteUserMutation, User } from "@/store/api/usersApi";
 import BanUserDialog from "@/components/features/BanUserDialog";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useCursorPagination } from '@/hooks/useCursorPagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { getTokenFromCookie } from "@/utils/auth";
 
 interface UserManagementTableProps {
   title?: string;
@@ -54,7 +56,7 @@ export default function UserManagementTable({
   const { showSuccess, showError } = useToast();
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const { hasPermission } = usePermissions();
-  const [limit] = useState(6);
+  const [limit, setLimit] = useState(6);
   const [search, setSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("");
   const [userType, setUserType] = useState<string>(defaultUserType);
@@ -227,7 +229,7 @@ export default function UserManagementTable({
       if (fromDate) queryParams.append("from", fromDate);
       if (toDate) queryParams.append("to", toDate);
 
-      const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const accessToken = getTokenFromCookie("accessToken");
       const url = `${config.apiUrl}/admin/users/export?${queryParams.toString()}`;
 
       const response = await fetch(url, {
@@ -460,35 +462,23 @@ export default function UserManagementTable({
         onEdit={showEditAction && hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
         onDelete={showDeleteAction && hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}
         onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
-        renderPagination={() => data ? (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              Showing {data.users?.length || 0}{typeof data.pagination?.total === 'number' ? ` of ${data.pagination.total}` : ''} results
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <IconButton
-                size="small"
-                onClick={goPrevious}
-                disabled={!canGoBack}
-                sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
-              >
-                <NavigateBefore fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary', fontSize: '0.75rem' }}>
-                Page {pageNumber}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => goNext(data.pagination?.nextCursor)}
-                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
-                sx={{ color: !data.pagination?.hasMore || !data.pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
-              >
-                <NavigateNext fontSize="small" />
-              </IconButton>
-            </Box>
-          </Box>
-        ) : null}
         getRowId={(row: User) => row.id}
+      />
+
+      <TablePagination
+        pageNumber={pageNumber}
+        limit={limit}
+        onLimitChange={(newLimit: number) => {
+          setLimit(newLimit);
+          reset();
+        }}
+        canGoBack={canGoBack}
+        hasMore={!!data?.pagination?.hasMore && !!data?.pagination?.nextCursor}
+        onNext={() => goNext(data?.pagination?.nextCursor)}
+        onPrevious={goPrevious}
+        totalResults={data?.pagination?.total}
+        resultsOnPage={data?.users?.length || 0}
+        isLoading={isLoading || isFetching}
       />
 
       {/* Delete Confirmation */}

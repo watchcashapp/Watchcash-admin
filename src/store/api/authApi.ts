@@ -11,12 +11,13 @@ const baseQuery = fetchBaseQuery({
   baseUrl: config.apiUrl,
   prepareHeaders: (headers, { endpoint }) => {
     // Public endpoints that don't need authentication
-    const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword'];
+    // Public endpoints that don't need authentication
+    const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword', 'refreshToken'];
 
     // Only add Authorization header for private/protected endpoints
     if (!publicEndpoints.includes(endpoint)) {
       const accessToken = typeof window !== 'undefined'
-        ? document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+        ? (document.cookie.split('; ').find(row => row.trim().startsWith('accessToken='))?.split('=')[1] || '')
         : '';
 
       if (accessToken) {
@@ -53,7 +54,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 
       try {
         const refreshToken = typeof window !== 'undefined'
-          ? document.cookie.replace(/(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+          ? (document.cookie.split('; ').find(row => row.trim().startsWith('refreshToken='))?.split('=')[1] || '')
           : '';
 
         if (refreshToken) {

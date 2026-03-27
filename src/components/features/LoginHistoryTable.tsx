@@ -19,6 +19,7 @@ import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast } from "@/components/shared";
 import { useGetLoginHistoryQuery, LoginHistory } from "@/store/api/usersApi";
 import { useCursorPagination } from '@/hooks/useCursorPagination';
+import { TablePagination } from "@/components/shared";
 
 interface LoginHistoryTableProps {
     title?: string;
@@ -30,7 +31,7 @@ export default function LoginHistoryTable({
     userId: initialUserId = "", // Keeping the variable name for now but it will hold userName
 }: LoginHistoryTableProps) {
     const { showError } = useToast();
-    const [limit] = useState(6);
+    const [limit, setLimit] = useState(6);
     const [userId, setUserId] = useState(initialUserId);
     const [isAdmin, setIsAdmin] = useState<string>("");
     const [debouncedUserName, setDebouncedUserName] = useState(initialUserId);
@@ -272,32 +273,20 @@ export default function LoginHistoryTable({
                 getRowId={(row: LoginHistory) => row.id}
                 emptyMessage="No login history found."
                 renderPagination={() => data ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                            Showing {data.items?.length || 0}{typeof data.pagination?.total === 'number' ? ` of ${data.pagination.total}` : ''} results
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                            <IconButton
-                                size="small"
-                                onClick={goPrevious}
-                                disabled={!canGoBack}
-                                sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
-                            >
-                                <NavigateBefore fontSize="small" />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary', fontSize: '0.75rem' }}>
-                                Page {pageNumber}
-                            </Typography>
-                            <IconButton
-                                size="small"
-                                onClick={() => goNext(data.pagination?.nextCursor)}
-                                disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
-                                sx={{ color: !data.pagination?.hasMore || !data.pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
-                            >
-                                <NavigateNext fontSize="small" />
-                            </IconButton>
-                        </Box>
-                    </Box>
+                    <TablePagination
+                        pageNumber={pageNumber}
+                        limit={limit}
+                        onLimitChange={(newLimit: number) => {
+                            setLimit(newLimit);
+                            reset();
+                        }}
+                        canGoBack={canGoBack}
+                        hasMore={!!data?.pagination?.hasMore && !!data?.pagination?.nextCursor}
+                        onNext={() => goNext(data?.pagination?.nextCursor)}
+                        onPrevious={goPrevious}
+                        totalResults={data?.pagination?.total}
+                        resultsOnPage={data.items?.length || 0}
+                    />
                 ) : null}
             />
         </Box>

@@ -12,6 +12,7 @@ import {
 export interface RewardRedemption {
     id: string;
     userId: string;
+    userName?: string;
     sessionId: string;
     points: number;
     status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSED' | 'FAILED';

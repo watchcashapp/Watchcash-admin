@@ -19,7 +19,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
-import { DataTable, ConfirmDialog, useToast, Input, PermissionGuard } from "@/components/shared";
+import { DataTable, ConfirmDialog, useToast, Input, PermissionGuard, TablePagination } from "@/components/shared";
 import {
   useGetStaffQuery,
   useCreateStaffMutation,
@@ -49,7 +49,7 @@ export default function StaffPage() {
   const router = useRouter();
   const { hasPermission, isInitialized } = usePermissions();
   const { showSuccess, showError } = useToast();
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(6);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -395,54 +395,20 @@ export default function StaffPage() {
               emptyMessage="No staff found. Try adjusting your filters."
             />
 
-            {/* Pagination Controls */}
-            {data && (canGoBack || data.pagination?.hasMore) && (
-              <Box
-                sx={{
-                  mt: 3,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: 2,
-                }}
-              >
-                <Button
-                  onClick={goPrevious}
-                  disabled={!canGoBack}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: "#213350",
-                    color: "#213350",
-                    "&:hover": {
-                      borderColor: "#6AB344",
-                      backgroundColor: "rgba(33, 51, 80, 0.04)",
-                    },
-                  }}
-                >
-                  Previous
-                </Button>
-                <Typography variant="body2" color="text.secondary">
-                  Page {pageNumber}
-                </Typography>
-                <Button
-                  onClick={() => goNext(data.pagination?.nextCursor)}
-                  disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: "#213350",
-                    color: "#213350",
-                    "&:hover": {
-                      borderColor: "#6AB344",
-                      backgroundColor: "rgba(33, 51, 80, 0.04)",
-                    },
-                  }}
-                >
-                  Next
-                </Button>
-              </Box>
-            )}
+            <TablePagination
+              pageNumber={pageNumber}
+              limit={limit}
+              onLimitChange={(newLimit: number) => {
+                setLimit(newLimit);
+                reset();
+              }}
+              canGoBack={canGoBack}
+              hasMore={!!data?.pagination?.hasMore && !!data?.pagination?.nextCursor}
+              onNext={() => goNext(data?.pagination?.nextCursor)}
+              onPrevious={goPrevious}
+              totalResults={data?.pagination?.total}
+              resultsOnPage={data?.staff?.length || 0}
+            />
           </>
         )}
 

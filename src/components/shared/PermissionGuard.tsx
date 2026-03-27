@@ -70,7 +70,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     }
   }, [isInitialized, isWaitState, isAuthenticated, hasRequiredPermission, permission, router, pathname, simple]);
 
-  if (!isInitialized || isWaitState) {
+  if (!isInitialized || (isWaitState && permission)) {
     if (simple) {
       return null; // Don't show any loader for button-level guards during init
     }

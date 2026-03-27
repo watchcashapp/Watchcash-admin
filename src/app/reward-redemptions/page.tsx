@@ -27,11 +27,12 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable, Column, useToast } from '@/components/shared';
+import { DataTable, Column, useToast, TablePagination } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { getTokenFromCookie } from "@/utils/auth";
 
 const PREDEFINED_REASONS = [
   { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -61,7 +62,7 @@ export default function RewardRedemptionsPage() {
   const [status, setStatus] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [limit] = useState(6);
+  const [limit, setLimit] = useState(6);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -131,7 +132,7 @@ export default function RewardRedemptionsPage() {
       if (fromDate) queryParams.append("from", fromDate);
       if (toDate) queryParams.append("to", toDate);
 
-      const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const accessToken = getTokenFromCookie("accessToken");
       const url = `${config.apiUrl}/admin/reward-redemptions/export?${queryParams.toString()}`;
 
       const response = await fetch(url, {
@@ -186,12 +187,12 @@ export default function RewardRedemptionsPage() {
       ),
     },
     {
-      id: 'userId',
-      label: 'User ID',
+      id: 'userName',
+      label: 'User',
       minWidth: 150,
-      format: (value: string) => (
-        <Typography sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-          {value?.split('-')[0]}...
+      format: (value: string | undefined, row: RewardRedemption) => (
+        <Typography sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+          {value || (row.userId ? `${row.userId.split('-')[0]}...` : 'N/A')}
         </Typography>
       ),
     },
@@ -487,32 +488,22 @@ export default function RewardRedemptionsPage() {
           getRowId={(row: any) => row.id}
           emptyMessage="No reward redemptions found. Try adjusting your filters."
           onView={hasPermission('reward_redemptions:view') ? handleView : undefined}
-          renderPagination={() => pagination ? (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                Showing {redemptions.length}{typeof pagination.total === 'number' ? ` of ${pagination.total}` : ''} results
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <IconButton
-                  size="small"
-                  onClick={goPrevious}
-                  disabled={!canGoBack}
-                >
-                  <NavigateBefore fontSize="small" />
-                </IconButton>
-                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', fontSize: '0.75rem' }}>
-                  Page {pageNumber}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => goNext(pagination.nextCursor)}
-                  disabled={!pagination.hasMore || !pagination.nextCursor}
-                >
-                  <NavigateNext fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          ) : null}
+        />
+
+        <TablePagination
+          pageNumber={pageNumber}
+          limit={limit}
+          onLimitChange={(newLimit: number) => {
+            setLimit(newLimit);
+            reset();
+          }}
+          canGoBack={canGoBack}
+          hasMore={!!pagination?.hasMore && !!pagination?.nextCursor}
+          onNext={() => goNext(pagination?.nextCursor)}
+          onPrevious={goPrevious}
+          totalResults={pagination?.total}
+          resultsOnPage={redemptions.length}
+          isLoading={isLoading}
         />
 
         {/* Review Drawer */}

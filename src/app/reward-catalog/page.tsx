@@ -39,6 +39,7 @@ import {
   RewardCatalog 
 } from '@/store/api/rewardCatalogsApi';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { getTokenFromCookie } from "@/utils/auth";
 
 function CatalogSkeleton() {
   return (
@@ -162,7 +163,7 @@ export default function RewardCatalogPage() {
 
     setIsManualUploading(true);
     try {
-      const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, '$1');
+      const accessToken = getTokenFromCookie("accessToken");
       const response = await fetch(`${config.apiUrl}/admin/reward-catalogs/upload`, {
         method: 'POST',
         headers: {

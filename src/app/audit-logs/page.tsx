@@ -12,7 +12,7 @@ import {
     IconButton,
     CircularProgress,
 } from '@mui/material';
-import { DataTable, useToast } from '@/components/shared';
+import { DataTable, useToast, TablePagination } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -20,11 +20,12 @@ import { config } from '@/config/env';
 import { Search, NavigateBefore, NavigateNext, FileDownload } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { getTokenFromCookie } from "@/utils/auth";
 
 export default function AuditLogsPage() {
     const router = useRouter();
     const { showSuccess, showError } = useToast();
-    const rowsPerPage = 6;
+    const [limit, setLimit] = useState(6);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
 
@@ -40,12 +41,12 @@ export default function AuditLogsPage() {
 
     const queryArgs = useMemo(() => ({
         cursor,
-        limit: rowsPerPage,
+        limit: limit,
         action: actionSearch || undefined,
         targetUser: targetUserSearch || undefined,
         from: fromDate ? new Date(fromDate).toISOString() : undefined,
         to: toDate ? new Date(toDate).toISOString() : undefined,
-    }), [cursor, rowsPerPage, actionSearch, targetUserSearch, fromDate, toDate]);
+    }), [cursor, limit, actionSearch, targetUserSearch, fromDate, toDate]);
 
     const { data, isLoading } = useGetAuditLogsQuery(queryArgs, {
         refetchOnMountOrArgChange: true,
@@ -59,7 +60,7 @@ export default function AuditLogsPage() {
             if (fromDate) queryParams.append("from", fromDate);
             if (toDate) queryParams.append("to", toDate);
 
-            const accessToken = document.cookie.replace(/(?:(?:^|.*;\s*)accessToken\s*=\s*([^;]*).*$)|^.*$/, "$1");
+            const accessToken = getTokenFromCookie("accessToken");
             const url = `${config.apiUrl}/admin/audit-logs/export?${queryParams.toString()}`;
 
             const response = await fetch(url, {
@@ -397,32 +398,21 @@ export default function AuditLogsPage() {
                     emptyMessage="No audit logs found"
                     onView={hasPermission('admin_audit_logs:view') ? (row: any) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
                     renderPagination={() => data && data.items && data.items.length > 0 ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="body2" color="text.secondary">
-                                Showing {data.items.length}{typeof data.pagination?.total === 'number' ? ` of ${data.pagination.total}` : ''} entries
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                <IconButton
-                                    size="small"
-                                    onClick={goPrevious}
-                                    disabled={!canGoBack}
-                                    sx={{ color: !canGoBack ? 'text.disabled' : 'text.secondary' }}
-                                >
-                                    <NavigateBefore />
-                                </IconButton>
-                                <Typography variant="body2" sx={{ mx: 1, minWidth: '40px', textAlign: 'center', color: 'text.secondary' }}>
-                                    Page {pageNumber}
-                                </Typography>
-                                <IconButton
-                                    size="small"
-                                    onClick={() => goNext(data.pagination?.nextCursor)}
-                                    disabled={!data.pagination?.hasMore || !data.pagination?.nextCursor}
-                                    sx={{ color: !data.pagination?.hasMore || !data.pagination?.nextCursor ? 'text.disabled' : 'text.secondary' }}
-                                >
-                                    <NavigateNext />
-                                </IconButton>
-                            </Box>
-                        </Box>
+                        <TablePagination
+                            pageNumber={pageNumber}
+                            limit={limit}
+                            onLimitChange={(newLimit: number) => {
+                                setLimit(newLimit);
+                                reset();
+                            }}
+                            canGoBack={canGoBack}
+                            hasMore={!!data?.pagination?.hasMore && !!data?.pagination?.nextCursor}
+                            onNext={() => goNext(data?.pagination?.nextCursor)}
+                            onPrevious={goPrevious}
+                            totalResults={data?.pagination?.total}
+                            resultsOnPage={data.items.length}
+                            isLoading={isLoading}
+                        />
                     ) : null}
                 />
             </Box>

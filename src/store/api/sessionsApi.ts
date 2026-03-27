@@ -108,6 +108,7 @@ export interface GetSessionsParams extends CursorPaginationParams {
   deviceId?: string;
   from?: string;
   to?: string;
+  search?: string;
 }
 
 export const sessionsApi = createApi({
@@ -124,6 +125,7 @@ export const sessionsApi = createApi({
         if (params.userId) queryParams.append('userId', params.userId);
         if (params.userName) queryParams.append('userName', params.userName);
         if (params.deviceId) queryParams.append('deviceId', params.deviceId);
+        if (params.search) queryParams.append('search', params.search);
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);
 

@@ -20,29 +20,46 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
   const accessToken = initialAuth?.accessToken || getTokenFromCookie('accessToken');
   const refreshToken = initialAuth?.refreshToken || getTokenFromCookie('refreshToken');
 
-  const hasTokens = !!(accessToken && refreshToken);
+  const hasTokens = !!refreshToken;
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   useEffect(() => {
     if (hasTokens && !isAuthenticated) {
-      const basicUser = decodeAccessToken(accessToken!);
-      dispatch(setAuthenticatedWithTokens({
-        accessToken: accessToken!,
-        refreshToken: refreshToken!,
-      }));
-      if (basicUser) {
-        dispatch(setUser({
-          accessToken: accessToken!,
+      if (accessToken) {
+        const basicUser = decodeAccessToken(accessToken);
+        dispatch(setAuthenticatedWithTokens({
+          accessToken: accessToken,
           refreshToken: refreshToken!,
-          user: basicUser as any,
         }));
+        if (basicUser) {
+          dispatch(setUser({
+            accessToken: accessToken,
+            refreshToken: refreshToken!,
+            user: basicUser as any,
+          }));
+          dispatch(setInitialized(true));
+        }
+      } else if (refreshToken) {
+        // We have refreshToken but no accessToken, likely expired.
+        // Set isAuthenticated=true to prevent redirection while we wait for profile (which will trigger reauth)
+        dispatch(setAuthenticatedWithTokens({
+          accessToken: null,
+          refreshToken: refreshToken,
+        }));
+        dispatch(setInitialized(true));
       }
-      // Note: We no longer setInitialized(true) here. 
-      // It will be set when the full profile query completes or fails.
     } else if (!hasTokens) {
       dispatch(setInitialized(true));
     }
   }, [hasTokens, isAuthenticated, dispatch, accessToken, refreshToken]);
+
+  // Safety fallback to ensure the app initializes even if profile fetch hangs
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setInitialized(true));
+    }, 5000); // 5 second safety fallback
+    return () => clearTimeout(timer);
+  }, [dispatch]);
 
   // Fetch current user from API if tokens exist
   const { data: currentUser, isSuccess, isLoading, isError } = useGetProfileQuery(undefined, {

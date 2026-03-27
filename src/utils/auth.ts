@@ -17,12 +17,11 @@ interface DecodedToken {
 export const getTokenFromCookie = (name: string): string | null => {
   if (typeof window === 'undefined') return null;
 
-  const value = document.cookie.replace(
-    new RegExp(`(?:(?:^|.*;\\s*)${name}\\s*=\\s*([^;]*).*$)|^.*$`),
-    '$1'
-  );
-
-  return value || null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  
+  return null;
 };
 
 export const decodeAccessToken = (token: string) => {
@@ -40,7 +39,9 @@ export const decodeAccessToken = (token: string) => {
         name: decoded.profile.name,
         email: decoded.profile.email,
         userType: decoded.profile.userType,
-      };
+        permissions: (decoded as any).profile.permissions,
+        roles: (decoded as any).profile.roles,
+      } as any;
     }
 
     // Fallback: check if data is directly on the token
@@ -53,7 +54,9 @@ export const decodeAccessToken = (token: string) => {
         name: name,
         email: decoded.email,
         userType: (decoded as any).userType || 'ADMIN',
-      };
+        permissions: (decoded as any).permissions,
+        roles: (decoded as any).roles,
+      } as any;
     }
 
 

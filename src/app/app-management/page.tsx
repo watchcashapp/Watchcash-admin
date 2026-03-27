@@ -71,8 +71,8 @@ export default function AppManagementPage() {
 
   // Adjust active tab if needed
   useEffect(() => {
-    if (tabValue === 1 && !canViewPlanSettings) {
-        setTabValue(0);
+    if (tabValue === 0 && !canViewPlanSettings) {
+        // Nothing to do, only one tab
     }
   }, [canViewPlanSettings, tabValue]);
 
@@ -239,176 +239,13 @@ export default function AppManagementPage() {
                 },
               }}
             >
-              <Tab icon={<Settings sx={{ mr: 1 }} />} iconPosition="start" label="App Settings" />
               {canViewPlanSettings && <Tab icon={<WorkspacePremium sx={{ mr: 1 }} />} iconPosition="start" label="Plan Settings" />}
             </Tabs>
 
             <Box>
-              {/* SETTINGS TAB */}
-              <TabPanel value={tabValue} index={0}>
-                {isLoadingSettings ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <Grid container spacing={4}>
-                    <Grid size={{ xs: 12, lg: 8 }}>
-                      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700, fontSize: '1.1rem' }}>Global Application Settings</Typography>
-                      <Stack spacing={3}>
-                        <Card variant="outlined" sx={{ borderRadius: 2 }}>
-                          <CardContent>
-                            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700 }}>System Configuration</Typography>
-                            <Grid container spacing={3}>
-                              <Grid size={{ xs: 12, sm: 6 }}>
-                                  <TextField
-                                    fullWidth
-                                    label="App Name"
-                                    size="small"
-                                    required
-                                    value={formData.appName || ""}
-                                    onChange={(e) => handleInputChange("appName", e.target.value)}
-                                    error={touchedFields.has('appName') && !formData.appName}
-                                    helperText={touchedFields.has('appName') && !formData.appName ? "App Name is required" : ""}
-                                  />
-                              </Grid>
-                              <Grid size={{ xs: 12, sm: 6 }}>
-                                  <TextField
-                                    fullWidth
-                                    label="Support Email"
-                                    size="small"
-                                    required
-                                    value={formData.supportEmail || ""}
-                                    onChange={(e) => handleInputChange("supportEmail", e.target.value)}
-                                    error={touchedFields.has('supportEmail') && !formData.supportEmail}
-                                    helperText={touchedFields.has('supportEmail') && !formData.supportEmail ? "Support Email is required" : ""}
-                                  />
-                              </Grid>
-                              <Grid size={12}>
-                                <TextField
-                                  fullWidth
-                                  multiline
-                                  rows={2}
-                                  label="System Announcement"
-                                  size="small"
-                                  placeholder="Display a global banner to all users..."
-                                  value={formData.announcement || ""}
-                                  onChange={(e) => handleInputChange("announcement", e.target.value)}
-                                />
-                              </Grid>
-                            </Grid>
-                          </CardContent>
-                        </Card>
-
-                        <Card variant="outlined" sx={{ borderRadius: 2 }}>
-                          <CardContent>
-                            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700 }}>Feature Flags</Typography>
-                            <Stack spacing={1}>
-                              <FormControlLabel
-                                control={
-                                  <Switch 
-                                    checked={!!formData.maintenanceMode} 
-                                    onChange={(e) => handleInputChange("maintenanceMode", e.target.checked)}
-                                  />
-                                }
-                                label={
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Maintenance Mode</Typography>
-                                    <Typography variant="caption" color="text.secondary">Disable user access for system maintenance</Typography>
-                                  </Box>
-                                }
-                              />
-                              <Divider sx={{ my: 1 }} />
-                              <FormControlLabel
-                                control={
-                                  <Switch 
-                                    checked={!!formData.referralSystem} 
-                                    onChange={(e) => handleInputChange("referralSystem", e.target.checked)}
-                                  />
-                                }
-                                label={
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Enable Referrals</Typography>
-                                    <Typography variant="caption" color="text.secondary">Allow users to invite friends and earn bonuses</Typography>
-                                  </Box>
-                                }
-                              />
-                              <Divider sx={{ my: 1 }} />
-                              <FormControlLabel
-                                control={
-                                  <Switch 
-                                    checked={!!formData.forceUpdate} 
-                                    onChange={(e) => handleInputChange("forceUpdate", e.target.checked)}
-                                  />
-                                }
-                                label={
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Force App Update</Typography>
-                                    <Typography variant="caption" color="text.secondary">Require all mobile users to update to latest version</Typography>
-                                  </Box>
-                                }
-                              />
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Stack>
-
-                      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                        <Button 
-                          variant="outlined" 
-                          color="inherit"
-                          onClick={() => refetch()}
-                          disabled={isUpdating}
-                          sx={{
-                            height: '30px',
-                            minHeight: '30px',
-                            fontSize: '0.75rem',
-                            px: 2,
-                            color: 'text.secondary',
-                            borderColor: 'divider',
-                            '&:hover': {
-                              borderColor: 'text.secondary',
-                              backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                            },
-                          }}
-                        >
-                          Reset Changes
-                        </Button>
-                        <Button
-                          variant="contained"
-                          startIcon={isUpdating ? <CircularProgress size={16} color="inherit" /> : <Save sx={{ fontSize: '1rem !important' }} />}
-                          onClick={handleSaveSettings}
-                          disabled={isUpdating || !isSettingsChanged || !formData.appName || !formData.supportEmail}
-                          sx={{
-                            height: '30px',
-                            minHeight: '30px',
-                            fontSize: '0.75rem',
-                            background: 'linear-gradient(45deg, #213350, #6AB344)',
-                            boxShadow: '0 4px 12px rgba(33, 51, 80, 0.2)',
-                            px: 3,
-                            '&:hover': {
-                              background: 'linear-gradient(45deg, #1a2940, #6AB344)',
-                              boxShadow: '0 6px 16px rgba(33, 51, 80, 0.3)',
-                            },
-                          }}
-                        >
-                          {isUpdating ? "Saving..." : "Save Settings"}
-                        </Button>
-                      </Box>
-                    </Grid>
-
-                    <Grid size={{ xs: 12, lg: 4 }}>
-                      <Alert severity="info" icon={<Assignment />} sx={{ borderRadius: 2, mb: 3 }}>
-                        These settings apply globally across the entire application ecosystem. Changes take effect almost immediately.
-                      </Alert>
-                      <Box component="img" src="/assets/images/settings-illustration.svg" sx={{ width: '100%', opacity: 0.8, filter: 'grayscale(0.2)' }} />
-                    </Grid>
-                  </Grid>
-                )}
-              </TabPanel>
-
               {/* PLAN SETTINGS TAB */}
               {canViewPlanSettings && (
-                <TabPanel value={tabValue} index={1}>
+                <TabPanel value={tabValue} index={0}>
                   {isLoadingPlans ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
                       <CircularProgress />
