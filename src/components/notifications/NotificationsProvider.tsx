@@ -19,6 +19,8 @@ import {
   emitSocketTestPing,
   subscribeToNotificationEvents,
   subscribeToPermissionEvents,
+  subscribeToBanExpiredEvents,
+  subscribeToRankingUpdateEvents,
   subscribeToSocketStatus,
 } from '@/lib/socket/notificationsSocketClient';
 import { useDispatch } from 'react-redux';
@@ -27,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/shared/Toaster';
 import { rbacApi } from '@/store/api/rbacApi';
 import { usersApi } from '@/store/api/usersApi';
+import { dashboardApi } from '@/store/api/dashboardApi';
 
 const DEFAULT_LIMIT = 20;
 
@@ -372,6 +375,25 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       }
     });
 
+    const unsubscribeBanExpired = subscribeToBanExpiredEvents((payload: any) => {
+      console.log('Socket - user:ban_expired received:', payload);
+      // Refresh the users list and dashboard stats
+      dispatch(usersApi.util.invalidateTags(['Users']));
+      dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
+      
+      const userName = payload.name || payload.userName || 'A user';
+      showSuccess(`${userName}'s ban has expired and been automatically removed.`);
+    });
+
+    const unsubscribeRankingUpdate = subscribeToRankingUpdateEvents((payload: any) => {
+      console.log('Socket - ranking:update_finished received:', payload);
+      // Refresh relevant data that might show rankings
+      dispatch(usersApi.util.invalidateTags(['Users']));
+      dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
+      
+      showSuccess('The user rankings have been updated successfully.');
+    });
+
     const handleOnline = () => {
       if (resolvedToken) {
         connectNotificationsSocket(resolvedToken);
@@ -390,6 +412,8 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       unsubscribeStatus();
       unsubscribeEvents();
       unsubscribePermissions();
+      unsubscribeBanExpired();
+      unsubscribeRankingUpdate();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       disconnectNotificationsSocket();

@@ -24,6 +24,9 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   useEffect(() => {
+    const accessToken = getTokenFromCookie('accessToken');
+    const refreshToken = getTokenFromCookie('refreshToken');
+
     if (hasTokens && !isAuthenticated) {
       if (accessToken) {
         const basicUser = decodeAccessToken(accessToken);
@@ -46,18 +49,20 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
           accessToken: null,
           refreshToken: refreshToken,
         }));
+        // Note: we don't set initialized=true here yet, or if we do, 
+        // we must ensure we handle the failure case.
         dispatch(setInitialized(true));
       }
     } else if (!hasTokens) {
       dispatch(setInitialized(true));
     }
-  }, [hasTokens, isAuthenticated, dispatch, accessToken, refreshToken]);
+  }, [hasTokens, isAuthenticated, dispatch]);
 
   // Safety fallback to ensure the app initializes even if profile fetch hangs
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(setInitialized(true));
-    }, 5000); // 5 second safety fallback
+    }, 8000); // Increased safety fallback to 8s to allow for refresh logic
     return () => clearTimeout(timer);
   }, [dispatch]);
 
@@ -72,22 +77,39 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
 
   useEffect(() => {
     if (isError) {
+      // If profile fetch fails (meaning refresh also failed or wasn't possible),
+      // we must clear auth to trigger a redirect.
       dispatch(setInitialized(true));
+      dispatch(setUser({
+        accessToken: null,
+        refreshToken: null,
+        user: null as any,
+      }));
+      // Also clear cookies manually just in case
+      if (typeof window !== 'undefined') {
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        window.location.replace('/auth/login');
+      }
     }
   }, [isError, dispatch]);
 
   useEffect(() => {
     // Only update the full user object once the profile fetch succeeds
     if (hasTokens && currentUser && isSuccess) {
+      // Get the LATEST tokens from cookies after a potential refresh
+      const latestAccessToken = getTokenFromCookie('accessToken');
+      const latestRefreshToken = getTokenFromCookie('refreshToken');
+      
       dispatch(setUser({
-        accessToken: accessToken!,
-        refreshToken: refreshToken!,
+        accessToken: latestAccessToken,
+        refreshToken: latestRefreshToken,
         user: currentUser,
         isFullProfile: true,
       }));
       dispatch(setInitialized(true));
     }
-  }, [dispatch, hasTokens, accessToken, refreshToken, currentUser, isSuccess]);
+  }, [dispatch, hasTokens, currentUser, isSuccess]);
 
   return null;
 }

@@ -16,9 +16,12 @@ const baseQuery = fetchBaseQuery({
 
     // Only add Authorization header for private/protected endpoints
     if (!publicEndpoints.includes(endpoint)) {
-      const accessToken = typeof window !== 'undefined'
-        ? (document.cookie.split('; ').find(row => row.trim().startsWith('accessToken='))?.split('=')[1] || '')
-        : '';
+      let accessToken = '';
+      if (typeof window !== 'undefined') {
+        const cookies = document.cookie.split('; ');
+        accessToken = cookies.find(row => row.trim().startsWith('accessToken='))?.split('=')[1] ||
+                      cookies.find(row => row.trim().startsWith('access_token='))?.split('=')[1] || '';
+      }
 
       if (accessToken) {
         headers.set('Authorization', `Bearer ${accessToken}`);
@@ -53,9 +56,12 @@ export const baseQueryWithReauth: BaseQueryFn<
       const release = await mutex.acquire();
 
       try {
-        const refreshToken = typeof window !== 'undefined'
-          ? (document.cookie.split('; ').find(row => row.trim().startsWith('refreshToken='))?.split('=')[1] || '')
-          : '';
+        let refreshToken = '';
+        if (typeof window !== 'undefined') {
+          const cookies = document.cookie.split('; ');
+          refreshToken = cookies.find(row => row.trim().startsWith('refreshToken='))?.split('=')[1] ||
+                         cookies.find(row => row.trim().startsWith('refresh_token='))?.split('=')[1] || '';
+        }
 
         if (refreshToken) {
           // Try to get a new token
@@ -301,7 +307,8 @@ export const authApi = createApi({
         method: 'POST',
         body: {
           refreshToken: typeof window !== 'undefined'
-            ? document.cookie.replace(/(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/, '$1')
+            ? (document.cookie.split('; ').find(row => row.trim().startsWith('refreshToken='))?.split('=')[1] ||
+               document.cookie.split('; ').find(row => row.trim().startsWith('refresh_token='))?.split('=')[1] || '')
             : '',
         },
       }),

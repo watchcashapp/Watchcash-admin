@@ -23,6 +23,8 @@ let currentStatusMessage: string | undefined;
 
 const notificationListeners = new Set<NotificationListener>();
 const permissionListeners = new Set<NotificationListener>();
+const banExpiredListeners = new Set<NotificationListener>();
+const rankingUpdateListeners = new Set<NotificationListener>();
 const statusListeners = new Set<StatusListener>();
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -30,6 +32,8 @@ const isBrowser = () => typeof window !== 'undefined';
 const notifyStatus = (status: NotificationsSocketStatus, message?: string) => {
   currentStatus = status;
   currentStatusMessage = message;
+
+  console.log(`[Socket Status] ${status}${message ? ': ' + message : ''}`);
 
   for (const listener of statusListeners) {
     listener(status, message);
@@ -174,6 +178,50 @@ export const connectNotificationsSocket = (token: string) => {
       listener(payload);
     }
   });
+  
+  socket.on('user:ban_expired', (payload) => {
+    for (const listener of banExpiredListeners) {
+      listener(payload);
+    }
+  });
+
+  socket.on('ranking:update_finished', (payload) => {
+    for (const listener of rankingUpdateListeners) {
+      listener(payload);
+    }
+  });
+
+  socket.on('user_ban_expired', (payload) => {
+    for (const listener of banExpiredListeners) {
+      listener(payload);
+    }
+  });
+
+  socket.on('ranking_update_finished', (payload) => {
+    for (const listener of rankingUpdateListeners) {
+      listener(payload);
+    }
+  });
+
+  // Handle generic 'message' event if it contains eventName (as hinted by the user)
+  socket.on('message', (payload) => {
+    if (!payload || typeof payload !== 'object') return;
+    
+    if (payload.eventName === 'user_ban_expired') {
+      for (const listener of banExpiredListeners) {
+        listener(payload);
+      }
+    } else if (payload.eventName === 'ranking_update_finished') {
+      for (const listener of rankingUpdateListeners) {
+        listener(payload);
+      }
+    }
+  });
+
+  // Debug all socket events
+  socket.onAny((eventName, ...args) => {
+    console.log(`[Socket Debug] Event: ${eventName}`, args);
+  });
 
   socket.on('test:pong', () => {
     // Optional smoke test event support.
@@ -199,6 +247,20 @@ export const subscribeToPermissionEvents = (listener: NotificationListener) => {
   permissionListeners.add(listener);
   return () => {
     permissionListeners.delete(listener);
+  };
+};
+
+export const subscribeToBanExpiredEvents = (listener: NotificationListener) => {
+  banExpiredListeners.add(listener);
+  return () => {
+    banExpiredListeners.delete(listener);
+  };
+};
+
+export const subscribeToRankingUpdateEvents = (listener: NotificationListener) => {
+  rankingUpdateListeners.add(listener);
+  return () => {
+    rankingUpdateListeners.delete(listener);
   };
 };
 

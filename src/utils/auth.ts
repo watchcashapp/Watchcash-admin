@@ -18,8 +18,17 @@ export const getTokenFromCookie = (name: string): string | null => {
   if (typeof window === 'undefined') return null;
 
   const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
+  
+  // Try the provided name first
+  let parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  
+  // Try snake_case version (e.g., access_token if name is accessToken)
+  const snakeName = name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  if (snakeName !== name) {
+    parts = value.split(`; ${snakeName}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  }
   
   return null;
 };
