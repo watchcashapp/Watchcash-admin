@@ -297,11 +297,12 @@ export default function DashboardPage() {
               >
                 <CardContent sx={{ p: 3 }}>
                   <Typography
-                    variant="h6"
+                    variant="subtitle2"
                     sx={{
                       fontWeight: 600,
-                      mb: 2,
+                      mb: 1.5,
                       color: 'text.primary',
+                      fontSize: '0.9rem',
                     }}
                   >
                     Flagged Sessions
