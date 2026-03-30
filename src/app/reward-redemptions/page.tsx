@@ -62,7 +62,7 @@ export default function RewardRedemptionsPage() {
   const [status, setStatus] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(10);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);

@@ -44,7 +44,7 @@ import { getTokenFromCookie } from "@/utils/auth";
 function CatalogSkeleton() {
   return (
     <Grid container spacing={2}>
-      {[...Array(12)].map((_, i) => (
+      {[...Array(8)].map((_, i) => (
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={i}>
           <Card 
             elevation={0} 
@@ -89,7 +89,7 @@ export default function RewardCatalogPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [currency, setCurrency] = useState('');
-  const [limit] = useState(12);
+  const [limit] = useState(8);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [allRewards, setAllRewards] = useState<RewardCatalog[]>([]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);

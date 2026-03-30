@@ -69,7 +69,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
                             },
                         }}
                     >
-                        {[6, 20, 50, 100].map((option) => (
+                        {[8, 10, 20, 50, 100].map((option) => (
                             <MenuItem key={option} value={option} sx={{ fontSize: '0.75rem' }}>
                                 {option}
                             </MenuItem>

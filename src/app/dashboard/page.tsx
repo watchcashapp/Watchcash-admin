@@ -50,7 +50,7 @@ export default function DashboardPage() {
   // Pagination states
   const [flaggedPage, setFlaggedPage] = React.useState(1);
   const [highRiskPage, setHighRiskPage] = React.useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
 
 

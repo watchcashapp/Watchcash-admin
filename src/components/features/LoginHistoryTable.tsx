@@ -31,7 +31,7 @@ export default function LoginHistoryTable({
     userId: initialUserId = "", // Keeping the variable name for now but it will hold userName
 }: LoginHistoryTableProps) {
     const { showError } = useToast();
-    const [limit, setLimit] = useState(6);
+    const [limit, setLimit] = useState(10);
     const [userId, setUserId] = useState(initialUserId);
     const [isAdmin, setIsAdmin] = useState<string>("");
     const [debouncedUserName, setDebouncedUserName] = useState(initialUserId);

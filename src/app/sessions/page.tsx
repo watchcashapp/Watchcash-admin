@@ -37,7 +37,7 @@ import { getTokenFromCookie } from "@/utils/auth";
 export default function SessionsPage() {
   const router = useRouter();
   const { showError } = useToast();
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(10);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');

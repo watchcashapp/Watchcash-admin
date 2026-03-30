@@ -56,7 +56,7 @@ export default function UserManagementTable({
   const { showSuccess, showError } = useToast();
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const { hasPermission } = usePermissions();
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("");
   const [userType, setUserType] = useState<string>(defaultUserType);

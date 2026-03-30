@@ -17,7 +17,7 @@ export default function UserWalletTab({ userId }: UserWalletTabProps) {
   const { data, isLoading } = useGetUserWalletQuery({
     userId,
     cursor,
-    limit: 6,
+    limit: 10,
   });
 
   const columns = useMemo<Column<WalletTransaction>[]>(() => [

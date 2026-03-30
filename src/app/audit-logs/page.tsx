@@ -25,7 +25,7 @@ import { getTokenFromCookie } from "@/utils/auth";
 export default function AuditLogsPage() {
     const router = useRouter();
     const { showSuccess, showError } = useToast();
-    const [limit, setLimit] = useState(6);
+    const [limit, setLimit] = useState(8);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
 

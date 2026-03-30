@@ -123,7 +123,7 @@ export default function AdsManagementPage() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [allProviders, setAllProviders] = useState<AdProvider[]>([]);
   const { data: providersData, isLoading: isLoadingProviders, isFetching: isFetchingProviders } = useGetAdProvidersQuery({ 
-    limit: 6, 
+    limit: 10, 
     cursor: cursor || undefined 
   });
   

@@ -34,7 +34,7 @@ export default function UserRewardsTab({ userId }: UserRewardsTabProps) {
   const { data, isLoading } = useGetUserRedeemHistoryQuery({
     userId,
     cursor,
-    limit: 6,
+    limit: 10,
   });
 
   const columns = useMemo<Column<any>[]>(() => [

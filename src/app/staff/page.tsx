@@ -49,7 +49,7 @@ export default function StaffPage() {
   const router = useRouter();
   const { hasPermission, isInitialized } = usePermissions();
   const { showSuccess, showError } = useToast();
-  const [limit, setLimit] = useState(6);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");

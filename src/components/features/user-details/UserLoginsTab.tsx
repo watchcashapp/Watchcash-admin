@@ -17,7 +17,7 @@ export default function UserLoginsTab({ userId }: UserLoginsTabProps) {
   const { data, isLoading } = useGetUserLoginHistoryQuery({
     userId,
     cursor,
-    limit: 6,
+    limit: 10,
   });
 
   const columns = useMemo<Column<LoginHistory>[]>(() => [
