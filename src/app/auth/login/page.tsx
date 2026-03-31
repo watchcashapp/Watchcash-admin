@@ -167,7 +167,7 @@ function LoginForm() {
             height={48}
             priority
             style={{
-              height: '48px',
+              height: 'auto',
               width: 'auto',
             }}
           />

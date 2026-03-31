@@ -95,6 +95,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         suppressHydrationWarning
         slotProps={{
           input: {
+            suppressHydrationWarning: true,
             endAdornment: isPasswordField && mounted ? (
               <InputAdornment position="end">
                 <IconButton
@@ -108,6 +109,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 </IconButton>
               </InputAdornment>
             ) : undefined,
+          },
+          htmlInput: {
+            suppressHydrationWarning: true,
           },
         }}
         sx={{

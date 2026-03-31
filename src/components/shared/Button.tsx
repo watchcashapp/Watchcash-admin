@@ -30,6 +30,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         size={size}
         fullWidth={fullWidth}
+        suppressHydrationWarning
         sx={{
           minHeight: '40px',
           textTransform: 'none',
