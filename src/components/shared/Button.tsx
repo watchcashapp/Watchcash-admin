@@ -2,7 +2,7 @@
 
 import React, { forwardRef } from 'react';
 import { Button as MuiButton, ButtonProps as MuiButtonProps } from '@mui/material';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Box } from '@mui/material';
 
 export interface ButtonProps extends Omit<MuiButtonProps, 'variant'> {
   variant?: 'contained' | 'outlined' | 'text';
@@ -36,14 +36,36 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           textTransform: 'none',
           fontSize: '14px',
           fontWeight: 500,
+          position: 'relative',
           ...sx
         }}
         {...props}
       >
-        {loading ? (
-          <CircularProgress size={20} color="inherit" />
-        ) : (
-          children
+        <Box 
+          component="span" 
+          sx={{ 
+            visibility: loading ? 'hidden' : 'visible',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {children}
+        </Box>
+        {loading && (
+          <CircularProgress 
+            size={20} 
+            color="inherit" 
+            sx={{ 
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              marginTop: '-10px',
+              marginLeft: '-10px'
+            }} 
+          />
         )}
       </MuiButton>
     );

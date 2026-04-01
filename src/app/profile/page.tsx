@@ -56,6 +56,16 @@ export default function ProfilePage() {
     }
   }, [profileData]);
 
+  const isProfileDirty = React.useMemo(() => {
+    if (!profileData) return false;
+    return formData.name.trim() !== (profileData.name || '').trim() || 
+           formData.email.trim() !== (profileData.email || '').trim();
+  }, [formData, profileData]);
+
+  const isPasswordDirty = React.useMemo(() => {
+    return !!(passwordData.currentPassword || passwordData.newPassword || passwordData.confirmPassword);
+  }, [passwordData]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -203,7 +213,7 @@ export default function ProfilePage() {
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress
           sx={{
-            color: '#213350',
+            color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
           }}
         />
       </Box>
@@ -233,10 +243,11 @@ export default function ProfilePage() {
             fontWeight: 700,
             fontSize: '1.1rem',
             mb: 2,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Profile Settings
@@ -326,8 +337,8 @@ export default function ProfilePage() {
                         fontSize: '0.75rem',
                         minWidth: { xs: 'auto', sm: 100 },
                         px: { xs: 1.5, sm: 2 },
-                        borderColor: '#213350',
-                        color: '#213350',
+                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
+                        color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
@@ -354,7 +365,7 @@ export default function ProfilePage() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isUpdating || isChangingPassword}
                       error={!!errors.name}
                       helperText={errors.name}
                       required
@@ -382,7 +393,7 @@ export default function ProfilePage() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isUpdating || isChangingPassword}
                       error={!!errors.email}
                       helperText={errors.email}
                       required
@@ -426,7 +437,7 @@ export default function ProfilePage() {
                           variant="contained"
                           startIcon={isUpdating ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Save sx={{ fontSize: '1rem' }} /></Box>}
                           onClick={handleSave}
-                          disabled={isUpdating}
+                          disabled={isUpdating || !isProfileDirty}
                           sx={{
                             height: '32px',
                             fontSize: '0.75rem',
@@ -479,7 +490,7 @@ export default function ProfilePage() {
             >
               <CardContent sx={{ p: 2 }}>
                 <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-                  <Lock sx={{ color: '#213350', fontSize: '1.2rem' }} />
+                  <Lock sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350', fontSize: '1.2rem' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Change Password
                   </Typography>
@@ -495,6 +506,7 @@ export default function ProfilePage() {
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
+                      disabled={isChangingPassword || isUpdating}
                       error={!!passwordErrors.currentPassword}
                       helperText={passwordErrors.currentPassword}
                       required
@@ -509,6 +521,7 @@ export default function ProfilePage() {
                       type="password"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
+                      disabled={isChangingPassword || isUpdating}
                       error={!!passwordErrors.newPassword}
                       helperText={passwordErrors.newPassword}
                       required
@@ -523,6 +536,7 @@ export default function ProfilePage() {
                       type="password"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
+                      disabled={isChangingPassword || isUpdating}
                       error={!!passwordErrors.confirmPassword}
                       helperText={passwordErrors.confirmPassword}
                       required
@@ -537,7 +551,7 @@ export default function ProfilePage() {
                         variant="contained"
                         startIcon={isChangingPassword ? null : <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Lock sx={{ fontSize: '1rem' }} /></Box>}
                         onClick={handleChangePassword}
-                        disabled={isChangingPassword}
+                        disabled={isChangingPassword || isUpdating || !isPasswordDirty}
                         sx={{
                           height: '32px',
                           fontSize: '0.75rem',

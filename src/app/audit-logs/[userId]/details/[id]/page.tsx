@@ -137,10 +137,11 @@ export default function AuditLogDetailPage() {
                             sx={{
                                 fontWeight: 700,
                                 fontSize: '1.1rem',
-                                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
+                                background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
                             }}
                         >
                             Log Detail
@@ -224,7 +225,7 @@ export default function AuditLogDetailPage() {
 
                         <Box display="flex" flexDirection="row" gap={2} flexWrap="wrap">
                             <Box display="flex" alignItems="center" gap={1}>
-                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(33, 51, 80, 0.1)', color: '#213350', display: 'flex' }}>
+                                <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'rgba(33, 51, 80, 0.1)', color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350', display: 'flex' }}>
                                     <AdminPanelSettings sx={{ fontSize: '1rem' }} />
                                 </Box>
                                 <Box>

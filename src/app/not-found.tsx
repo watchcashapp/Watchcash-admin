@@ -28,11 +28,15 @@ export default function NotFound() {
           sx={{
             p: { xs: 4, md: 8 },
             textAlign: 'center',
-            background: 'rgba(255, 255, 255, 0.7)',
+            bgcolor: 'background.paper',
             backdropFilter: 'blur(20px)',
             borderRadius: '24px',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.05)',
+            border: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 20px 40px rgba(0, 0, 0, 0.6)'
+              : '0 20px 40px rgba(0, 0, 0, 0.05)',
           }}
         >
           <Box
@@ -41,10 +45,11 @@ export default function NotFound() {
               fontWeight: 900,
               lineHeight: 1,
               mb: 0.1,
-              background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
               letterSpacing: '-0.05em',
               filter: 'drop-shadow(0 10px 10px rgba(106, 179, 68, 0.1))',
             }}
@@ -96,10 +101,10 @@ export default function NotFound() {
                 textTransform: 'uppercase',
                 fontSize: '0.75rem',
                 borderColor: 'rgba(33, 51, 80, 0.2)',
-                color: '#213350',
+                color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  borderColor: '#213350',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                   bgcolor: 'rgba(33, 51, 80, 0.02)',
                   transform: 'translateY(-1px)',
                 }

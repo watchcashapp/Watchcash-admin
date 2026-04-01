@@ -101,7 +101,7 @@ export default function DashboardPage() {
       title: 'Total Users',
       value: data.data.totalUsers.toString(),
       icon: <People />,
-      color: '#213350',
+      color: (theme: any) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
       bgColor: 'rgba(33, 51, 80, 0.1)',
     },
     {
@@ -161,10 +161,11 @@ export default function DashboardPage() {
               fontWeight: 700,
               fontSize: '1.25rem',
               mb: 0.25,
-              background: 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             }}
           >
             Welcome back{user?.name ? `, ${user.name}` : ''}!

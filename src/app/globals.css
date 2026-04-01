@@ -35,9 +35,14 @@ body {
 }
 
 /* Hide Next.js dev indicator portal and its children */
-nextjs-portal, #nextjs-portal, [data-nextjs-toast-wrapper], .nextjs-portal, .__next-stepper_container {
+nextjs-portal, #nextjs-portal, [data-nextjs-toast-wrapper], .nextjs-portal, .__next-stepper_container,
+[data-nextjs-dev-overlay-toast], div[data-nextjs-toast], next-dev-indicator, nextjs-dev-overlay {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
 }

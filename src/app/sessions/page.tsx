@@ -115,7 +115,7 @@ export default function SessionsPage() {
           variant="body2" 
           onClick={() => router.push(`/users/view/${row.user_id}`)}
           sx={{ 
-            color: 'primary.main', 
+            color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'primary.main', 
             cursor: 'pointer', 
             fontWeight: 600,
             '&:hover': { textDecoration: 'underline' } 
@@ -191,9 +191,9 @@ export default function SessionsPage() {
               }
             }}
             sx={{
-              color: 'primary.main',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'primary.main',
               '&:hover': {
-                backgroundColor: 'rgba(33, 51, 80, 0.08)',
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(33, 51, 80, 0.08)',
               },
             }}
           >
@@ -212,10 +212,11 @@ export default function SessionsPage() {
             sx={{
               fontWeight: 700,
               fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             }}
           >
             Session Management
@@ -418,11 +419,11 @@ export default function SessionsPage() {
                 sx={{
                   height: '32px',
                   minHeight: '32px',
-                  borderColor: '#213350',
-                  color: '#213350',
+                  borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#213350',
+                  color: (theme) => theme.palette.mode === 'dark' ? 'white' : '#213350',
                   '&:hover': {
                     borderColor: '#6AB344',
-                    backgroundColor: 'rgba(33, 51, 80, 0.04)',
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(33, 51, 80, 0.04)',
                   },
                   fontSize: '0.7rem',
                   minWidth: { xs: 'auto', md: '80px' },

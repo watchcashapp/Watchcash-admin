@@ -19,7 +19,7 @@ export default function Loading() {
         size={40} 
         thickness={4} 
         sx={{ 
-          color: '#213350',
+          color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
           animationDuration: '750ms'
         }} 
       />

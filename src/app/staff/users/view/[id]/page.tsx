@@ -118,10 +118,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             mb: 1,
             fontWeight: 700,
             fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Staff User Details
@@ -299,7 +300,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                           sx={{
                             height: '18px',
                             fontSize: '0.65rem',
-                            borderColor: '#213350',
+                            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                             color: 'text.primary',
                           }}
                         />

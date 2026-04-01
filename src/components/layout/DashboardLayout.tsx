@@ -3,8 +3,16 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { usePathname } from 'next/navigation';
-import DashboardShell from './DashboardShell';
-import { NotificationsProvider } from '@/components/notifications/NotificationsProvider';
+import dynamic from 'next/dynamic';
+
+const DashboardShell = dynamic(() => import('./DashboardShell'), {
+  ssr: false,
+  loading: () => <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }} />
+});
+
+const NotificationsProvider = dynamic(() => import('@/components/notifications/NotificationsProvider').then(mod => mod.NotificationsProvider), {
+  ssr: false
+});
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

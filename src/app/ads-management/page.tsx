@@ -306,10 +306,11 @@ export default function AdsManagementPage() {
             fontWeight: 700,
             fontSize: '1.2rem',
             mb: 2,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Ads Management
@@ -327,10 +328,11 @@ export default function AdsManagementPage() {
           sx={{
             fontWeight: 700,
             fontSize: '1.2rem',
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Ads Management
@@ -342,6 +344,7 @@ export default function AdsManagementPage() {
             size="small"
             startIcon={<Add />}
             onClick={() => handleOpenDialog()}
+            disabled={isSavingProvider || isUpdatingStatus || isUpdatingSettings}
             sx={{
               color: 'white',
               background: 'linear-gradient(45deg, #213350, #6AB344)',
@@ -366,6 +369,7 @@ export default function AdsManagementPage() {
             size="small"
             startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
             onClick={() => setIsEditingSettings(true)}
+            disabled={isUpdatingSettings || isSavingProvider || isUpdatingStatus}
             sx={{
               height: '30px',
               minHeight: '30px',
@@ -452,7 +456,7 @@ export default function AdsManagementPage() {
                         size="small"
                         checked={provider.is_enabled}
                         onChange={() => handleProviderToggle(provider.provider_code, provider.is_enabled)}
-                        disabled={isUpdatingStatus || !canToggleProviders}
+                        disabled={isUpdatingStatus || !canToggleProviders || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                       />
                     </Box>
                     <Box display="flex" justifyContent="flex-end" mt={2} gap={1}>
@@ -519,7 +523,7 @@ export default function AdsManagementPage() {
                   onBlur={() => {
                     if (settingsForm.points_per_ad <= 0) setSettingsForm(prev => ({ ...prev, points_per_ad: 1 }));
                   }}
-                  disabled={!isEditingSettings}
+                  disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
                 />
               </Grid>
@@ -535,7 +539,7 @@ export default function AdsManagementPage() {
                   onBlur={() => {
                     if (settingsForm.cooldown_seconds <= 0) setSettingsForm(prev => ({ ...prev, cooldown_seconds: 1 }));
                   }}
-                  disabled={!isEditingSettings}
+                  disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
                 />
               </Grid>
@@ -551,7 +555,7 @@ export default function AdsManagementPage() {
                   onBlur={() => {
                     if (settingsForm.max_ads_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_ads_per_day: 1 }));
                   }}
-                  disabled={!isEditingSettings}
+                  disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
                 />
               </Grid>
@@ -567,7 +571,7 @@ export default function AdsManagementPage() {
                   onBlur={() => {
                     if (settingsForm.max_points_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_points_per_day: 1 }));
                   }}
-                  disabled={!isEditingSettings}
+                  disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
                 />
               </Grid>
@@ -630,13 +634,14 @@ export default function AdsManagementPage() {
                 required
                 error={providerTouched.has('provider_name') && !providerForm.provider_name.trim()}
                 helperText={providerTouched.has('provider_name') && !providerForm.provider_name.trim() ? "Provider Name is required" : ""}
-              />
+                disabled={isUpdatingSettings || isSavingProvider || isUpdatingStatus}
+                />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Provider Code"
-                disabled={!!editingProvider}
+                disabled={!!editingProvider || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                 value={providerForm.provider_code}
                 onChange={(e) => handleProviderInputChange('provider_code', e.target.value.toUpperCase())}
                 placeholder="e.g., ADMOB"
@@ -660,7 +665,8 @@ export default function AdsManagementPage() {
                 slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: '0.8rem' } } }}
                 error={providerTouched.has('config') && !isJsonValid}
                 helperText={providerTouched.has('config') && !isJsonValid ? "Invalid JSON format" : ""}
-              />
+                disabled={isUpdatingSettings || isSavingProvider || isUpdatingStatus}
+                />
             </Grid>
           </Grid>
         </DialogContent>

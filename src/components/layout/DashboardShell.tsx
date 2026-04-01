@@ -195,6 +195,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     }
   }, [pathname, activeOverride]);
 
+  // Add Ctrl+K keyboard shortcut for Theme Switcher
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setThemeDialogOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -239,7 +251,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Toolbar sx={{ minHeight: '64px !important', height: 64, display: 'flex', justifyContent: 'center', alignItems: 'center', px: 2 }}>
-        <Image src="/assets/images/email-template-logo.svg" alt="Logo" width={120} height={40} priority style={{ height: 40, width: 'auto' }} />
+        <Image 
+          src="/assets/images/email-template-logo.svg" 
+          alt="Logo" 
+          width={120} 
+          height={40} 
+          priority 
+          unoptimized={true}
+          style={{ height: 'auto', width: 'auto' }} 
+        />
       </Toolbar>
       <Divider />
       <Box sx={{
@@ -277,13 +297,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                       py: 0.5, minHeight: 38, borderRadius: '8px', mx: 1,
                       '&.Mui-selected': {
                         background: item.subItems ? 'rgba(33, 51, 80, 0.06)' : 'linear-gradient(45deg, #213350, #6AB344)',
-                        color: item.subItems ? '#213350' : 'white',
-                        '& .MuiListItemIcon-root': { color: item.subItems ? '#213350' : 'white' },
+                        color: item.subItems ? (theme.palette.mode === 'dark' ? 'white' : '#213350') : 'white',
+                        '& .MuiListItemIcon-root': { color: item.subItems ? (theme.palette.mode === 'dark' ? 'white' : '#213350') : 'white' },
                       },
                       '&:hover': { bgcolor: 'rgba(33, 51, 80, 0.04)' }
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 32, color: isMenuItemActive(item) ? (item.subItems ? '#213350' : 'white') : 'text.secondary' }}>
+                    <ListItemIcon sx={{ minWidth: 32, color: isMenuItemActive(item) ? (item.subItems ? (theme.palette.mode === 'dark' ? 'white' : '#213350') : 'white') : 'text.secondary' }}>
                       {item.icon}
                     </ListItemIcon>
                     <ListItemText

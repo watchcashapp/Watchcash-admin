@@ -168,43 +168,49 @@ export const connectNotificationsSocket = (token: string) => {
   });
 
   socket.on('notification:new', (payload) => {
+    console.log('[Socket] notification:new received:', payload);
     for (const listener of notificationListeners) {
       listener(payload);
     }
   });
 
   socket.on('permissions:updated', (payload) => {
+    console.log('[Socket] permissions:updated received:', payload);
     for (const listener of permissionListeners) {
       listener(payload);
     }
   });
   
   socket.on('user:ban_expired', (payload) => {
+    console.log('[Socket] user:ban_expired received:', payload);
     for (const listener of banExpiredListeners) {
       listener(payload);
     }
   });
 
   socket.on('ranking:update_finished', (payload) => {
+    console.log('[Socket] ranking:update_finished received:', payload);
     for (const listener of rankingUpdateListeners) {
       listener(payload);
     }
   });
 
   socket.on('user_ban_expired', (payload) => {
+    console.log('[Socket] user_ban_expired received:', payload);
     for (const listener of banExpiredListeners) {
       listener(payload);
     }
   });
 
   socket.on('ranking_update_finished', (payload) => {
+    console.log('[Socket] ranking_update_finished received:', payload);
     for (const listener of rankingUpdateListeners) {
       listener(payload);
     }
   });
 
-  // Handle generic 'message' event if it contains eventName (as hinted by the user)
-  socket.on('message', (payload) => {
+  socket.on('message', (payload: any) => {
+    console.log('[Socket Debug] Received "message" event:', payload);
     if (!payload || typeof payload !== 'object') return;
     
     if (payload.eventName === 'user_ban_expired') {

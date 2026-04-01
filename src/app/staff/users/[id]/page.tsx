@@ -260,10 +260,11 @@ export default function EditUserPage() {
           sx={{
             mb: 2,
             fontWeight: 700,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Edit User
@@ -292,7 +293,8 @@ export default function EditUserPage() {
                 helperText={errors.name}
                 required
                 placeholder="Enter user name"
-              />
+                disabled={isUpdating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
@@ -306,7 +308,8 @@ export default function EditUserPage() {
                 helperText={errors.email}
                 required
                 placeholder="user@example.com"
-              />
+                disabled={isUpdating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
@@ -339,13 +342,14 @@ export default function EditUserPage() {
                           checked={formData.roles.includes(role.id)}
                           onChange={() => handleRoleToggle(role.id)}
                           sx={{
-                            color: '#213350',
+                            color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                             '&.Mui-checked': {
-                              color: '#213350',
+                              color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                             },
                             py: 0.5,
                           }}
-                        />
+                          disabled={isUpdating}
+                          />
                       }
                       label={role.name}
                       sx={{
@@ -378,6 +382,7 @@ export default function EditUserPage() {
                   groupedPermissions={enrichedGroupedPermissions || {}}
                   value={formData.permissions}
                   onChange={(value) => setFormData({ ...formData, permissions: value })}
+                  disabled={isUpdating}
                 />
               </Box>
             </Grid>

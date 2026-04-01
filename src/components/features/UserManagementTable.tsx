@@ -263,10 +263,11 @@ export default function UserManagementTable({
           sx={{
             fontWeight: 700,
             fontSize: '1.1rem',
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           {title}
@@ -278,6 +279,7 @@ export default function UserManagementTable({
               size="small"
               startIcon={<FileDownload sx={{ fontSize: '1rem !important' }} />}
               onClick={handleExportCSV}
+              disabled={isLoading || isFetching}
               sx={{
                 height: '30px',
                 minHeight: '30px',
@@ -341,6 +343,7 @@ export default function UserManagementTable({
               placeholder="Name or Email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              disabled={isLoading || isFetching}
               slotProps={{
                 input: {
                   sx: { fontSize: '0.75rem', height: '32px' },
@@ -361,6 +364,7 @@ export default function UserManagementTable({
                 label="User Type"
                 value={userType}
                 onChange={(e) => setUserType(e.target.value)}
+                disabled={isLoading || isFetching}
                 slotProps={{
                   select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
                 }}
@@ -379,6 +383,7 @@ export default function UserManagementTable({
               label="Status"
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
+              disabled={isLoading || isFetching}
               slotProps={{
                 select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
               }}
@@ -395,6 +400,7 @@ export default function UserManagementTable({
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
+              disabled={isLoading || isFetching}
               slotProps={{
                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
                 inputLabel: { shrink: true }
@@ -408,6 +414,7 @@ export default function UserManagementTable({
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
+              disabled={isLoading || isFetching}
               slotProps={{
                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
                 inputLabel: { shrink: true }

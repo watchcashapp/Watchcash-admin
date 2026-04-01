@@ -106,12 +106,12 @@ export default function ForgotPassword() {
           sx={{
             fontSize: { xs: '1.75rem', sm: '2rem' },
             fontWeight: 700,
-            color: 'primary.main',
             mb: 3,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
         >
@@ -144,8 +144,8 @@ export default function ForgotPassword() {
                 fontSize: '1rem',
                 fontWeight: 600,
                 textTransform: 'none',
-                borderColor: '#213350',
-                color: '#213350',
+                borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
+                color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                 '&:hover': {
                   borderColor: '#6AB344',
                   backgroundColor: 'rgba(33, 51, 80, 0.04)',

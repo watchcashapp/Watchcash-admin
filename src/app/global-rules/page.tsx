@@ -83,11 +83,17 @@ export default function GlobalRulesPage() {
     const errors: Partial<Record<keyof GlobalRules, string>> = {};
 
     // Check if each field is provided
-    Object.keys(formData).forEach((key) => {
-      const fieldKey = key as keyof GlobalRules;
-      const value = formData[fieldKey];
+    const expectedKeys: (keyof GlobalRules)[] = [
+      'defaultPointsPerMinute', 'dailyHardCap', 'dailySoftCap', 'softCapMultiplier',
+      'maxSessionDuration', 'minSessionDuration', 'maxDailySessions',
+      'mediumRiskReductionPercent', 'highRiskFirstReductionPercent',
+      'highRiskSecondReductionPercent', 'highRiskBlockMinutes', 'veryHighBlockMinutes'
+    ];
+
+    expectedKeys.forEach((key) => {
+      const value = formData[key];
       if (value === undefined || value === null || value.toString() === '') {
-        errors[fieldKey] = "All fields are required";
+        errors[key] = "All fields are required";
       }
     });
 
@@ -161,10 +167,11 @@ export default function GlobalRulesPage() {
             sx={{
               fontWeight: 700,
               fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             }}
           >
             Global Rules
@@ -173,6 +180,7 @@ export default function GlobalRulesPage() {
             <Button
               variant="contained"
               startIcon={<Edit sx={{ fontSize: '1rem !important' }} />}
+              disabled={isUpdating}
               onClick={() => {
                 if (hasPermission('global_rules:update')) {
                   setIsEditing(true);
@@ -225,7 +233,7 @@ export default function GlobalRulesPage() {
                   value={formData.defaultPointsPerMinute}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.defaultPointsPerMinute}
                   helperText={formErrors.defaultPointsPerMinute}
                   required
@@ -241,7 +249,7 @@ export default function GlobalRulesPage() {
                   value={formData.dailyHardCap}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.dailyHardCap}
                   helperText={formErrors.dailyHardCap}
                   required
@@ -257,7 +265,7 @@ export default function GlobalRulesPage() {
                   value={formData.dailySoftCap}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.dailySoftCap}
                   helperText={formErrors.dailySoftCap}
                   required
@@ -273,7 +281,7 @@ export default function GlobalRulesPage() {
                   value={formData.softCapMultiplier}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.softCapMultiplier}
                   helperText={formErrors.softCapMultiplier}
                   required
@@ -289,7 +297,7 @@ export default function GlobalRulesPage() {
                   value={formData.maxSessionDuration}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.maxSessionDuration}
                   helperText={formErrors.maxSessionDuration}
                   required
@@ -305,7 +313,7 @@ export default function GlobalRulesPage() {
                   value={formData.minSessionDuration}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.minSessionDuration}
                   helperText={formErrors.minSessionDuration}
                   required
@@ -321,7 +329,7 @@ export default function GlobalRulesPage() {
                   value={formData.maxDailySessions}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.maxDailySessions}
                   helperText={formErrors.maxDailySessions}
                   required
@@ -343,7 +351,7 @@ export default function GlobalRulesPage() {
                   value={formData.mediumRiskReductionPercent}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.mediumRiskReductionPercent}
                   helperText={formErrors.mediumRiskReductionPercent}
                   required
@@ -359,7 +367,7 @@ export default function GlobalRulesPage() {
                   value={formData.highRiskFirstReductionPercent}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.highRiskFirstReductionPercent}
                   helperText={formErrors.highRiskFirstReductionPercent}
                   required
@@ -375,7 +383,7 @@ export default function GlobalRulesPage() {
                   value={formData.highRiskSecondReductionPercent}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.highRiskSecondReductionPercent}
                   helperText={formErrors.highRiskSecondReductionPercent}
                   required
@@ -391,7 +399,7 @@ export default function GlobalRulesPage() {
                   value={formData.highRiskBlockMinutes}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.highRiskBlockMinutes}
                   helperText={formErrors.highRiskBlockMinutes}
                   required
@@ -407,7 +415,7 @@ export default function GlobalRulesPage() {
                   value={formData.veryHighBlockMinutes}
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isUpdating}
                   error={!!formErrors.veryHighBlockMinutes}
                   helperText={formErrors.veryHighBlockMinutes}
                   required

@@ -181,10 +181,11 @@ export default function RbacRulesPage() {
             sx={{
               fontWeight: 700,
               fontSize: '1.1rem',
-              background: "linear-gradient(45deg, #213350, #6AB344)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             }}
           >
             RBAC Rules
@@ -245,6 +246,7 @@ export default function RbacRulesPage() {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                 <TextField
+                  disabled={isCreating || isUpdating}
                   label="Name"
                   value={formData.name}
                   onChange={handleNameChange}
@@ -281,6 +283,7 @@ export default function RbacRulesPage() {
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <TextField
+                  disabled={isCreating || isUpdating}
                   label="Description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}

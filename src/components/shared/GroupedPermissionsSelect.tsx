@@ -28,6 +28,7 @@ interface GroupedPermissionsSelectProps {
   value: string[];
   onChange: (selectedIds: string[]) => void;
   disabledCodes?: string[];
+  disabled?: boolean;
 }
 
 export default function GroupedPermissionsSelect({
@@ -36,6 +37,7 @@ export default function GroupedPermissionsSelect({
   value,
   onChange,
   disabledCodes = ['dashboard:view', 'dashboard:view_total_users'],
+  disabled = false,
 }: GroupedPermissionsSelectProps) {
   
   const handleSelectAll = (category: string, permissions: Permission[]) => {
@@ -58,7 +60,7 @@ export default function GroupedPermissionsSelect({
   };
 
   const isPermissionDisabled = (permission: Permission) => {
-    return disabledCodes.includes(permission.code);
+    return disabled || disabledCodes.includes(permission.code);
   };
 
   const handleTogglePermission = (permission: Permission) => {

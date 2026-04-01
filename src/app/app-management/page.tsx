@@ -201,10 +201,11 @@ export default function AppManagementPage() {
               sx={{
                 fontWeight: 700,
                 fontSize: '1.1rem',
-                background: "linear-gradient(45deg, #213350, #6AB344)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
                 display: 'inline-block'
               }}
             >
@@ -274,7 +275,7 @@ export default function AppManagementPage() {
                                         size="small"
                                         checked={plan.isActive} 
                                         onChange={(e) => handlePlanInputChange(index, "isActive", e.target.checked)}
-                                        disabled={!canUpsertPlanSettings}
+                                        disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                       />
                                     }
                                     label="Active"
@@ -290,7 +291,7 @@ export default function AppManagementPage() {
                                     required
                                     value={plan.name}
                                     onChange={(e) => handlePlanInputChange(index, "name", e.target.value)}
-                                    disabled={!canUpsertPlanSettings}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!plan.name}
                                   />
                                   <Input
@@ -300,7 +301,7 @@ export default function AppManagementPage() {
                                     required
                                     value={plan.priceUsd}
                                     onChange={(e) => handlePlanInputChange(index, "priceUsd", e.target.value)}
-                                    disabled={!canUpsertPlanSettings}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!plan.priceUsd || Number(plan.priceUsd) < 0}
                                   />
                                   <Input
@@ -310,7 +311,7 @@ export default function AppManagementPage() {
                                     required
                                     value={plan.earningPointsPerMin}
                                     onChange={(e) => handlePlanInputChange(index, "earningPointsPerMin", e.target.value)}
-                                    disabled={!canUpsertPlanSettings}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!plan.earningPointsPerMin || Number(plan.earningPointsPerMin) < 0}
                                   />
                                   <Input
@@ -320,7 +321,7 @@ export default function AppManagementPage() {
                                     required
                                     value={plan.dailyLimitMinutes}
                                     onChange={(e) => handlePlanInputChange(index, "dailyLimitMinutes", e.target.value)}
-                                    disabled={!canUpsertPlanSettings}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!plan.dailyLimitMinutes || Number(plan.dailyLimitMinutes) < 0}
                                   />
                                   <Box sx={{ mt: 1 }}>
@@ -330,7 +331,7 @@ export default function AppManagementPage() {
                                               <Chip 
                                                   key={i} 
                                                   label={feature} 
-                                                  onDelete={canUpsertPlanSettings ? () => handleRemoveFeature(index, i) : undefined}
+                                                  onDelete={(canUpsertPlanSettings && !isUpdatingPlans) ? () => handleRemoveFeature(index, i) : undefined}
                                                   sx={{ 
                                                       bgcolor: 'rgba(106, 179, 68, 0.08)', 
                                                       height: 24, 
@@ -354,6 +355,7 @@ export default function AppManagementPage() {
                                                           handleNewFeatureTextChange(index, "");
                                                       }
                                                   }}
+                                                  disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                                   sx={{ 
                                                       flexGrow: 1,
                                                       '& .MuiInputBase-input': { py: 0.5, px: 1, fontSize: '0.75rem' }
@@ -366,6 +368,7 @@ export default function AppManagementPage() {
                                                       handleAddFeature(index, newFeatureText[index] || "");
                                                       handleNewFeatureTextChange(index, "");
                                                   }}
+                                                  disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                                   sx={{ bgcolor: 'rgba(106, 179, 68, 0.1)' }}
                                               >
                                                   <Add sx={{ fontSize: '1.2rem' }} />

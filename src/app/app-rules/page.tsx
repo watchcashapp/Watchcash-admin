@@ -163,6 +163,22 @@ export default function AppRulesPage() {
     },
   ], []);
 
+  const isDirty = useMemo(() => {
+    if (!editingRule) return !!formData.appName.trim(); // For create, active if appName is entered
+    if (!ruleDetail) return false;
+    return (
+      formData.appName.trim() !== ruleDetail.appName.trim() ||
+      formData.pointsPerMinute !== ruleDetail.pointsPerMinute ||
+      formData.dailyHardCap !== ruleDetail.dailyHardCap ||
+      formData.dailySoftCap !== ruleDetail.dailySoftCap ||
+      formData.softCapMultiplier !== ruleDetail.softCapMultiplier ||
+      formData.maxSessionDuration !== ruleDetail.maxSessionDuration ||
+      formData.minSessionDuration !== ruleDetail.minSessionDuration ||
+      formData.maxDailySessions !== ruleDetail.maxDailySessions ||
+      formData.enabled !== ruleDetail.enabled
+    );
+  }, [formData, editingRule, ruleDetail]);
+
   const handleOpenDialog = (rule?: AppRule) => {
     if (rule) {
       setEditingRule(rule);
@@ -261,12 +277,24 @@ export default function AppRulesPage() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    // Sanitize data - ensure all numeric fields are indeed numbers
+    const sanitizedData = {
+      ...formData,
+      pointsPerMinute: Number(formData.pointsPerMinute),
+      dailyHardCap: Number(formData.dailyHardCap),
+      dailySoftCap: Number(formData.dailySoftCap),
+      softCapMultiplier: Number(formData.softCapMultiplier),
+      maxSessionDuration: Number(formData.maxSessionDuration),
+      minSessionDuration: Number(formData.minSessionDuration),
+      maxDailySessions: Number(formData.maxDailySessions),
+    };
+
     try {
       if (editingRule) {
-        await updateAppRule({ id: editingRule.id, data: formData }).unwrap();
+        await updateAppRule({ id: editingRule.id, data: sanitizedData }).unwrap();
         showSuccess('App rule updated successfully!');
       } else {
-        await createAppRule(formData).unwrap();
+        await createAppRule(sanitizedData).unwrap();
         showSuccess('App rule created successfully!');
       }
       handleCloseDialog();
@@ -319,10 +347,11 @@ export default function AppRulesPage() {
             sx={{
               fontWeight: 700,
               fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             }}
           >
             App Rules
@@ -330,6 +359,7 @@ export default function AppRulesPage() {
           <Button
             variant="contained"
             startIcon={<Add sx={{ fontSize: '1rem !important' }} />}
+            disabled={isCreating || isUpdating}
             onClick={() => {
               setEditingRule(null);
               setOpenDialog(true);
@@ -372,7 +402,8 @@ export default function AppRulesPage() {
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
                 }}
-              />
+                disabled={isUpdating}
+                />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
@@ -386,7 +417,8 @@ export default function AppRulesPage() {
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
                 }}
-              />
+                disabled={isUpdating}
+                />
             </Grid>
             <Grid size={{ xs: 12, sm: 12, md: 5 }}>
               <Input
@@ -478,6 +510,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.appName}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -492,6 +525,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.pointsPerMinute}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -506,6 +540,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.dailyHardCap}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -520,6 +555,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.dailySoftCap}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -534,6 +570,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.softCapMultiplier}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -548,6 +585,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.maxSessionDuration}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -562,6 +600,7 @@ export default function AppRulesPage() {
                   helperText={formErrors.minSessionDuration}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -576,11 +615,12 @@ export default function AppRulesPage() {
                   helperText={formErrors.maxDailySessions}
                   required
                   fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel
-                  control={<Switch checked={formData.enabled} onChange={handleInputChange} name="enabled" />}
+                  control={<Switch checked={formData.enabled} onChange={handleInputChange} name="enabled" disabled={isCreating || isUpdating || isFetchingDetail} />}
                   label="Enabled"
                 />
               </Grid>
@@ -588,7 +628,12 @@ export default function AppRulesPage() {
           </DialogContent>
           <DialogActions sx={{ p: 3, pt: 0 }}>
             <Button onClick={handleCloseDialog} disabled={isCreating || isUpdating}>Cancel</Button>
-            <Button onClick={handleSubmit} variant="contained" loading={isCreating || isUpdating || isFetchingDetail}>
+            <Button 
+                onClick={handleSubmit} 
+                variant="contained" 
+                loading={isCreating || isUpdating} 
+                disabled={isCreating || isUpdating || isFetchingDetail || !isDirty}
+            >
               {editingRule ? 'Update' : 'Create'}
             </Button>
           </DialogActions>

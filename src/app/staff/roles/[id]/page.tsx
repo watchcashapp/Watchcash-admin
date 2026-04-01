@@ -180,10 +180,11 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             mb: 1.5,
             fontSize: '1.1rem',
             fontWeight: 700,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Edit Role
@@ -205,6 +206,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
           <Grid container spacing={1.5}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Input
+                  disabled={isUpdating}
                 ref={nameRef}
                 label="Role Name"
                 value={formData.name}
@@ -224,12 +226,14 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               <Input
                 label="Code"
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
-                disabled
+                disabled={true}
                 helperText="Code cannot be changed"
                 slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                  input: { 
+                    readOnly: true,
+                    sx: { fontSize: '0.75rem', height: '32px', bgcolor: 'action.hover' } 
+                  },
                   inputLabel: { sx: { fontSize: '0.75rem' } }
                 }}
               />
@@ -237,6 +241,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
 
             <Grid size={{ xs: 12 }}>
               <Textarea
+                  disabled={isUpdating}
                 ref={descriptionRef}
                 label="Description"
                 value={formData.description}
@@ -260,7 +265,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 groupedPermissions={permissionsResponse?.data || {}}
                 value={formData.permissions}
                 onChange={(value) => setFormData({ ...formData, permissions: value })}
-              />
+                disabled={isUpdating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12 }}>

@@ -167,10 +167,11 @@ export default function NotificationsPage() {
                 fontWeight: 700,
                 fontSize: '1.1rem',
                 mb: 0.5,
-                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
               }}
             >
               Notifications
@@ -336,7 +337,7 @@ export default function NotificationsPage() {
 
         {isInitialLoading ? (
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="220px">
-            <CircularProgress size={30} sx={{ color: '#213350' }} />
+            <CircularProgress size={30} sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350' }} />
           </Box>
         ) : notifications.length === 0 ? (
           <Card
@@ -437,7 +438,7 @@ export default function NotificationsPage() {
                                 fontSize: '0.65rem',
                                 fontWeight: 600,
                                 bgcolor: 'rgba(33, 51, 80, 0.08)',
-                                color: '#213350',
+                                color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
                                 border: 'none',
                                 borderRadius: 1
                               }}

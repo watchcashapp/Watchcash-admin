@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import Providers from '@/components/Providers';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import HideDevIndicator from '@/components/shared/HideDevIndicator';
 
 export const metadata: Metadata = {
   title: 'WatchCash Admin',
@@ -32,6 +33,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning className={theme}>
       <head />
       <body suppressHydrationWarning>
+        <HideDevIndicator />
         <Providers initialAuth={{ accessToken, refreshToken }} initialTheme={theme}>
           <DashboardLayout>
             {children}

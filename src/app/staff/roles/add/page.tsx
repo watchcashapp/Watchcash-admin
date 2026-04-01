@@ -145,10 +145,11 @@ export default function AddRolePage() {
             mb: { xs: 2, sm: 3 },
             fontSize: '0.9rem',
             fontWeight: 700,
-            background: 'linear-gradient(45deg, #213350, #6AB344)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
           }}
         >
           Add New Role
@@ -177,7 +178,8 @@ export default function AddRolePage() {
                 helperText={errors.name}
                 required
                 placeholder="e.g., Content Manager"
-              />
+                disabled={isCreating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
@@ -186,8 +188,7 @@ export default function AddRolePage() {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
-                disabled
-                helperText="Auto-generated from name"
+                disabled={true || isCreating}                 helperText="Auto-generated from name"
                 slotProps={{
                   input: { sx: { height: '32px' } }
                 }}
@@ -206,7 +207,8 @@ export default function AddRolePage() {
                 required
                 fullWidth
                 placeholder="Describe the role and its responsibilities"
-              />
+                disabled={isCreating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
@@ -215,7 +217,8 @@ export default function AddRolePage() {
                 groupedPermissions={permissionsResponse?.data || {}}
                 value={formData.permissions}
                 onChange={(value) => setFormData({ ...formData, permissions: value })}
-              />
+                disabled={isCreating}
+                />
             </Grid>
 
             <Grid size={{ xs: 12 }}>

@@ -224,10 +224,11 @@ export default function RewardCatalogPage() {
                 fontSize: '1.1rem',
                 lineHeight: 1,
                 mb: 0.5,
-                background: 'linear-gradient(45deg, #213350, #6AB344)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
               }}
             >
               Reward Catalog
@@ -250,6 +251,7 @@ export default function RewardCatalogPage() {
             size="small"
             startIcon={<UploadFile />}
             onClick={() => setIsImportDialogOpen(true)}
+            disabled={isManualUploading || isFetching}
             sx={{
               background: "linear-gradient(45deg, #213350, #6AB344)",
               fontSize: '0.75rem',
@@ -285,6 +287,7 @@ export default function RewardCatalogPage() {
                 fullWidth
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
+                disabled={isManualUploading || isFetching}
                 slotProps={{
                   input: {
                     sx: { fontSize: '0.8rem', height: '36px' },
@@ -299,7 +302,7 @@ export default function RewardCatalogPage() {
             </Grid>
             
             <Grid size={{ xs: 6, md: 3 }}>
-              <FormControl size="small" fullWidth>
+              <FormControl size="small" fullWidth disabled={isManualUploading || isFetching}>
                 <InputLabel sx={{ fontSize: '0.8rem' }}>Status</InputLabel>
                 <Select
                   value={status}
@@ -315,7 +318,7 @@ export default function RewardCatalogPage() {
             </Grid>
 
             <Grid size={{ xs: 6, md: 3 }}>
-              <FormControl size="small" fullWidth>
+              <FormControl size="small" fullWidth disabled={isManualUploading || isFetching}>
                 <InputLabel sx={{ fontSize: '0.8rem' }}>Currency</InputLabel>
                 <Select
                   value={currency}
@@ -342,6 +345,7 @@ export default function RewardCatalogPage() {
                   setCurrency('');
                   setCursor(undefined);
                 }}
+                disabled={isManualUploading || isFetching}
                 sx={{ 
                   height: '36px',
                   borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : '#213350',

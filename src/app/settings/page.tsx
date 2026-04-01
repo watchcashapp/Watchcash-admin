@@ -172,10 +172,11 @@ export default function SettingsPage() {
                             fontWeight: 700,
                             fontSize: '1.1rem',
                             mb: 2,
-                            background: 'linear-gradient(45deg, #213350, #6AB344)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
+                            background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
                         }}
                     >
                         Meta Settings
@@ -185,8 +186,7 @@ export default function SettingsPage() {
                         elevation={0}
                         sx={{
                             p: 1.5,
-                            background: (theme) =>
-                                theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.6)' : '#ffffff',
+                            bgcolor: 'background.paper',
                             borderRadius: 1.5,
                             border: '1px solid',
                             borderColor: (theme) =>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                         >
 
                             {metadata.map((row, index) => {
-                                const isExisting = !!originalSettings[row.metakey];
+                                const isExisting = row.metakey in originalSettings;
                                 const isEditing = editingRows[index];
                                 const isDisabled = isUpdating || (isExisting && !isEditing);
 
@@ -273,10 +273,10 @@ export default function SettingsPage() {
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
                                                     '&:hover fieldset': {
-                                                        borderColor: '#213350',
+                                                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                                                     },
                                                     '&.Mui-focused fieldset': {
-                                                        borderColor: '#213350',
+                                                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                                                     },
                                                 },
                                                 '& .MuiInputBase-input.Mui-disabled': {
@@ -308,10 +308,10 @@ export default function SettingsPage() {
                                                 },
                                                 '& .MuiOutlinedInput-root': {
                                                     '&:hover fieldset': {
-                                                        borderColor: '#213350',
+                                                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                                                     },
                                                     '&.Mui-focused fieldset': {
-                                                        borderColor: '#213350',
+                                                        borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#213350',
                                                     },
                                                 },
                                                 '& .MuiInputBase-input.Mui-disabled': {

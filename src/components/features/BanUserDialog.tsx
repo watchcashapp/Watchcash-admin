@@ -152,6 +152,7 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
             value={reasonCode}
             label="Reason Code *"
             onChange={(e) => setReasonCode(e.target.value as BanReasonCode)}
+            disabled={isLoading}
             sx={{
               fontSize: "0.8rem",
               height: "42px",
@@ -179,6 +180,7 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           value={durationSeconds}
           onChange={(e) => setDurationSeconds(e.target.value)}
           helperText="Default: 86400 (24 hours)"
+          disabled={isLoading}
           slotProps={{
             input: { sx: { fontSize: "0.8rem", height: "38px" } },
           }}
@@ -192,6 +194,7 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           onChange={(e) => setNote(e.target.value)}
           placeholder="Please provide a detailed reason for banning this user..."
           sx={{ fontSize: "0.8rem" }}
+          disabled={isLoading}
         />
       </DialogContent>
 
