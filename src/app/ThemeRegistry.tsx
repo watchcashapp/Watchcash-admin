@@ -30,16 +30,38 @@ const darkTheme = createTheme({
     mode: 'dark',
     primary: {
       main: '#90caf9',
+      contrastText: '#ffffff',
     },
     secondary: {
       main: '#6AB344',
+      contrastText: '#ffffff',
     },
     success: {
       main: '#6AB344',
+      contrastText: '#ffffff',
     },
     background: {
       default: '#0a0e27',
       paper: '#1a1f3a',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          color: '#ffffff',
+          '&.Mui-disabled': {
+            color: 'rgba(255, 255, 255, 0.3)',
+          },
+        },
+        contained: {
+          color: '#ffffff',
+          '&.Mui-disabled': {
+            color: 'rgba(255, 255, 255, 0.3)',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+          },
+        },
+      },
     },
   },
 });
