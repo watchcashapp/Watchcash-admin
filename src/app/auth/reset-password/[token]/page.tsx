@@ -117,13 +117,12 @@ export default function ResetPassword() {
           sx={{
             fontSize: { xs: '1.75rem', sm: '2rem' },
             fontWeight: 700,
-
             mb: 3,
             background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
-              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
-              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
-              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
+            WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+            WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+            backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+            color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
         >
@@ -160,6 +159,16 @@ export default function ResetPassword() {
                   helperText={errors.password}
                   required
                   fullWidth
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
@@ -173,6 +182,16 @@ export default function ResetPassword() {
                   helperText={errors.confirm}
                   required
                   fullWidth
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 

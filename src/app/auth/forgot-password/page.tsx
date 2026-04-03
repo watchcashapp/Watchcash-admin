@@ -76,10 +76,14 @@ export default function ForgotPassword() {
           maxWidth: 420,
           p: { xs: 3, sm: 4 },
           borderRadius: 4,
-          background: 'rgba(255, 255, 255, 0.98)',
+          bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: (theme) => theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0, 0, 0, 0.6)'
+            : '0 20px 40px rgba(0, 0, 0, 0.15)',
+          border: (theme) => theme.palette.mode === 'dark'
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.2)',
           position: 'relative',
           zIndex: 1,
         }}
@@ -108,10 +112,10 @@ export default function ForgotPassword() {
             fontWeight: 700,
             mb: 3,
             background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
-              WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
-              WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
-              backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
-              color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
+            WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+            WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+            backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+            color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
             textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           }}
         >
@@ -168,6 +172,16 @@ export default function ForgotPassword() {
                   helperText={error || undefined}
                   required
                   fullWidth
+                  sx={{
+                    '& .MuiInputLabel-root': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                      bgcolor: 'background.paper',
+                      px: 0.5,
+                    },
+                    '& .MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -6px) scale(0.75)',
+                    }
+                  }}
                 />
               </Grid>
 
