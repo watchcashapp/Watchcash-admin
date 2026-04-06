@@ -99,7 +99,11 @@ export const baseQueryWithReauth: BaseQueryFn<
             result = await baseQuery(args, api, extraOptions);
           } else {
             // Refresh failed - clear tokens and redirect to login
-            if (typeof window !== 'undefined') {
+            // Exception: Don't redirect for public-viewable endpoints
+            const publicViewableEndpoints = ['getLegalDocs'];
+            const isPublicEndpoint = publicViewableEndpoints.includes(api.endpoint);
+
+            if (typeof window !== 'undefined' && !isPublicEndpoint) {
               document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
               document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
               window.location.replace('/auth/login');
@@ -107,7 +111,11 @@ export const baseQueryWithReauth: BaseQueryFn<
           }
         } else {
           // No refresh token - redirect to login
-          if (typeof window !== 'undefined') {
+          // Exception: Don't redirect for public-viewable endpoints
+          const publicViewableEndpoints = ['getLegalDocs'];
+          const isPublicEndpoint = publicViewableEndpoints.includes(api.endpoint);
+
+          if (typeof window !== 'undefined' && !isPublicEndpoint) {
             document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
             document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
             window.location.replace('/auth/login');

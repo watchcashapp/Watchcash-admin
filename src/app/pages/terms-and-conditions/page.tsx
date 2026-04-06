@@ -8,6 +8,9 @@ import Textarea from '@/components/shared/Textarea';
 import RichTextEditor from '@/components/shared/RichTextEditor';
 import { useGetLegalDocsQuery, useUpdateTermsMutation } from '@/store/api/legalApi';
 import { useToast } from '@/components/shared/Toaster';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function TermsAndConditionsPage() {
   const { data, isLoading, error, refetch } = useGetLegalDocsQuery();
@@ -16,19 +19,37 @@ export default function TermsAndConditionsPage() {
 
   const [bodyHtml, setBodyHtml] = useState('');
   const [title, setTitle] = useState('');
+  const [initialBodyHtml, setInitialBodyHtml] = useState('');
+  const [initialTitle, setInitialTitle] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isFullAdmin } = usePermissions();
+  const canEdit = isAuthenticated && isFullAdmin;
 
   useEffect(() => {
     if (data?.terms) {
-      setBodyHtml(data.terms.bodyHtml || '');
-      setTitle(data.terms.title || 'Terms & Conditions');
+      const currentBody = data.terms.bodyHtml || '';
+      const currentTitle = data.terms.title || 'Terms & Conditions';
+      setBodyHtml(currentBody);
+      setTitle(currentTitle);
+      setInitialBodyHtml(currentBody);
+      setInitialTitle(currentTitle);
     }
-  }, [data]);
+    // If not an admin, always show preview
+    if (!canEdit) {
+      setIsPreview(true);
+    }
+  }, [data, canEdit]);
+
+  const hasChanges = bodyHtml !== initialBodyHtml || title !== initialTitle;
 
   const handleSave = async () => {
     try {
       await updateTerms({ title, bodyHtml }).unwrap();
       showSuccess('Terms & Conditions updated successfully');
+      setInitialBodyHtml(bodyHtml);
+      setInitialTitle(title);
       refetch();
     } catch (err: any) {
       showError(err?.data?.message || 'Failed to update Terms & Conditions');
@@ -69,42 +90,47 @@ export default function TermsAndConditionsPage() {
           </Box>
           <Box>
             <Typography variant="h4" fontWeight={800} letterSpacing="-0.02em">
-              Terms & Conditions
+              {title}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Configure and update your application's terms and conditions.
-            </Typography>
+            {canEdit && (
+              <Typography variant="body2" color="text.secondary">
+                Configure and update your application's terms and conditions.
+              </Typography>
+            )}
           </Box>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={isPreview ? <Edit /> : <Visibility />}
-            onClick={() => setIsPreview(!isPreview)}
-            sx={{ 
-              borderRadius: 2,
-              minWidth: '160px',
-              px: 0,
-              fontWeight: 600,
-            }}
-          >
-            {isPreview ? 'Edit Source' : 'View Preview'}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Save />}
-            onClick={handleSave}
-            loading={isUpdating}
-            sx={{ 
-              borderRadius: 2,
-              px: 4,
-              fontWeight: 600,
-            }}
-          >
-            Save Changes
-          </Button>
-        </Box>
+        {canEdit && (
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={isPreview ? <Edit /> : <Visibility />}
+              onClick={() => setIsPreview(!isPreview)}
+              sx={{ 
+                borderRadius: 2,
+                minWidth: '160px',
+                px: 0,
+                fontWeight: 600,
+              }}
+            >
+              {isPreview ? 'Edit Source' : 'View Preview'}
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Save />}
+              onClick={handleSave}
+              loading={isUpdating}
+              disabled={!hasChanges}
+              sx={{ 
+                borderRadius: 2,
+                px: 4,
+                fontWeight: 600,
+              }}
+            >
+              Save Changes
+            </Button>
+          </Box>
+        )}
       </Box>
 
       {error && (

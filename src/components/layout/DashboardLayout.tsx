@@ -4,6 +4,8 @@ import React from 'react';
 import { Box } from '@mui/material';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 const DashboardShell = dynamic(() => import('./DashboardShell'), {
   ssr: false,
@@ -20,11 +22,16 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
   const isAuthPage = pathname?.startsWith('/auth');
 
-  // If it's an auth page, return children directly in a simple container.
-  // This bypasses all the heavy dashboard hooks (notifications, permissions, etc.).
-  if (isAuthPage) {
+  const isPublicPage = pathname?.startsWith('/pages/privacy-policy') || 
+                       pathname?.startsWith('/pages/terms-and-conditions');
+
+  // If it's an auth page OR (is a public page AND not authenticated)
+  // we render children directly in a simple container. 
+  // We wait for initialization to avoid flicker.
+  if (isAuthPage || (isPublicPage && isInitialized && !isAuthenticated)) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {children}

@@ -11,7 +11,6 @@ export interface ButtonProps extends Omit<MuiButtonProps, 'variant'> {
   size?: 'small' | 'medium' | 'large';
   children: React.ReactNode;
 }
-
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ 
     variant = 'contained',
@@ -65,9 +64,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           },
           '& .MuiButton-startIcon': {
             marginRight: '6px !important',
+            visibility: loading ? 'hidden' : 'visible',
           },
           '& .MuiButton-endIcon': {
             marginLeft: '6px !important',
+            visibility: loading ? 'hidden' : 'visible',
           },
           display: 'flex',
           alignItems: 'center',
@@ -76,11 +77,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }}
         {...props}
       >
-        {loading ? null : (
-          <>
-            {children}
-          </>
-        )}
+        <Box 
+          component="span" 
+          sx={{ 
+            display: 'inherit', 
+            alignItems: 'inherit', 
+            justifyContent: 'inherit',
+            visibility: loading ? 'hidden' : 'visible'
+          }}
+        >
+          {children}
+        </Box>
         {loading && (
           <CircularProgress 
             size={20} 
