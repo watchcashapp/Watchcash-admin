@@ -23,6 +23,18 @@ const lightTheme = createTheme({
       paper: '#ffffff',
     },
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          color: '#ffffff',
+        },
+        contained: {
+          color: '#ffffff',
+        },
+      },
+    },
+  },
 });
 
 const darkTheme = createTheme({
@@ -30,15 +42,12 @@ const darkTheme = createTheme({
     mode: 'dark',
     primary: {
       main: '#90caf9',
-      contrastText: '#ffffff',
     },
     secondary: {
       main: '#6AB344',
-      contrastText: '#ffffff',
     },
     success: {
       main: '#6AB344',
-      contrastText: '#ffffff',
     },
     background: {
       default: '#0a0e27',
@@ -49,16 +58,23 @@ const darkTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          color: '#ffffff',
-          '&.Mui-disabled': {
-            color: 'rgba(255, 255, 255, 0.3)',
-          },
+          color: '#ffffff !important',
         },
         contained: {
+          color: '#ffffff !important',
+        },
+        outlined: {
           color: '#ffffff',
-          '&.Mui-disabled': {
-            color: 'rgba(255, 255, 255, 0.3)',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+          borderColor: 'rgba(255, 255, 255, 0.5)',
+          '&:hover': {
+            borderColor: '#ffffff',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          },
+        },
+        text: {
+          color: '#ffffff',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
           },
         },
       },

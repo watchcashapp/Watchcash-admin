@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import Providers from '@/components/Providers';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import HideDevIndicator from '@/components/shared/HideDevIndicator';
+import 'react-quill-new/dist/quill.snow.css';
 
 export const metadata: Metadata = {
   title: 'WatchCash Admin',

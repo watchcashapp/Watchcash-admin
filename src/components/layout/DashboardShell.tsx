@@ -101,6 +101,15 @@ const menuItems: MenuItem[] = [
   { text: 'Ads Management', icon: <AdsClick />, path: '/ads-management', permission: 'admin:full_access' },
   { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
+  {
+    text: 'Pages',
+    icon: <Rule />,
+    permission: 'admin:full_access',
+    subItems: [
+      { text: 'Privacy Policy', icon: <Gavel />, path: '/pages/privacy-policy' },
+      { text: 'Terms & Conditions', icon: <Rule />, path: '/pages/terms-and-conditions' },
+    ]
+  },
   { text: 'Settings', icon: <Settings />, path: '/settings', permission: 'admin:full_access' },
 ];
 

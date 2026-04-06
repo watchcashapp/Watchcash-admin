@@ -37,23 +37,50 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           fontSize: '14px',
           fontWeight: 500,
           position: 'relative',
+          color: '#ffffff !important',
+          '&.MuiButton-contained': {
+            color: '#ffffff !important',
+            background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%) !important',
+            boxShadow: '0 4px 14px 0 rgba(33, 51, 80, 0.25)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #1a2940 0%, #5a9e3a 100%) !important',
+              boxShadow: '0 6px 20px rgba(33, 51, 80, 0.35)',
+              transform: 'translateY(-1px)',
+            },
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          },
+          '&.MuiButton-outlined': {
+            color: '#ffffff !important',
+            borderColor: 'rgba(33, 51, 80, 0.5) !important',
+            '&:hover': {
+              borderColor: '#213350 !important',
+              background: 'rgba(33, 51, 80, 0.05) !important',
+            }
+          },
+          '&.MuiButton-text': {
+            color: '#ffffff !important',
+            '&:hover': {
+              background: 'rgba(33, 51, 80, 0.05) !important',
+            }
+          },
+          '& .MuiButton-startIcon': {
+            marginRight: '6px !important',
+          },
+          '& .MuiButton-endIcon': {
+            marginLeft: '6px !important',
+          },
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           ...sx
         }}
         {...props}
       >
-        <Box 
-          component="span" 
-          sx={{ 
-            visibility: loading ? 'hidden' : 'visible',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%'
-          }}
-        >
-          {children}
-        </Box>
+        {loading ? null : (
+          <>
+            {children}
+          </>
+        )}
         {loading && (
           <CircularProgress 
             size={20} 
