@@ -12,7 +12,7 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { endpoint }) => {
     // Public endpoints that don't need authentication
     // Public endpoints that don't need authentication
-    const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword', 'refreshToken'];
+    const publicEndpoints = ['login', 'register', 'forgotPassword', 'resetPassword', 'refreshToken', 'getPublicTerms', 'getPublicPrivacy'];
 
     // Only add Authorization header for private/protected endpoints
     if (!publicEndpoints.includes(endpoint)) {
@@ -100,7 +100,7 @@ export const baseQueryWithReauth: BaseQueryFn<
           } else {
             // Refresh failed - clear tokens and redirect to login
             // Exception: Don't redirect for public-viewable endpoints
-            const publicViewableEndpoints = ['getLegalDocs'];
+            const publicViewableEndpoints = ['getLegalDocs', 'getPublicTerms', 'getPublicPrivacy'];
             const isPublicEndpoint = publicViewableEndpoints.includes(api.endpoint);
 
             if (typeof window !== 'undefined' && !isPublicEndpoint) {
@@ -112,7 +112,7 @@ export const baseQueryWithReauth: BaseQueryFn<
         } else {
           // No refresh token - redirect to login
           // Exception: Don't redirect for public-viewable endpoints
-          const publicViewableEndpoints = ['getLegalDocs'];
+          const publicViewableEndpoints = ['getLegalDocs', 'getPublicTerms', 'getPublicPrivacy'];
           const isPublicEndpoint = publicViewableEndpoints.includes(api.endpoint);
 
           if (typeof window !== 'undefined' && !isPublicEndpoint) {

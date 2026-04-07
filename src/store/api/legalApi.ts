@@ -19,10 +19,15 @@ export const legalApi = createApi({
     baseQuery: baseQueryWithReauth,
     tagTypes: ['Legal'],
     endpoints: (builder) => ({
-        getLegalDocs: builder.query<{ terms?: LegalDocument; privacy?: LegalDocument }, void>({
-            query: () => '/admin/legal',
+        getAdminTerms: builder.query<LegalDocument, void>({
+            query: () => '/admin/legal/terms',
             providesTags: ['Legal'],
-            transformResponse: (response: LegalDocumentResponse) => response.data,
+            transformResponse: (response: { data: LegalDocument }) => response.data,
+        }),
+        getAdminPrivacy: builder.query<LegalDocument, void>({
+            query: () => '/admin/legal/privacy',
+            providesTags: ['Legal'],
+            transformResponse: (response: { data: LegalDocument }) => response.data,
         }),
         updateTerms: builder.mutation<void, LegalDocument>({
             query: (body) => ({
@@ -40,11 +45,24 @@ export const legalApi = createApi({
             }),
             invalidatesTags: ['Legal'],
         }),
+        getPublicTerms: builder.query<LegalDocument, void>({
+            query: () => '/legal/terms',
+            providesTags: ['Legal'],
+            transformResponse: (response: { data: LegalDocument }) => response.data,
+        }),
+        getPublicPrivacy: builder.query<LegalDocument, void>({
+            query: () => '/legal/privacy',
+            providesTags: ['Legal'],
+            transformResponse: (response: { data: LegalDocument }) => response.data,
+        }),
     }),
 });
 
 export const {
-    useGetLegalDocsQuery,
+    useGetAdminTermsQuery,
+    useGetAdminPrivacyQuery,
+    useGetPublicTermsQuery,
+    useGetPublicPrivacyQuery,
     useUpdateTermsMutation,
     useUpdatePrivacyMutation,
 } = legalApi;

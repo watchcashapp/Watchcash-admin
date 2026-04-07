@@ -89,7 +89,13 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
       if (typeof window !== 'undefined') {
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-        window.location.replace('/auth/login');
+        
+        const isPublicPage = window.location.pathname.startsWith('/pages/privacy-policy') || 
+                             window.location.pathname.startsWith('/pages/terms-and-conditions');
+                             
+        if (!isPublicPage) {
+          window.location.replace('/auth/login');
+        }
       }
     }
   }, [isError, dispatch]);

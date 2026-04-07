@@ -28,21 +28,27 @@ export function proxy(req: NextRequest) {
   );
 
   // Route categories
-  // Public routes (auth pages) should NOT be accessible when logged in
-  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'];
+  // Public auth routes should NOT be accessible when logged in
+  const authRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'];
+  
+  // Routes accessible by EVERYONE (guests AND authenticated users)
+  const globalAccessRoutes = ['/pages/terms-and-conditions', '/pages/privacy-policy'];
+  
   const protectedPrefixes = [
     '/dashboard', '/profile', '/app-rules', '/global-rules',
     '/rbac-rules', '/users', '/staff', '/sessions',
     '/reward-redemptions', '/audit-logs', '/settings', '/admin'
   ];
 
-  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+  const isAuthRoute = authRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+  const isGlobalAccessRoute = globalAccessRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+  const isPublicRoute = isAuthRoute || isGlobalAccessRoute;
   const isKnownProtected = protectedPrefixes.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
 
   // Logic for Authenticated users
   if (hasAuth) {
     // If authenticated, redirect away from public auth pages (except reset-password) or root to dashboard
-    const shouldRedirect = pathname === '/' || (isPublicRoute && !pathname.startsWith('/auth/reset-password'));
+    const shouldRedirect = pathname === '/' || (isAuthRoute && !pathname.startsWith('/auth/reset-password'));
 
     if (shouldRedirect) {
 

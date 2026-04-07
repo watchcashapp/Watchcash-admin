@@ -162,10 +162,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Redirect to login if not authenticated and initialized
   useEffect(() => {
-    if (isMounted && isInitialized && !isAuthenticated) {
+    const isPublic = pathname?.startsWith('/pages/privacy-policy') || 
+                     pathname?.startsWith('/pages/terms-and-conditions');
+                     
+    if (isMounted && isInitialized && !isAuthenticated && !isPublic) {
       router.push('/auth/login');
     }
-  }, [isMounted, isInitialized, isAuthenticated, router]);
+  }, [isMounted, isInitialized, isAuthenticated, router, pathname]);
 
 
   const isMenuItemActive = (item: MenuItem): boolean => {

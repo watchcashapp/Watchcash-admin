@@ -6,14 +6,19 @@ import { Gavel, Save, Edit, Visibility } from '@mui/icons-material';
 import Button from '@/components/shared/Button';
 import Textarea from '@/components/shared/Textarea';
 import RichTextEditor from '@/components/shared/RichTextEditor';
-import { useGetLegalDocsQuery, useUpdatePrivacyMutation } from '@/store/api/legalApi';
+import { useGetAdminPrivacyQuery, useGetPublicPrivacyQuery, useUpdatePrivacyMutation } from '@/store/api/legalApi';
 import { useToast } from '@/components/shared/Toaster';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { usePermissions } from '@/hooks/usePermissions';
 
 export default function PrivacyPolicyPage() {
-  const { data, isLoading, error, refetch } = useGetLegalDocsQuery();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isFullAdmin } = usePermissions();
+  const canEdit = isAuthenticated && isFullAdmin;
+
+  const { data: publicData, isLoading, error, refetch } = useGetPublicPrivacyQuery();
+
   const [updatePrivacy, { isLoading: isUpdating }] = useUpdatePrivacyMutation();
   const { showSuccess, showError } = useToast();
 
@@ -23,14 +28,10 @@ export default function PrivacyPolicyPage() {
   const [initialTitle, setInitialTitle] = useState('');
   const [isPreview, setIsPreview] = useState(false);
 
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { isFullAdmin } = usePermissions();
-  const canEdit = isAuthenticated && isFullAdmin;
-
   useEffect(() => {
-    if (data?.privacy) {
-      const currentBody = data.privacy.bodyHtml || '';
-      const currentTitle = data.privacy.title || 'Privacy Policy';
+    if (publicData) {
+      const currentBody = publicData.bodyHtml || '';
+      const currentTitle = publicData.title || 'Privacy Policy';
       setBodyHtml(currentBody);
       setTitle(currentTitle);
       setInitialBodyHtml(currentBody);
@@ -40,7 +41,7 @@ export default function PrivacyPolicyPage() {
     if (!canEdit) {
       setIsPreview(true);
     }
-  }, [data, canEdit]);
+  }, [publicData, canEdit]);
 
   const hasChanges = bodyHtml !== initialBodyHtml || title !== initialTitle;
 
@@ -66,72 +67,74 @@ export default function PrivacyPolicyPage() {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: '1200px', mx: 'auto' }}>
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 4,
-          flexWrap: 'wrap',
-          gap: 2 
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-          <Box 
-            sx={{ 
-              p: 1.5, 
-              borderRadius: 3, 
-              background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
-              boxShadow: '0 8px 16px rgba(33, 51, 80, 0.2)',
-              display: 'flex'
-            }}
-          >
-            <Gavel sx={{ color: 'white', fontSize: 28 }} />
-          </Box>
-          <Box>
-            <Typography variant="h4" fontWeight={800} letterSpacing="-0.02em">
-              {title}
-            </Typography>
-            {canEdit && (
-              <Typography variant="body2" color="text.secondary">
-                Configure and update your application's privacy policy.
+      {isAuthenticated && (
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 4,
+            flexWrap: 'wrap',
+            gap: 2 
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+            <Box 
+              sx={{ 
+                p: 1.5, 
+                borderRadius: 3, 
+                background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
+                boxShadow: '0 8px 16px rgba(33, 51, 80, 0.2)',
+                display: 'flex'
+              }}
+            >
+              <Gavel sx={{ color: 'white', fontSize: 28 }} />
+            </Box>
+            <Box>
+              <Typography variant="h4" fontWeight={800} letterSpacing="-0.02em">
+                {title}
               </Typography>
-            )}
+              {canEdit && (
+                <Typography variant="body2" color="text.secondary">
+                  Configure and update your application's privacy policy.
+                </Typography>
+              )}
+            </Box>
           </Box>
+          
+          {canEdit && (
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={isPreview ? <Edit /> : <Visibility />}
+                onClick={() => setIsPreview(!isPreview)}
+                sx={{ 
+                  borderRadius: 2,
+                  minWidth: '160px',
+                  px: 0,
+                  fontWeight: 600,
+                }}
+              >
+                {isPreview ? 'Edit Source' : 'View Preview'}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<Save />}
+                onClick={handleSave}
+                loading={isUpdating}
+                disabled={!hasChanges}
+                sx={{ 
+                  borderRadius: 2,
+                  px: 4,
+                  fontWeight: 600,
+                }}
+              >
+                Save Changes
+              </Button>
+            </Box>
+          )}
         </Box>
-        
-        {canEdit && (
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={isPreview ? <Edit /> : <Visibility />}
-              onClick={() => setIsPreview(!isPreview)}
-              sx={{ 
-                borderRadius: 2,
-                minWidth: '160px',
-                px: 0,
-                fontWeight: 600,
-              }}
-            >
-              {isPreview ? 'Edit Source' : 'View Preview'}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Save />}
-              onClick={handleSave}
-              loading={isUpdating}
-              disabled={!hasChanges}
-              sx={{ 
-                borderRadius: 2,
-                px: 4,
-                fontWeight: 600,
-              }}
-            >
-              Save Changes
-            </Button>
-          </Box>
-        )}
-      </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>
