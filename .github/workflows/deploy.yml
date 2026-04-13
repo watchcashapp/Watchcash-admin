@@ -43,7 +43,7 @@ jobs:
           IMAGE=${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest
           ENV_PATH="/home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env"
 
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -xe
 
             ############################################
@@ -61,136 +61,102 @@ jobs:
               OLD_PORT=9000
             fi
 
-            echo "Active container: \$ACTIVE"
-            echo "Deploying to: \$NEW"
+            echo "Active container: $ACTIVE"
+            echo "Deploying to: $NEW (Port: $NEW_PORT)"
 
             ############################################
             # Pull Latest Image
             ############################################
+            IMAGE="${{ secrets.DOCKER_USER }}/watchcashfront_repo:devlatest"
             docker pull $IMAGE
 
             ############################################
             # Start New Container
             ############################################
-            docker stop watchcash_admin_\$NEW || true
-            docker rm watchcash_admin_\$NEW || true
+            docker stop watchcash_admin_$NEW || true
+            docker rm watchcash_admin_$NEW || true
 
             docker run -d \
-              --name watchcash_admin_\$NEW \
-              --env-file $ENV_PATH \
-              -p \$NEW_PORT:3000 \
+              --name watchcash_admin_$NEW \
+              --env-file /home/${{ secrets.EC2_USERNAME }}/Watchcash-admin/.env \
+              -p $NEW_PORT:3000 \
               --restart always \
               $IMAGE
 
-            echo "Waiting for app to boot..."
+            echo "Waiting for app to boot on port $NEW_PORT..."
             
-            for i in {1..10}; do
-              if curl -f http://localhost:\$NEW_PORT > /dev/null 2>&1; then
+            # Wait loop with curl
+            READY=false
+            for i in {1..20}; do
+              if curl -f http://localhost:$NEW_PORT > /dev/null 2>&1; then
+                echo "App is responding! ✅"
+                READY=true
                 break
               fi
-              echo "Waiting for app..."
-              sleep 5
+              echo "Waiting for app... ($i/20)"
+              sleep 3
             done
 
-            ############################################
-            # Health Check
-            ############################################
-            if curl -f http://localhost:\$NEW_PORT > /dev/null 2>&1; then
-              echo "Health check passed ✅"
-            else
-              echo "Health check failed ❌ Rolling back"
-              docker stop watchcash_admin_\$NEW
-              docker rm watchcash_admin_\$NEW
+            if [ "$READY" = "false" ]; then
+              echo "Health check failed ❌ App didn't start in time. Rolling back."
+              docker stop watchcash_admin_$NEW || true
+              docker rm watchcash_admin_$NEW || true
               exit 1
             fi
+
+            # Short grace period for internal initialization
+            sleep 2
 
             ############################################
             # Switch Traffic (Dynamic Blue/Green)
             ############################################
-
-            if [ "\$NEW" = "blue" ]; then
-                echo "Switching to BLUE ... Reloading nginx"
-
-                if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
-                    sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
+            switch_traffic() {
+                local target=$1
+                echo "Switching traffic to $target..."
+                
+                if [ "$target" = "blue" ]; then
+                    [ -f /etc/nginx/conf.d/watchcash-front.conf ] && sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
+                    [ -f /etc/nginx/conf.d/watchcash-blue.conf.disabled ] && sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf
+                else
+                    [ -f /etc/nginx/conf.d/watchcash-blue.conf ] && sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
+                    [ -f /etc/nginx/conf.d/watchcash-front.conf.disabled ] && sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf
                 fi
-
-                if [ -f /etc/nginx/conf.d/watchcash-blue.conf.disabled ]; then
-                    sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf
+                
+                if ! sudo nginx -t; then
+                    return 1
                 fi
+                sudo systemctl reload nginx
+                return 0
+            }
 
-            else
-                echo "Switching to GREEN"
-
-                if [ -f /etc/nginx/conf.d/watchcash-blue.conf ]; then
-                    sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
-                fi
-
-                if [ -f /etc/nginx/conf.d/watchcash-front.conf.disabled ]; then
-                    sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf
-                fi
-            fi
-
-            if sudo nginx -t; then
-              sudo systemctl reload nginx
-              echo "Traffic switched to $NEW ✅ ... Reloading nginx"
-            else
-              echo "Nginx config failed ❌ Rolling back"
-
-              # Rollback nginx change
-              if [ "\$ACTIVE" = "blue" ]; then
-                  echo "Switching to BLUE ... in failed case ... Reloading nginx"
-
-                  if [ -f /etc/nginx/conf.d/watchcash-front.conf ]; then
-                      sudo mv /etc/nginx/conf.d/watchcash-front.conf /etc/nginx/conf.d/watchcash-front.conf.disabled
-                  fi
-
-                  if [ -f /etc/nginx/conf.d/watchcash-blue.conf.disabled ]; then
-                      sudo mv /etc/nginx/conf.d/watchcash-blue.conf.disabled /etc/nginx/conf.d/watchcash-blue.conf
-                  fi
-
-              else
-                  echo "Switching to GREEN in failed case ... Reloading nginx"
-
-                  if [ -f /etc/nginx/conf.d/watchcash-blue.conf ]; then
-                      sudo mv /etc/nginx/conf.d/watchcash-blue.conf /etc/nginx/conf.d/watchcash-blue.conf.disabled
-                  fi
-
-                  if [ -f /etc/nginx/conf.d/watchcash-front.conf.disabled ]; then
-                      sudo mv /etc/nginx/conf.d/watchcash-front.conf.disabled /etc/nginx/conf.d/watchcash-front.conf
-                  fi
-              fi
-
-              sudo nginx -t && sudo systemctl reload nginx
-
-              docker stop watchcash_admin_$NEW
-              docker rm watchcash_admin_$NEW
-
+            if ! switch_traffic "$NEW"; then
+              echo "Nginx config failed ❌ Rolling back traffic to $ACTIVE"
+              switch_traffic "$ACTIVE" || echo "Critical: Rollback traffic switch failed!"
+              docker stop watchcash_admin_$NEW || true
+              docker rm watchcash_admin_$NEW || true
               exit 1
             fi
+
+            echo "Traffic successfully switched to $NEW ✅"
 
             ############################################
             # Stop Old Container
             ############################################
-            docker stop watchcash_admin_\$ACTIVE || true
-            docker rm watchcash_admin_\$ACTIVE || true
+            echo "Stopping old container $ACTIVE..."
+            docker stop watchcash_admin_$ACTIVE || true
+            docker rm watchcash_admin_$ACTIVE || true
 
             ############################################
             # SAFE IMAGE CLEANUP
             ############################################
             echo "Cleaning unused images safely..."
-
-            # Remove dangling images
             docker image prune -f
-
-            # Remove unused images not used by any container
-            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep watchcashfront_repo | while read repo id; do
-              if ! docker ps -a --format "{{.Image}}" | grep -q \$repo; then
-                echo "Removing unused image: \$repo"
-                docker rmi \$repo || true
+            docker images --format "{{.Repository}}:{{.Tag}}" | grep watchcashfront_repo | while read img; do
+              if [ "$img" != "watchcashfront_repo:devlatest" ] && ! docker ps -a --format "{{.Image}}" | grep -q "$img"; then
+                echo "Removing unused image: $img"
+                docker rmi $img || true
               fi
             done
 
             echo "Deployment successful 🎉"
-
-          EOF
+EOF
