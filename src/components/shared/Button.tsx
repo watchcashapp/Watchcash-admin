@@ -36,7 +36,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           fontSize: '14px',
           fontWeight: 500,
           position: 'relative',
-          color: '#ffffff !important',
+          // Theme-aware color logic
+          color: (theme) => {
+            if (variant === 'contained') return '#ffffff !important';
+            return theme.palette.mode === 'dark' ? '#ffffff !important' : '#213350 !important';
+          },
           '&.MuiButton-contained': {
             color: '#ffffff !important',
             background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%) !important',
@@ -49,17 +53,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           },
           '&.MuiButton-outlined': {
-            color: '#ffffff !important',
-            borderColor: 'rgba(33, 51, 80, 0.5) !important',
+            color: (theme) => theme.palette.mode === 'dark' ? '#ffffff !important' : '#213350 !important',
+            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5) !important' : 'rgba(33, 51, 80, 0.5) !important',
             '&:hover': {
-              borderColor: '#213350 !important',
-              background: 'rgba(33, 51, 80, 0.05) !important',
+              borderColor: (theme) => theme.palette.mode === 'dark' ? '#ffffff !important' : '#213350 !important',
+              background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1) !important' : 'rgba(33, 51, 80, 0.05) !important',
             }
           },
           '&.MuiButton-text': {
-            color: '#ffffff !important',
+            color: (theme) => theme.palette.mode === 'dark' ? '#ffffff !important' : '#213350 !important',
             '&:hover': {
-              background: 'rgba(33, 51, 80, 0.05) !important',
+              background: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1) !important' : 'rgba(33, 51, 80, 0.05) !important',
             }
           },
           '& .MuiButton-startIcon': {
