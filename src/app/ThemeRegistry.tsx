@@ -26,11 +26,22 @@ const lightTheme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
-        root: {
-          color: '#ffffff',
-        },
         contained: {
           color: '#ffffff',
+        },
+        outlined: {
+          color: '#213350',
+          borderColor: 'rgba(33, 51, 80, 0.5)',
+          '&:hover': {
+            borderColor: '#213350',
+            backgroundColor: 'rgba(33, 51, 80, 0.04)',
+          },
+        },
+        text: {
+          color: '#213350',
+          '&:hover': {
+            backgroundColor: 'rgba(33, 51, 80, 0.04)',
+          },
         },
       },
     },
