@@ -30,6 +30,7 @@ export interface DataTableProps<T> {
   isLoading?: boolean;
   onView?: (row: T) => void;
   onEdit?: (row: T) => void;
+  canEditRow?: (row: T) => boolean;
   onDelete?: (row: T) => void;
   onToggle?: (row: T) => void;
   onMarkReview?: (row: T) => void;
@@ -45,6 +46,7 @@ function DataTable<T extends Record<string, any>>({
   isLoading = false,
   onView,
   onEdit,
+  canEditRow,
   onDelete,
   onToggle,
   onMarkReview,
@@ -286,26 +288,27 @@ function DataTable<T extends Record<string, any>>({
                           </Tooltip>
                         </Box>
                       )}
-                      {onEdit && (
-                        <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
-                          <Tooltip title="Edit" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => onEdit(row)}
-                              sx={{
-                                color: (theme) => theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(33, 51, 80, 0.1)',
-                                  transform: 'scale(1.1)',
-                                },
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      )}
+                     {onEdit && (!canEditRow || canEditRow(row)) && (
+  <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
+    <Tooltip title="Edit" arrow>
+      <IconButton
+        size="small"
+        onClick={() => onEdit(row)}
+        sx={{
+          color: (theme) =>
+            theme.palette.mode === 'dark' ? 'secondary.main' : 'primary.main',
+          '&:hover': {
+            backgroundColor: 'rgba(33, 51, 80, 0.1)',
+            transform: 'scale(1.1)',
+          },
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <Edit fontSize="small" />
+      </IconButton>
+    </Tooltip>
+  </Box>
+)}
                       {onDelete && (
                         <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
                           <Tooltip title="Delete" arrow>

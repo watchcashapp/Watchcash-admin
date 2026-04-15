@@ -7,6 +7,7 @@ export interface Role {
   code: string;
   description: string;
   permissions?: string[];
+  isSystem?: boolean;
   createdAt: string;
   updatedAt: string;
 }

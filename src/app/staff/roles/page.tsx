@@ -139,7 +139,9 @@ export default function RolesPage() {
           data={paginatedRoles}
           isLoading={isLoading}
           getRowId={(row: Role) => row.id}
-          onEdit={(row: Role) => router.push(`/staff/roles/${row.id}`)}
+          onEdit={(row: Role) => {
+            router.push(`/staff/roles/${row.id}`);
+          }}
         />
 
         {/* Pagination */}

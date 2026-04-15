@@ -265,7 +265,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 groupedPermissions={permissionsResponse?.data || {}}
                 value={formData.permissions}
                 onChange={(value) => setFormData({ ...formData, permissions: value })}
-                disabled={isUpdating}
+                disabled={isUpdating || role?.isSystem}
                 />
             </Grid>
 
