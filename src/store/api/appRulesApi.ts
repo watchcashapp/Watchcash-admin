@@ -4,6 +4,8 @@ import { baseQueryWithReauth } from './authApi';
 export interface AppRule {
   id: string;
   appName: string;
+  icon?: string; // New field - will store file path or URL
+  iconUrl?: string; // API field for S3 URL - not shown in table
   pointsPerMinute: number;
   dailyHardCap: number;
   dailySoftCap: number;
@@ -29,6 +31,7 @@ export interface AppRuleResponse {
 
 export interface CreateAppRuleRequest {
   appName: string;
+  icon?: string; // New field - will store file path or URL
   pointsPerMinute: number;
   dailyHardCap: number;
   dailySoftCap: number;
@@ -72,7 +75,7 @@ export const appRulesApi = createApi({
       transformResponse: (response: AppRuleResponse) => response.data,
     }),
     
-    createAppRule: builder.mutation<AppRule, CreateAppRuleRequest>({
+    createAppRule: builder.mutation<AppRule, FormData>({
       query: (body) => ({
         url: '/admin/app-rules',
         method: 'POST',
@@ -82,7 +85,7 @@ export const appRulesApi = createApi({
       transformResponse: (response: AppRuleResponse) => response.data,
     }),
     
-    updateAppRule: builder.mutation<AppRule, { id: string; data: UpdateAppRuleRequest }>({
+    updateAppRule: builder.mutation<AppRule, { id: string; data: FormData }>({
       query: ({ id, data }) => ({
         url: `/admin/app-rules/${id}`,
         method: 'PUT',

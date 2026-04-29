@@ -17,9 +17,10 @@ import {
   FormControlLabel,
   Alert,
   IconButton,
-  InputAdornment,
+  InputAdornment
+
 } from "@mui/material";
-import { Add, NavigateBefore, NavigateNext, Search } from "@mui/icons-material";
+import { Add, NavigateBefore, NavigateNext, Search, Upload, Image as ImageIcon } from "@mui/icons-material";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, ConfirmDialog, MultiSelect, PermissionGuard, Button, Input } from "@/components/shared";
 import {
@@ -38,6 +39,7 @@ interface FormData extends CreateAppRuleRequest { }
 
 const initialFormData: FormData = {
   appName: "",
+  icon: "", 
   pointsPerMinute: 1,
   dailyHardCap: 1,
   dailySoftCap: 1,
@@ -51,7 +53,7 @@ const initialFormData: FormData = {
 
 export default function AppRulesPage() {
   const router = useRouter();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showToast } = useToast();
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,6 +89,8 @@ export default function AppRulesPage() {
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [iconPreview, setIconPreview] = useState<string>(""); // For icon preview
+  const [iconBinary, setIconBinary] = useState<File | null>(null); // Store binary file
 
   // Use the detail API to fetch the rule when editing
   const { data: ruleDetail, isFetching: isFetchingDetail } = useGetAppRuleByIdQuery(
@@ -94,69 +98,85 @@ export default function AppRulesPage() {
     { skip: !editingRule?.id }
   );
 
-  // Update formData when ruleDetail is fetched
-  useEffect(() => {
-    if (editingRule && ruleDetail) {
-      setFormData({
-        appName: ruleDetail.appName,
-        pointsPerMinute: ruleDetail.pointsPerMinute,
-        dailyHardCap: ruleDetail.dailyHardCap,
-        dailySoftCap: ruleDetail.dailySoftCap,
-        softCapMultiplier: ruleDetail.softCapMultiplier,
-        maxSessionDuration: ruleDetail.maxSessionDuration,
-        minSessionDuration: ruleDetail.minSessionDuration,
-        maxDailySessions: ruleDetail.maxDailySessions,
-        enabled: ruleDetail.enabled,
-        permissions: ruleDetail.permissions || [],
-      });
-    }
-  }, [editingRule, ruleDetail]);
-
-  // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     ruleToDelete: null as AppRule | null,
   });
 
   const columns: Column<AppRule>[] = useMemo(() => [
-    { id: 'appName', label: 'App Name', minWidth: 150 },
+    { 
+      id: 'appName', 
+      label: 'App Name', 
+      minWidth: 180,
+      format: (value: string) => (
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+          {value}
+        </Typography>
+      )
+    },
     {
       id: 'pointsPerMinute',
       label: 'Points/Min',
       align: 'center',
-      minWidth: 100,
+      minWidth: 110,
+      format: (value: number) => (
+        <Typography sx={{ fontWeight: 500, color: 'primary.main' }}>
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'dailyHardCap',
       label: 'Hard Cap',
       align: 'center',
-      minWidth: 100,
+      minWidth: 110,
+      format: (value: number) => (
+        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'dailySoftCap',
       label: 'Soft Cap',
       align: 'center',
-      minWidth: 100,
+      minWidth: 110,
+      format: (value: number) => (
+        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'maxDailySessions',
       label: 'Max Sessions',
       align: 'center',
-      minWidth: 120,
+      minWidth: 130,
+      format: (value: number) => (
+        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'enabled',
       label: 'Status',
       align: 'center',
-      minWidth: 100,
+      minWidth: 110,
       format: (value: boolean) => (
         <Chip
           label={value ? 'Enabled' : 'Disabled'}
           size="small"
           sx={{
-            background: value ? 'linear-gradient(45deg, #10b981, #059669)' : 'linear-gradient(45deg, #6b7280, #4b5563)',
+            background: value 
+              ? 'linear-gradient(45deg, #10b981, #059669)' 
+              : 'linear-gradient(45deg, #6b7280, #4b5563)',
             color: 'white',
             fontWeight: 600,
+            fontSize: '0.7rem',
+            height: 28,
+            borderRadius: 14,
+            boxShadow: value ? '0 2px 8px rgba(16, 185, 129, 0.3)' : '0 2px 8px rgba(107, 114, 128, 0.3)',
           }}
         />
       ),
@@ -168,6 +188,7 @@ export default function AppRulesPage() {
     if (!ruleDetail) return false;
     return (
       formData.appName.trim() !== ruleDetail.appName.trim() ||
+      formData.icon !== (ruleDetail.icon || "") || // Icon field comparison
       formData.pointsPerMinute !== ruleDetail.pointsPerMinute ||
       formData.dailyHardCap !== ruleDetail.dailyHardCap ||
       formData.dailySoftCap !== ruleDetail.dailySoftCap ||
@@ -185,6 +206,7 @@ export default function AppRulesPage() {
       // Pre-fill from the list data first while the detail is fetching
       setFormData({
         appName: rule.appName,
+        icon: rule.icon || "", // Icon field
         pointsPerMinute: rule.pointsPerMinute,
         dailyHardCap: rule.dailyHardCap,
         dailySoftCap: rule.dailySoftCap,
@@ -195,6 +217,8 @@ export default function AppRulesPage() {
         enabled: rule.enabled,
         permissions: rule.permissions || [],
       });
+      // Set initial icon preview from iconUrl if available in the list data
+      setIconPreview((rule as any).iconUrl || rule.icon || "");
     } else {
       setEditingRule(null);
       setFormData(initialFormData);
@@ -208,6 +232,8 @@ export default function AppRulesPage() {
     setEditingRule(null);
     setFormData(initialFormData);
     setFormErrors({});
+    setIconPreview(""); // Reset icon preview
+    setIconBinary(null); // Reset binary file
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,6 +260,31 @@ export default function AppRulesPage() {
         ...prev,
         [name]: undefined,
       }));
+    }
+  };
+
+  const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Store the binary file for payload
+      setIconBinary(file);
+      
+      // Update form data with filename for display
+      setFormData(prev => ({
+        ...prev,
+        icon: file.name,
+      }));
+      
+      // Create preview for image files
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setIconPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setIconPreview("");
+      }
     }
   };
 
@@ -277,30 +328,53 @@ export default function AppRulesPage() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    // Sanitize data - ensure all numeric fields are indeed numbers
-    const sanitizedData = {
-      ...formData,
-      pointsPerMinute: Number(formData.pointsPerMinute),
-      dailyHardCap: Number(formData.dailyHardCap),
-      dailySoftCap: Number(formData.dailySoftCap),
-      softCapMultiplier: Number(formData.softCapMultiplier),
-      maxSessionDuration: Number(formData.maxSessionDuration),
-      minSessionDuration: Number(formData.minSessionDuration),
-      maxDailySessions: Number(formData.maxDailySessions),
-    };
-
     try {
-      if (editingRule) {
-        await updateAppRule({ id: editingRule.id, data: sanitizedData }).unwrap();
-        showSuccess('App rule updated successfully!');
-      } else {
-        await createAppRule(sanitizedData).unwrap();
-        showSuccess('App rule created successfully!');
+      // Create FormData to send binary icon
+      const formDataToSend = new FormData();
+      
+      // Add all form fields as strings
+      formDataToSend.append('appName', formData.appName);
+      formDataToSend.append('pointsPerMinute', formData.pointsPerMinute.toString());
+      formDataToSend.append('dailyHardCap', formData.dailyHardCap.toString());
+      formDataToSend.append('dailySoftCap', formData.dailySoftCap.toString());
+      formDataToSend.append('softCapMultiplier', formData.softCapMultiplier.toString());
+      formDataToSend.append('maxSessionDuration', formData.maxSessionDuration.toString());
+      formDataToSend.append('minSessionDuration', formData.minSessionDuration.toString());
+      formDataToSend.append('maxDailySessions', formData.maxDailySessions.toString());
+      formDataToSend.append('enabled', formData.enabled.toString());
+      formDataToSend.append('permissions', JSON.stringify(formData.permissions || []));
+      
+      // Add icon as binary file if selected
+      if (iconBinary) {
+        formDataToSend.append('icon', iconBinary);
+      } else if (formData.icon) {
+        // If no binary file but have icon path, send as string
+        formDataToSend.append('icon', formData.icon);
       }
-      handleCloseDialog();
+
+      if (editingRule) {
+        await updateAppRule({ 
+          id: editingRule.id,
+          data: formDataToSend 
+        }).unwrap();
+        showToast('App rule updated successfully', 'success');
+      } else {
+        await createAppRule(formDataToSend).unwrap();
+        showToast('App rule created successfully', 'success');
+      }
+
+      // Ensure dialog closes even if there are any issues after success
+      try {
+        handleCloseDialog();
+      } catch (closeError) {
+        console.error('Error closing dialog:', closeError);
+        // Force close if there's an issue
+        setOpenDialog(false);
+        setEditingRule(null);
+      }
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Operation failed';
-      showError(errorMessage);
+      console.error('Error saving app rule:', error);
+      showToast(error.data?.message || 'Failed to save app rule', 'error');
     }
   };
 
@@ -513,6 +587,8 @@ export default function AppRulesPage() {
                   disabled={isCreating || isUpdating || isFetchingDetail}
                 />
               </Grid>
+              
+              
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
                   label="Points Per Minute"
@@ -617,6 +693,134 @@ export default function AppRulesPage() {
                   fullWidth
                   disabled={isCreating || isUpdating || isFetchingDetail}
                 />
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  App Icon
+                </Typography>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1.5,
+                  p: 1.5,
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  bgcolor: 'action.hover',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: 'action.selected'
+                  }
+                }}>
+                  {iconPreview ? (
+                    <>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          border: '2px solid',
+                          borderColor: 'primary.main',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'background.paper',
+                          flexShrink: 0
+                        }}
+                      >
+                        <img
+                          src={iconPreview}
+                          alt="Icon preview"
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {formData.icon}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <Button
+                            component="label"
+                            variant="outlined"
+                            size="small"
+                            sx={{ fontSize: '0.7rem', py: 0.5, px: 1 }}
+                            disabled={isCreating || isUpdating || isFetchingDetail}
+                          >
+                            <Upload sx={{ fontSize: '0.8rem', mr: 0.5 }} />
+                            Change
+                            <input
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={handleIconUpload}
+                            />
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            color="error"
+                            sx={{ fontSize: '0.7rem', py: 0.5, px: 1 }}
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, icon: "" }));
+                              setIconPreview("");
+                              setIconBinary(null); // Clear binary file
+                            }}
+                            disabled={isCreating || isUpdating || isFetchingDetail}
+                          >
+                            Remove
+                          </Button>
+                        </Box>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          border: '2px dashed',
+                          borderColor: 'text.disabled',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'background.paper',
+                          flexShrink: 0
+                        }}
+                      >
+                        <ImageIcon sx={{ fontSize: 24, color: 'text.disabled' }} />
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block', fontSize: '0.75rem' }}>
+                          Upload icon
+                        </Typography>
+                        <Button
+                          component="label"
+                          variant="outlined"
+                          size="small"
+                          sx={{ fontSize: '0.7rem', py: 0.5, px: 1 }}
+                          disabled={isCreating || isUpdating || isFetchingDetail}
+                        >
+                          <Upload sx={{ fontSize: '0.8rem', mr: 0.5 }} />
+                          Upload
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={handleIconUpload}
+                          />
+                        </Button>
+                      </Box>
+                    </>
+                  )}
+                </Box>
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <FormControlLabel
