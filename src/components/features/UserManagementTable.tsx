@@ -468,6 +468,21 @@ export default function UserManagementTable({
         onView={hasPermission('users:view') ? (row: User) => handleView(row) : undefined}
         onEdit={showEditAction && hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
         onDelete={showDeleteAction && hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}
+        canDeleteRow={(row: User) => {
+          // Check if current user is admin and the row user is also admin
+          const currentUserRoleCode = currentUser?.roles?.[0]?.code;
+          const rowUserRoleCode = row.roles?.[0]?.code;
+          
+          console.log('Delete check - Current user role:', currentUserRoleCode, 'Row user role:', rowUserRoleCode);
+          
+          // Don't allow deleting admin users if current user is also admin
+          if (currentUserRoleCode === 'ADMIN' && rowUserRoleCode === 'ADMIN') {
+            console.log('Delete blocked: Cannot delete admin user');
+            return false; // Don't show delete button
+          }
+          
+          return true; // Show delete button
+        }}
         onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
         getRowId={(row: User) => row.id}
       />

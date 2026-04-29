@@ -32,6 +32,7 @@ export interface DataTableProps<T> {
   onEdit?: (row: T) => void;
   canEditRow?: (row: T) => boolean;
   onDelete?: (row: T) => void;
+  canDeleteRow?: (row: T) => boolean;
   onToggle?: (row: T) => void;
   onMarkReview?: (row: T) => void;
   onBan?: (row: T) => void;
@@ -48,6 +49,7 @@ function DataTable<T extends Record<string, any>>({
   onEdit,
   canEditRow,
   onDelete,
+  canDeleteRow,
   onToggle,
   onMarkReview,
   onBan,
@@ -55,6 +57,8 @@ function DataTable<T extends Record<string, any>>({
   emptyMessage = 'No data available',
   renderPagination,
 }: DataTableProps<T>) {
+
+  console.log('DataTable rendered with onDelete:', !!onDelete, 'canDeleteRow:', !!canDeleteRow);
 
   if (isLoading && (!data || data.length === 0)) {
     return (
@@ -311,22 +315,27 @@ function DataTable<T extends Record<string, any>>({
 )}
                       {onDelete && (
                         <Box sx={{ width: 34, display: 'flex', justifyContent: 'center' }}>
-                          <Tooltip title="Delete" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => onDelete(row)}
-                              sx={{
-                                color: '#ef4444',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                  transform: 'scale(1.1)',
-                                },
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {(!canDeleteRow || canDeleteRow(row)) ? (
+                            <Tooltip title="Delete" arrow>
+                              <IconButton
+                                size="small"
+                                onClick={() => onDelete(row)}
+                                sx={{
+                                  color: '#ef4444',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    transform: 'scale(1.1)',
+                                  },
+                                  transition: 'all 0.2s ease',
+                                }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            // Empty space to maintain alignment
+                            <Box sx={{ width: 34, height: 34 }} />
+                          )}
                         </Box>
                       )}
                       {onBan && (

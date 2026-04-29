@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
 import { DataTable, ConfirmDialog, useToast, Input, PermissionGuard, TablePagination } from "@/components/shared";
+import { Tooltip, IconButton } from "@mui/material";
 import {
   useGetStaffQuery,
   useCreateStaffMutation,
@@ -29,6 +30,7 @@ import {
   Staff,
 } from "@/store/api/staffApi";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 import { useCursorPagination } from '@/hooks/useCursorPagination';
 
 interface StaffFormData {
@@ -48,6 +50,7 @@ const initialFormData: StaffFormData = {
 export default function StaffPage() {
   const router = useRouter();
   const { hasPermission, isInitialized } = usePermissions();
+  const { user } = useAuth();
   const { showSuccess, showError } = useToast();
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -223,6 +226,87 @@ export default function StaffPage() {
     },
   ];
 
+  // Add actions column with conditional delete
+  const columnsWithActions = useMemo(() => [
+    ...columns,
+    {
+      id: 'actions',
+      label: 'Actions',
+      align: 'center' as const,
+      minWidth: 120,
+      format: (value: any, row: Staff) => (
+        <Box display="flex" gap={1} justifyContent="center">
+          {hasPermission('staff:update') && (
+            <Tooltip title="Edit" arrow>
+              <IconButton
+                size="small"
+                onClick={() => handleOpenDialog(row)}
+                sx={{
+                  color: '#3b82f6',
+                  '&:hover': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          
+          {hasPermission('staff:delete') && (() => {
+                const userRoleCode = user?.roles?.[0]?.code;
+                const staffRoleCode = row.role;
+                console.log('Delete button check - User role code:', userRoleCode, 'Staff role code:', staffRoleCode, 'Should hide:', userRoleCode === 'ADMIN' && staffRoleCode === 'ADMIN');
+                
+                // TEMPORARY: Always hide delete button for testing
+                console.log('TEMPORARY: Always hiding delete button for testing');
+                return false; // Always return false to hide delete button
+                
+                // return !(userRoleCode === 'ADMIN' && staffRoleCode === 'ADMIN');
+              })() && (
+            <Tooltip title="Delete" arrow>
+              <IconButton
+                size="small"
+                onClick={() => setDeleteConfirm(row)}
+                sx={{
+                  color: '#ef4444',
+                  '&:hover': {
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Delete fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          
+          {hasPermission('staff:toggle_status') && (
+            <Tooltip title={row.isActive ? "Deactivate" : "Activate"} arrow>
+              <IconButton
+                size="small"
+                onClick={() => handleToggleStatus(row)}
+                sx={{
+                  color: row.isActive ? '#f59e0b' : '#10b981',
+                  '&:hover': {
+                    backgroundColor: row.isActive ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {row.isActive ? <ToggleOff fontSize="small" /> : <ToggleOn fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      ),
+    },
+  ], [columns, hasPermission, user]);
+
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -387,12 +471,9 @@ export default function StaffPage() {
         ) : (
           <>
             <DataTable
-              columns={columns}
+              columns={columnsWithActions}
               data={data?.staff || []}
               getRowId={(row: any) => row.id}
-              onEdit={hasPermission('staff:update') ? (staff: any) => handleOpenDialog(staff as Staff) : undefined}
-              onDelete={hasPermission('staff:delete') ? (staff: any) => setDeleteConfirm(staff as Staff) : undefined}
-              onToggle={hasPermission('staff:toggle_status') ? (staff: any) => handleToggleStatus(staff as Staff) : undefined}
               emptyMessage="No staff found. Try adjusting your filters."
             />
 
