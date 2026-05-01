@@ -66,51 +66,49 @@ export default function TermsAndConditionsPage() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: '1200px', mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, md: 1 }, maxWidth: '1200px', mx: 'auto' }}>
       {isAuthenticated && (
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 4,
             flexWrap: 'wrap',
-            gap: 2 
+            gap: 2
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-            <Box 
-              sx={{ 
-                p: 1.5, 
-                borderRadius: 3, 
-                background: 'linear-gradient(135deg, #213350 0%, #6AB344 100%)',
-                boxShadow: '0 8px 16px rgba(33, 51, 80, 0.2)',
-                display: 'flex'
+          <Box>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                background: (theme) => theme.palette.mode === 'dark' ? 'none' : 'linear-gradient(45deg, #213350, #6AB344)',
+                WebkitBackgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+                WebkitTextFillColor: (theme) => theme.palette.mode === 'dark' ? 'white' : 'transparent',
+                backgroundClip: (theme) => theme.palette.mode === 'dark' ? 'unset' : 'text',
+                color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'inherit',
+                display: 'inline-block'
               }}
             >
-              <Rule sx={{ color: 'white', fontSize: 28 }} />
-            </Box>
-            <Box>
-              <Typography variant="h4" fontWeight={800} letterSpacing="-0.02em">
-                {title}
+              {title}
+            </Typography>
+            {canEdit && (
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mt: 0 }}>
+                Configure and update your application's terms and conditions.
               </Typography>
-              {canEdit && (
-                <Typography variant="body2" color="text.secondary">
-                  Configure and update your application's terms and conditions.
-                </Typography>
-              )}
-            </Box>
+            )}
           </Box>
-          
-  
-          
+
+
+
           {canEdit && (
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
                 variant="contained"
                 startIcon={isPreview ? <Edit /> : <Visibility />}
                 onClick={() => setIsPreview(!isPreview)}
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   minWidth: '160px',
                   px: 0,
@@ -125,7 +123,7 @@ export default function TermsAndConditionsPage() {
                 onClick={handleSave}
                 loading={isUpdating}
                 disabled={!hasChanges}
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   px: 4,
                   fontWeight: 600,
@@ -146,11 +144,11 @@ export default function TermsAndConditionsPage() {
 
       <Box sx={{ position: 'relative' }}>
         {isPreview ? (
-          <Paper 
+          <Paper
             elevation={0}
-            sx={{ 
-              p: { xs: 3, md: 5 }, 
-              borderRadius: 4, 
+            sx={{
+              p: { xs: 3, md: 5 },
+              borderRadius: 4,
               minHeight: '600px',
               border: '1px solid',
               borderColor: 'divider',

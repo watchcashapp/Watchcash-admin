@@ -109,7 +109,7 @@ export default function AppRulesPage() {
       label: 'App Name', 
       minWidth: 180,
       format: (value: string) => (
-        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
           {value}
         </Typography>
       )
@@ -120,7 +120,7 @@ export default function AppRulesPage() {
       align: 'center',
       minWidth: 110,
       format: (value: number) => (
-        <Typography sx={{ fontWeight: 500, color: 'primary.main' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'primary.main' }}>
           {value}
         </Typography>
       )
@@ -131,7 +131,7 @@ export default function AppRulesPage() {
       align: 'center',
       minWidth: 110,
       format: (value: number) => (
-        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
           {value}
         </Typography>
       )
@@ -142,7 +142,7 @@ export default function AppRulesPage() {
       align: 'center',
       minWidth: 110,
       format: (value: number) => (
-        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
           {value}
         </Typography>
       )
@@ -153,7 +153,7 @@ export default function AppRulesPage() {
       align: 'center',
       minWidth: 130,
       format: (value: number) => (
-        <Typography sx={{ fontWeight: 500, color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
           {value}
         </Typography>
       )
