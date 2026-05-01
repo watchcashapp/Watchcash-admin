@@ -14,7 +14,7 @@ import {
   CircularProgress,
   Tooltip,
 } from '@mui/material';
-import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block } from '@mui/icons-material';
+import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block, CheckCircle } from '@mui/icons-material';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -36,6 +36,7 @@ export interface DataTableProps<T> {
   onToggle?: (row: T) => void;
   onMarkReview?: (row: T) => void;
   onBan?: (row: T) => void;
+  onUnban?: (row: T) => void;
   getRowId: (row: T) => string;
   emptyMessage?: string;
   renderPagination?: () => React.ReactNode;
@@ -53,6 +54,7 @@ function DataTable<T extends Record<string, any>>({
   onToggle,
   onMarkReview,
   onBan,
+  onUnban,
   getRowId,
   emptyMessage = 'No data available',
   renderPagination,
@@ -155,7 +157,7 @@ function DataTable<T extends Record<string, any>>({
                   {column.label}
                 </TableCell>
               ))}
-              {(onView || onEdit || onDelete || onToggle || onBan) && (
+              {(onView || onEdit || onDelete || onToggle || onBan || onUnban) && (
                 <TableCell
                   align="center"
                   sx={{
@@ -220,7 +222,7 @@ function DataTable<T extends Record<string, any>>({
                     </TableCell>
                   );
                 })}
-                {(onView || onEdit || onDelete || onToggle || onMarkReview || onBan) && (
+                {(onView || onEdit || onDelete || onToggle || onMarkReview || onBan || onUnban) && (
                   <TableCell
                     align="center"
                     sx={{
@@ -338,12 +340,11 @@ function DataTable<T extends Record<string, any>>({
                           )}
                         </Box>
                       )}
-                      {onBan && (
+                      {onBan && !row.isBanned && (
                         <Box sx={{ 
                           width: 34, 
                           display: 'flex', 
                           justifyContent: 'center',
-                          visibility: row.isBanned ? 'hidden' : 'visible' 
                         }}>
                           <Tooltip title="Ban User" arrow>
                             <IconButton
@@ -359,6 +360,30 @@ function DataTable<T extends Record<string, any>>({
                               }}
                             >
                               <Block fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      )}
+                      {onUnban && row.isBanned && (
+                        <Box sx={{ 
+                          width: 34, 
+                          display: 'flex', 
+                          justifyContent: 'center',
+                        }}>
+                          <Tooltip title="Unban User" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => onUnban(row)}
+                              sx={{
+                                color: '#10b981',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                  transform: 'scale(1.1)',
+                                },
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <CheckCircle fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Box>

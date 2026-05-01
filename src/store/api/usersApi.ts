@@ -354,6 +354,13 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['Users'],
     }),
+    unbanUser: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/admin/users/${id}/unban`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Users'],
+    }),
     getUserWallet: builder.query<UserWalletResponse['data'], { userId: string } & CursorPaginationParams>({
       query: ({ userId, cursor, limit = 20 }) => {
         const queryParams = new URLSearchParams();
@@ -474,4 +481,5 @@ export const {
   useGetUserLoginHistoryQuery,
   useGetUserSubscriptionQuery,
   useBanUserMutation,
+  useUnbanUserMutation,
 } = usersApi;

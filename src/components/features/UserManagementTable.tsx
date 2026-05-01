@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { config } from "@/config/env";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { ConfirmDialog, useToast, Button, Input, TablePagination } from "@/components/shared";
-import { useGetUsersQuery, useDeleteUserMutation, User } from "@/store/api/usersApi";
+import { useGetUsersQuery, useDeleteUserMutation, useUnbanUserMutation, User } from "@/store/api/usersApi";
 import BanUserDialog from "@/components/features/BanUserDialog";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -77,6 +77,10 @@ export default function UserManagementTable({
     open: false,
     user: null,
   });
+  const [unbanConfirm, setUnbanConfirm] = useState<{ open: boolean; user: User | null }>({
+    open: false,
+    user: null,
+  });
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Build query params
@@ -95,6 +99,7 @@ export default function UserManagementTable({
     refetchOnMountOrArgChange: true,
   });
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [unbanUser, { isLoading: isUnbanning }] = useUnbanUserMutation();
 
   // Reset page when filters change
   useEffect(() => {
@@ -149,6 +154,21 @@ export default function UserManagementTable({
     }
   };
 
+  const handleUnban = async () => {
+    if (!hasPermission('users:unban')) {
+      showError('You do not have permission to unban users');
+      return;
+    }
+    if (!unbanConfirm.user) return;
+    try {
+      await unbanUser(unbanConfirm.user.id).unwrap();
+      showSuccess('User unbanned successfully!');
+      setUnbanConfirm({ open: false, user: null });
+    } catch (error: any) {
+      showError(error?.data?.message || 'Unban failed');
+    }
+  };
+
   const columns: Column<User>[] = useMemo(() => [
     {
       id: 'name',
@@ -184,18 +204,32 @@ export default function UserManagementTable({
       label: 'Status',
       align: 'center',
       minWidth: 100,
-      format: (value: boolean) => (
-        <Chip
-          label={value ? 'Active' : 'Inactive'}
-          size="small"
-          sx={{
-            background: value
-              ? 'linear-gradient(45deg, #10b981, #059669)'
-              : 'linear-gradient(45deg, #6b7280, #4b5563)',
-            color: 'white',
-            fontWeight: 600,
-          }}
-        />
+      format: (value: boolean, row: User) => (
+        <Box display="flex" flexDirection="column" alignItems="center" gap={0.5}>
+          {row.isBanned ? (
+            <Chip
+              label="Banned"
+              size="small"
+              sx={{
+                background: 'linear-gradient(45deg, #ef4444, #dc2626)',
+                color: 'white',
+                fontWeight: 600,
+              }}
+            />
+          ) : (
+            <Chip
+              label={value ? 'Active' : 'Inactive'}
+              size="small"
+              sx={{
+                background: value
+                  ? 'linear-gradient(45deg, #10b981, #059669)'
+                  : 'linear-gradient(45deg, #6b7280, #4b5563)',
+                color: 'white',
+                fontWeight: 600,
+              }}
+            />
+          )}
+        </Box>
       ),
     },
     {
@@ -484,6 +518,7 @@ export default function UserManagementTable({
           return true; // Show delete button
         }}
         onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
+        onUnban={showBanButton && hasPermission('users:unban') ? (row: User) => setUnbanConfirm({ open: true, user: row }) : undefined}
         getRowId={(row: User) => row.id}
       />
 
@@ -521,6 +556,18 @@ export default function UserManagementTable({
         user={banConfirm.user}
         onCancel={() => setBanConfirm({ open: false, user: null })}
         onSuccess={() => setBanConfirm({ open: false, user: null })}
+      />
+
+      {/* Unban Confirmation */}
+      <ConfirmDialog
+        open={unbanConfirm.open}
+        title="Unban User"
+        message={`Are you sure you want to unban ${unbanConfirm.user?.name}? This will restore their access to the platform.`}
+        confirmText="Unban"
+        severity="success"
+        isLoading={isUnbanning}
+        onConfirm={handleUnban}
+        onCancel={() => setUnbanConfirm({ open: false, user: null })}
       />
     </Box>
   );
