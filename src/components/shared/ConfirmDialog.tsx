@@ -8,7 +8,7 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { Warning } from '@mui/icons-material';
+import { Warning, CheckCircle, Info, Error } from '@mui/icons-material';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -19,7 +19,7 @@ export interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
-  severity?: 'warning' | 'error' | 'info';
+  severity?: 'warning' | 'error' | 'info' | 'success';
 }
 
 function ConfirmDialog({
@@ -41,6 +41,8 @@ function ConfirmDialog({
         return '#f59e0b';
       case 'info':
         return '#213350';
+      case 'success':
+        return '#10b981';
       default:
         return '#f59e0b';
     }
@@ -70,12 +72,35 @@ function ConfirmDialog({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Box display="flex" alignItems="center" gap={1.5}>
-          <Warning
-            sx={{
-              color: getSeverityColor(),
-              fontSize: '2rem',
-            }}
-          />
+          {severity === 'success' ? (
+            <CheckCircle
+              sx={{
+                color: getSeverityColor(),
+                fontSize: '2rem',
+              }}
+            />
+          ) : severity === 'error' ? (
+            <Error
+              sx={{
+                color: getSeverityColor(),
+                fontSize: '2rem',
+              }}
+            />
+          ) : severity === 'info' ? (
+            <Info
+              sx={{
+                color: getSeverityColor(),
+                fontSize: '2rem',
+              }}
+            />
+          ) : (
+            <Warning
+              sx={{
+                color: getSeverityColor(),
+                fontSize: '2rem',
+              }}
+            />
+          )}
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {title}
           </Typography>
@@ -110,11 +135,15 @@ function ConfirmDialog({
             minWidth: 100,
             background: severity === 'error' 
               ? 'linear-gradient(45deg, #ef4444, #dc2626)' 
+              : severity === 'success'
+              ? 'linear-gradient(45deg, #10b981, #059669)'
               : 'linear-gradient(45deg, #f59e0b, #d97706)',
             boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
             '&:hover': {
               background: severity === 'error'
                 ? 'linear-gradient(45deg, #dc2626, #b91c1c)'
+                : severity === 'success'
+                ? 'linear-gradient(45deg, #059669, #047857)'
                 : 'linear-gradient(45deg, #d97706, #b45309)',
               boxShadow: '0 6px 16px rgba(239, 68, 68, 0.5)',
             },
