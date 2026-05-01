@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Box, Paper, Typography, Grid, Link } from "@mui/material";
 import Image from "next/image";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared/Toaster";
 import Input from "@/components/shared/Input";
@@ -221,6 +222,7 @@ export default function ForgotPassword() {
                     Remember your password?
                   </Typography>
                   <Link
+                    component={NextLink}
                     href="/auth/login"
                     sx={{
                       fontSize: '0.875rem',

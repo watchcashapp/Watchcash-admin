@@ -4,6 +4,7 @@ import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { Box, Paper, Typography, Grid, Link, CircularProgress } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import NextLink from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/shared/Toaster";
 import Input from "@/components/shared/Input";
@@ -288,6 +289,7 @@ function LoginForm() {
                 }}
               >
                 <Link
+                  component={NextLink}
                   href="/auth/forgot-password"
                   sx={{
                     fontSize: '0.875rem',

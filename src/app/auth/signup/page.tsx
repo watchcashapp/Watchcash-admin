@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { Box, Paper, Typography, Grid, Link, CircularProgress } from "@mui/material";
 import Image from "next/image";
+import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/shared/Toaster";
 import Input from "@/components/shared/Input";
@@ -329,6 +330,7 @@ function SignupForm() {
                   Already have an account?
                 </Typography>
                 <Link
+                  component={NextLink}
                   href="/auth/login"
                   sx={{
                     fontSize: '0.875rem',
