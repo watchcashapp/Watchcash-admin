@@ -20,6 +20,7 @@ import {
   Grid,
   Button,
   CircularProgress,
+  LinearProgress,
   Avatar,
   Stack,
   Card,
@@ -143,7 +144,9 @@ export default function RewardCatalogPage() {
 
     if (changed) {
       const queryString = params.toString();
-      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      // Use window.history.replaceState to update URL without losing focus
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, [debouncedSearch, status, currency, pathname, router, searchParams]);
 
@@ -179,19 +182,16 @@ export default function RewardCatalogPage() {
   const handleSearchChange = (val: string) => {
     setLocalSearch(val);
     setCursor(undefined);
-    setAllRewards([]);
   };
 
   const handleStatusChange = (val: string) => {
     setStatus(val);
     setCursor(undefined);
-    setAllRewards([]);
   };
 
   const handleCurrencyChange = (val: string) => {
     setCurrency(val);
     setCursor(undefined);
-    setAllRewards([]);
   };
 
   const handleLoadMore = () => {
@@ -325,11 +325,29 @@ export default function RewardCatalogPage() {
             mb: 2, 
             borderRadius: 2,
             bgcolor: 'background.paper',
+            position: 'relative',
+            overflow: 'hidden',
             border: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.1)'
               : '1px solid rgba(0, 0, 0, 0.05)',
           }}
         >
+          {(isFetching || isManualUploading) && (
+            <LinearProgress 
+              sx={{ 
+                height: 2, 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1,
+                bgcolor: 'transparent',
+                '& .MuiLinearProgress-bar': {
+                  background: 'linear-gradient(45deg, #213350, #6AB344)',
+                }
+              }} 
+            />
+          )}
           <Grid container spacing={2} alignItems="center">
             <Grid size={{ xs: 12, md: 5 }}>
               <Input
@@ -337,7 +355,7 @@ export default function RewardCatalogPage() {
                 fullWidth
                 value={localSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                disabled={isManualUploading || isFetching}
+                disabled={isManualUploading}
                 slotProps={{
                   input: {
                     sx: { fontSize: '0.8rem', height: '36px' },
@@ -357,7 +375,7 @@ export default function RewardCatalogPage() {
                 label="Status"
                 value={status}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={isManualUploading || isFetching}
+                disabled={isManualUploading}
                 SelectProps={{ displayEmpty: true }}
                 InputLabelProps={{ shrink: true }}
                 slotProps={{
@@ -379,7 +397,7 @@ export default function RewardCatalogPage() {
                 label="Currency"
                 value={currency}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
-                disabled={isManualUploading || isFetching}
+                disabled={isManualUploading}
                 SelectProps={{ displayEmpty: true }}
                 InputLabelProps={{ shrink: true }}
                 slotProps={{
@@ -409,7 +427,7 @@ export default function RewardCatalogPage() {
                   setCurrency('');
                   setCursor(undefined);
                 }}
-                disabled={isManualUploading || isFetching}
+                disabled={isManualUploading}
                 sx={{ 
                   height: '36px',
                   borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : '#213350',
