@@ -241,11 +241,38 @@ export default function UserManagementTable({
       id: 'name',
       label: 'Name',
       minWidth: 150,
+      format: (value: string) => (
+        <Typography 
+          noWrap 
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: '0.8rem',
+            maxWidth: 180,
+            textOverflow: 'ellipsis',
+            overflow: 'hidden'
+          }}
+        >
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'email',
       label: 'Email',
       minWidth: 200,
+      format: (value: string) => (
+        <Typography 
+          noWrap 
+          sx={{ 
+            fontSize: '0.8rem',
+            maxWidth: 220,
+            textOverflow: 'ellipsis',
+            overflow: 'hidden'
+          }}
+        >
+          {value}
+        </Typography>
+      )
     },
     {
       id: 'userType',

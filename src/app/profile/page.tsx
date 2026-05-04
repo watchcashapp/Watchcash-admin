@@ -282,10 +282,31 @@ export default function ProfilePage() {
                 >
                   {formData.name?.[0]?.toUpperCase() || 'U'}
                 </Avatar>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                <Typography 
+                  variant="subtitle2" 
+                  noWrap
+                  sx={{ 
+                    fontWeight: 600, 
+                    mb: 0.5,
+                    maxWidth: '100%',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden'
+                  }}
+                >
                   {formData.name}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  noWrap
+                  sx={{ 
+                    mb: 0.5, 
+                    display: 'block',
+                    maxWidth: '100%',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden'
+                  }}
+                >
                   {formData.email}
                 </Typography>
                 {profileData?.userType && (
