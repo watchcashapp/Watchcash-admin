@@ -135,7 +135,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   if (userError || !userResponse) {
     return (
       <Box p={4}>
-        <Button startIcon={<ArrowBack />} onClick={() => router.push('/users')} sx={{ mb: 3 }}>
+        <Button startIcon={<ArrowBack />} onClick={() => router.back()} sx={{ mb: 3 }}>
           Back to User Management
         </Button>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -152,7 +152,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             <Box>
               <Button
                 startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
-                onClick={() => router.push('/users')}
+                onClick={() => router.back()}
                 sx={{ mb: 1, height: '28px', fontSize: '0.75rem', color: 'text.secondary', textTransform: 'uppercase' }}
               >
                 Back to User Management

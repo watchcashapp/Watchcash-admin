@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Box,
   Paper,
@@ -55,10 +55,13 @@ export default function AppRulesPage() {
   const { showSuccess, showError, showToast } = useToast();
   const getRowId = useCallback((row: any) => row.id, []);
   const today = new Date().toISOString().split('T')[0];
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [localSearch, setLocalSearch] = useState('');
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [fromDate, setFromDate] = useState(searchParams.get('from') || '');
+  const [toDate, setToDate] = useState(searchParams.get('to') || '');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
   const hasFilters = fromDate || toDate || searchQuery;
@@ -79,6 +82,34 @@ export default function AppRulesPage() {
       setLocalSearch('');
     }
   }, [debouncedSearchQuery]);
+
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    const urlSearch = searchParams.get('search') || '';
+    const urlFrom = searchParams.get('from') || '';
+    const urlTo = searchParams.get('to') || '';
+
+    if (debouncedSearchQuery !== urlSearch) {
+      if (debouncedSearchQuery) params.set('search', debouncedSearchQuery); else params.delete('search');
+      changed = true;
+    }
+    if (fromDate !== urlFrom) {
+      if (fromDate) params.set('from', fromDate); else params.delete('from');
+      changed = true;
+    }
+    if (toDate !== urlTo) {
+      if (toDate) params.set('to', toDate); else params.delete('to');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearchQuery, fromDate, toDate, pathname, router, searchParams]);
 
   // Data fetching
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({

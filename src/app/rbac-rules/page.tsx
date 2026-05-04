@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Box,
   Typography,
@@ -34,9 +34,12 @@ export default function RbacRulesPage() {
   const { showSuccess, showError } = useToast();
   const getRowId = useCallback((row: any) => row.id, []);
   
-  const [search, setSearch] = useState("");
-  const [localSearch, setLocalSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [search, setSearch] = useState(searchParams.get('search') || "");
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || "");
 
   // Debounce search input
   useEffect(() => {
@@ -46,6 +49,24 @@ export default function RbacRulesPage() {
 
     return () => clearTimeout(handler);
   }, [localSearch]);
+
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    const urlSearch = searchParams.get('search') || "";
+
+    if (debouncedSearch !== urlSearch) {
+      if (debouncedSearch) params.set('search', debouncedSearch); else params.delete('search');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearch, pathname, router, searchParams]);
 
   const { data: rolesData, isLoading, error } = useGetRolesQuery({ search: debouncedSearch }, {
     refetchOnMountOrArgChange: false,

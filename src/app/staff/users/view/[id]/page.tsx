@@ -59,7 +59,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       <Box>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => router.push('/staff/users')}
+          onClick={() => router.back()}
           sx={{
             mb: 3,
             '&:hover': {
@@ -84,7 +84,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Button
             startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
-            onClick={() => router.push('/staff/users')}
+            onClick={() => router.back()}
             sx={{
               height: '28px',
               fontSize: '0.75rem',

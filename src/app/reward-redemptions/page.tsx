@@ -25,7 +25,7 @@ import {
   NavigateNext,
   FileDownload,
 } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { config } from '@/config/env';
 import { DataTable, Column, useToast, TablePagination, Input, Button } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
@@ -59,14 +59,56 @@ export default function RewardRedemptionsPage() {
   const { hasPermission } = usePermissions();
   const today = new Date().toISOString().split('T')[0];
 
-  const [search, setSearch] = useState('');
-  const [localSearch, setLocalSearch] = useState('');
-  const [status, setStatus] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [limit, setLimit] = useState(10);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [fromDate, setFromDate] = useState(searchParams.get('from') || '');
+  const [toDate, setToDate] = useState(searchParams.get('to') || '');
+  const [limit, setLimit] = useState(Number(searchParams.get('limit')) || 10);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
+
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    
+    const urlSearch = searchParams.get('search') || '';
+    const urlStatus = searchParams.get('status') || '';
+    const urlFrom = searchParams.get('from') || '';
+    const urlTo = searchParams.get('to') || '';
+    const urlLimit = searchParams.get('limit') || '10';
+
+    if (search !== urlSearch) {
+      if (search) params.set('search', search); else params.delete('search');
+      changed = true;
+    }
+    if (status !== urlStatus) {
+      if (status) params.set('status', status); else params.delete('status');
+      changed = true;
+    }
+    if (fromDate !== urlFrom) {
+      if (fromDate) params.set('from', fromDate); else params.delete('from');
+      changed = true;
+    }
+    if (toDate !== urlTo) {
+      if (toDate) params.set('to', toDate); else params.delete('to');
+      changed = true;
+    }
+    if (limit.toString() !== urlLimit) {
+      if (limit !== 10) params.set('limit', limit.toString()); else params.delete('limit');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [search, status, fromDate, toDate, limit, pathname, router, searchParams]);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewForm, setReviewForm] = useState<{
     decision: 'approve' | 'reject' | 'hold';
@@ -245,11 +287,11 @@ export default function RewardRedemptionsPage() {
       align: 'right',
       minWidth: 100,
       format: (value: number) => (
-        <Typography 
-          sx={{ 
-            fontWeight: 600, 
-            color: (theme: any) => theme.palette.mode === 'dark' ? 'secondary.main' : '#213350', 
-            fontSize: '0.8rem' 
+        <Typography
+          sx={{
+            fontWeight: 600,
+            color: (theme: any) => theme.palette.mode === 'dark' ? 'secondary.main' : '#213350',
+            fontSize: '0.8rem'
           }}
         >
           {value?.toLocaleString()}
@@ -361,7 +403,7 @@ export default function RewardRedemptionsPage() {
             <Grid size={{ xs: 12, sm: 12, md: 4.5 }}>
               <Input
                 label="Search"
-                placeholder="ID or User ID"
+                placeholder="ID or User name"
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 slotProps={{
@@ -385,9 +427,9 @@ export default function RewardRedemptionsPage() {
                 SelectProps={{ displayEmpty: true }}
                 InputLabelProps={{ shrink: true }}
                 slotProps={{
-                  select: { 
+                  select: {
                     displayEmpty: true,
-                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
+                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' }
                   },
                 }}
               >
@@ -409,7 +451,7 @@ export default function RewardRedemptionsPage() {
                     onChange={(e) => setFromDate(e.target.value)}
                     InputLabelProps={{ shrink: true }}
                     slotProps={{
-                      input: { 
+                      input: {
                         sx: { fontSize: '0.75rem', height: '32px' },
                       },
                       htmlInput: {
@@ -431,7 +473,7 @@ export default function RewardRedemptionsPage() {
                     onChange={(e) => setToDate(e.target.value)}
                     InputLabelProps={{ shrink: true }}
                     slotProps={{
-                      input: { 
+                      input: {
                         sx: { fontSize: '0.75rem', height: '32px' },
                       },
                       htmlInput: {

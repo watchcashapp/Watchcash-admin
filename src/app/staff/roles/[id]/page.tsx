@@ -133,7 +133,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         <Button
           variant="text"
           startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
-          onClick={() => router.push('/staff/roles')}
+          onClick={() => router.back()}
           sx={{ 
             mb: 3, 
             height: '28px', 
@@ -159,7 +159,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
         <Button
           variant="text"
           startIcon={<ArrowBack sx={{ fontSize: '1rem !important' }} />}
-          onClick={() => router.push('/staff/roles')}
+          onClick={() => router.back()}
           sx={{ 
             mb: { xs: 2, sm: 3 }, 
             height: '28px', 
@@ -283,7 +283,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
               >
                 <Button
                   variant="outlined"
-                  onClick={() => router.push('/staff/roles')}
+                  onClick={() => router.back()}
                   disabled={isUpdating}
                   sx={{
                     width: { xs: '100%', sm: 'auto' },

@@ -9,14 +9,17 @@ import {
   IconButton,
 } from '@mui/material';
 import { Add, NavigateBefore, NavigateNext, Search } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { DataTable, PermissionGuard, Button, Input } from '@/components/shared';
 import { useGetRolesQuery, Role } from '@/store/api/rbacApi';
 
 export default function RolesPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -28,6 +31,24 @@ export default function RolesPage() {
 
     return () => clearTimeout(handler);
   }, [search]);
+  
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    const urlSearch = searchParams.get('search') || "";
+
+    if (debouncedSearch !== urlSearch) {
+      if (debouncedSearch) params.set('search', debouncedSearch); else params.delete('search');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearch, pathname, router, searchParams]);
 
   const { data: rolesData, isLoading } = useGetRolesQuery({ search: debouncedSearch });
 

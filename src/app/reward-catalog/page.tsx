@@ -27,6 +27,7 @@ import {
 } from '@mui/material';
 import { Search, CardGiftcard, Refresh, UploadFile, Close } from '@mui/icons-material';
 import dynamic from 'next/dynamic';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared';
 
 const FileUploadZone = dynamic(() => import('@/components/shared/FileUploadZone'), {
@@ -87,11 +88,15 @@ function CatalogSkeleton() {
 
 export default function RewardCatalogPage() {
   const { showSuccess, showError } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const [search, setSearch] = useState('');
-  const [localSearch, setLocalSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState('');
-  const [currency, setCurrency] = useState('');
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [currency, setCurrency] = useState(searchParams.get('currency') || '');
   const [limit] = useState(8);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [allRewards, setAllRewards] = useState<RewardCatalog[]>([]);
@@ -113,6 +118,34 @@ export default function RewardCatalogPage() {
       setLocalSearch('');
     }
   }, [debouncedSearch]);
+
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    const urlSearch = searchParams.get('search') || "";
+    const urlStatus = searchParams.get('status') || "";
+    const urlCurrency = searchParams.get('currency') || "";
+
+    if (debouncedSearch !== urlSearch) {
+      if (debouncedSearch) params.set('search', debouncedSearch); else params.delete('search');
+      changed = true;
+    }
+    if (status !== urlStatus) {
+      if (status) params.set('status', status); else params.delete('status');
+      changed = true;
+    }
+    if (currency !== urlCurrency) {
+      if (currency) params.set('currency', currency); else params.delete('currency');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearch, status, currency, pathname, router, searchParams]);
 
   const { data, isLoading, isFetching, refetch } = useGetRewardCatalogsQuery({
     search: debouncedSearch,

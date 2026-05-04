@@ -19,25 +19,28 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
 import { config } from '@/config/env';
 import { Search, NavigateBefore, NavigateNext, FileDownload } from '@mui/icons-material';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { getTokenFromCookie } from "@/utils/auth";
 
 export default function AuditLogsPage() {
     const router = useRouter();
     const { showSuccess, showError } = useToast();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
     const [limit, setLimit] = useState(8);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
     const today = new Date().toISOString().split('T')[0];
 
     // Filters
-    const [actionSearch, setActionSearch] = useState('');
-    const [localActionSearch, setLocalActionSearch] = useState('');
-    const [targetUserSearch, setTargetUserSearch] = useState('');
-    const [localTargetUserSearch, setLocalTargetUserSearch] = useState('');
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
+    const [actionSearch, setActionSearch] = useState(searchParams.get('action') || '');
+    const [localActionSearch, setLocalActionSearch] = useState(searchParams.get('action') || '');
+    const [targetUserSearch, setTargetUserSearch] = useState(searchParams.get('targetUser') || '');
+    const [localTargetUserSearch, setLocalTargetUserSearch] = useState(searchParams.get('targetUser') || '');
+    const [fromDate, setFromDate] = useState<string>(searchParams.get('from') || '');
+    const [toDate, setToDate] = useState<string>(searchParams.get('to') || '');
 
     // Debounce Action Search
     React.useEffect(() => {
@@ -55,11 +58,43 @@ export default function AuditLogsPage() {
         return () => clearTimeout(handler);
     }, [localTargetUserSearch]);
 
-    // Sync local searches with global state
     React.useEffect(() => {
         if (actionSearch === '') setLocalActionSearch('');
         if (targetUserSearch === '') setLocalTargetUserSearch('');
     }, [actionSearch, targetUserSearch]);
+
+    // Sync state with URL
+    React.useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        
+        let changed = false;
+        const urlAction = searchParams.get('action') || '';
+        const urlTargetUser = searchParams.get('targetUser') || '';
+        const urlFrom = searchParams.get('from') || '';
+        const urlTo = searchParams.get('to') || '';
+
+        if (actionSearch !== urlAction) {
+            if (actionSearch) params.set('action', actionSearch); else params.delete('action');
+            changed = true;
+        }
+        if (targetUserSearch !== urlTargetUser) {
+            if (targetUserSearch) params.set('targetUser', targetUserSearch); else params.delete('targetUser');
+            changed = true;
+        }
+        if (fromDate !== urlFrom) {
+            if (fromDate) params.set('from', fromDate); else params.delete('from');
+            changed = true;
+        }
+        if (toDate !== urlTo) {
+            if (toDate) params.set('to', toDate); else params.delete('to');
+            changed = true;
+        }
+
+        if (changed) {
+            const queryString = params.toString();
+            router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+        }
+    }, [actionSearch, targetUserSearch, fromDate, toDate, pathname, router, searchParams]);
 
     React.useEffect(() => {
         reset();

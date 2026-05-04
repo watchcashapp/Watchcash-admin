@@ -174,7 +174,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                 '&:hover': { color: 'primary.main' },
                                 width: 'fit-content'
                             }}
-                            onClick={() => router.push('/reward-redemptions')}
+                            onClick={() => router.back()}
                         >
                             <ArrowBack sx={{ fontSize: 14 }} />
                             <Typography variant="caption" sx={{ fontWeight: 600 }}>Back</Typography>

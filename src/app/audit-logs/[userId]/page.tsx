@@ -143,7 +143,7 @@ export default function AuditLogsUserPage() {
             <Box mb={1.5}>
                 <Button
                     startIcon={<ArrowBack />}
-                    onClick={() => router.push('/audit-logs')}
+                    onClick={() => router.back()}
                     sx={{
                         mb: 1,
                         color: 'text.secondary',

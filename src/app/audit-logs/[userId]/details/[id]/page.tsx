@@ -101,7 +101,7 @@ export default function AuditLogDetailPage() {
                 </Typography>
                 <Button
                     startIcon={<ArrowBack />}
-                    onClick={() => router.push('/audit-logs')}
+                    onClick={() => router.back()}
                 >
                     Back to Audit Logs
                 </Button>

@@ -253,7 +253,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       <Box>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => router.push('/sessions')}
+          onClick={() => router.back()}
           sx={{ mb: 3 }}
         >
           Back to Sessions
@@ -299,7 +299,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       <Box>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => router.push('/sessions')}
+          onClick={() => router.back()}
           sx={{ mb: 3 }}
         >
           Back to Sessions
@@ -381,7 +381,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => router.push('/sessions')}
+          onClick={() => router.back()}
           sx={{
             height: '28px',
             fontSize: '0.75rem',

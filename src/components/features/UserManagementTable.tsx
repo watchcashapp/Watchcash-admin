@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { config } from "@/config/env";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { ConfirmDialog, useToast, Button, Input, TablePagination } from "@/components/shared";
@@ -57,15 +57,61 @@ export default function UserManagementTable({
   const { showSuccess, showError } = useToast();
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
   const { hasPermission } = usePermissions();
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
-  const [localSearch, setLocalSearch] = useState("");
-  const [isActive, setIsActive] = useState<string>("");
-  const [userType, setUserType] = useState<string>(defaultUserType);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [limit, setLimit] = useState(Number(searchParams.get('limit')) || 10);
+  const [search, setSearch] = useState(searchParams.get('search') || "");
+  const [localSearch, setLocalSearch] = useState(searchParams.get('search') || "");
+  const [isActive, setIsActive] = useState<string>(searchParams.get('isActive') || "");
+  const [userType, setUserType] = useState<string>(searchParams.get('userType') || defaultUserType);
+  const [fromDate, setFromDate] = useState(searchParams.get('from') || "");
+  const [toDate, setToDate] = useState(searchParams.get('to') || "");
   const today = new Date().toISOString().split('T')[0];
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
+
+  // Sync state with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    const urlSearch = searchParams.get('search') || "";
+    const urlIsActive = searchParams.get('isActive') || "";
+    const urlUserType = searchParams.get('userType') || defaultUserType;
+    const urlFrom = searchParams.get('from') || "";
+    const urlTo = searchParams.get('to') || "";
+    const urlLimit = searchParams.get('limit') || "10";
+
+    if (search !== urlSearch) {
+      if (search) params.set('search', search); else params.delete('search');
+      changed = true;
+    }
+    if (isActive !== urlIsActive) {
+      if (isActive !== "") params.set('isActive', isActive); else params.delete('isActive');
+      changed = true;
+    }
+    if (userType !== urlUserType) {
+      if (userType !== defaultUserType) params.set('userType', userType); else params.delete('userType');
+      changed = true;
+    }
+    if (fromDate !== urlFrom) {
+      if (fromDate) params.set('from', fromDate); else params.delete('from');
+      changed = true;
+    }
+    if (toDate !== urlTo) {
+      if (toDate) params.set('to', toDate); else params.delete('to');
+      changed = true;
+    }
+    if (limit.toString() !== urlLimit) {
+      if (limit !== 10) params.set('limit', limit.toString()); else params.delete('limit');
+      changed = true;
+    }
+
+    if (changed) {
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    }
+  }, [search, isActive, userType, fromDate, toDate, limit, defaultUserType, pathname, router, searchParams]);
   
   const hasFilters = useMemo(() => 
     !!(search || isActive !== "" || userType !== defaultUserType || fromDate || toDate),
