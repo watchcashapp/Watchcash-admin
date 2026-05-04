@@ -17,6 +17,8 @@ import {
 import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { useToast, Button, Input, TablePagination } from "@/components/shared";
+import { useCursorPagination } from "@/hooks/useCursorPagination";
+import { useGetLoginHistoryQuery, LoginHistory } from "@/store/api/usersApi";
 
 interface LoginHistoryTableProps {
     title?: string;

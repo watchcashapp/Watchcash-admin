@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setUser, setAuthLoading, setInitialized, setAuthenticatedWithTokens } from '@/store/slices/authSlice';
+import { setUser, setAuthLoading, setInitialized, setAuthenticatedWithTokens, clearAuth } from '@/store/slices/authSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { getTokenFromCookie, decodeAccessToken } from '@/utils/auth';
@@ -80,11 +80,7 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
       // If profile fetch fails (meaning refresh also failed or wasn't possible),
       // we must clear auth to trigger a redirect.
       dispatch(setInitialized(true));
-      dispatch(setUser({
-        accessToken: null,
-        refreshToken: null,
-        user: null as any,
-      }));
+      dispatch(clearAuth());
       // Also clear cookies manually just in case
       if (typeof window !== 'undefined') {
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';

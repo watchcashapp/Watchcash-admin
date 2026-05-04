@@ -5,7 +5,7 @@ import { TextField, TextFieldProps, IconButton, InputAdornment } from '@mui/mate
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 export interface InputProps extends Omit<TextFieldProps, 'variant'> {
-  label: string;
+  label?: string;
   error?: boolean;
   helperText?: string;
   fullWidth?: boolean;

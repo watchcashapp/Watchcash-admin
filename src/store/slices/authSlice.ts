@@ -54,7 +54,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       
       // Mark as full profile loaded if explicitly told or if permissions exist (even empty array)
-      if (action.payload.isFullProfile || action.payload.user.permissions !== undefined) {
+      if (action.payload.isFullProfile || action.payload.user?.permissions !== undefined) {
         state.isFullProfileLoaded = true;
       }
     },

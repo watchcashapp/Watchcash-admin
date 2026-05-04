@@ -55,9 +55,9 @@ export default function GlobalError({
               {error?.message ? <Box component="span" sx={{ display: 'block', mt: 1, fontSize: '0.875rem', opacity: 0.8 }}>Details: {error.message}</Box> : null}
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Button
-                onClick={() => reset()}
+                onClick={() => window.location.reload()}
                 variant="contained"
                 startIcon={<Refresh />}
                 sx={{
@@ -76,26 +76,6 @@ export default function GlobalError({
                 }}
               >
                 Reload Application
-              </Button>
-              
-              <Button
-                onClick={() => window.location.href = '/dashboard'}
-                variant="outlined"
-                sx={{
-                  borderRadius: '8px',
-                  px: 4,
-                  py: 1.5,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderColor: '#e5e7eb',
-                  color: '#4b5563',
-                  '&:hover': {
-                    borderColor: '#213350',
-                    bgcolor: 'rgba(33, 51, 80, 0.05)',
-                  }
-                }}
-              >
-                Go to Dashboard
               </Button>
             </Box>
           </Box>
