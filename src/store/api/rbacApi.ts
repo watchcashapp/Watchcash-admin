@@ -51,8 +51,15 @@ export const rbacApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Roles', 'Permissions'],
   endpoints: (builder) => ({
-    getRoles: builder.query<RolesResponse, void>({
-      query: () => '/admin/rbac/roles',
+    getRoles: builder.query<RolesResponse, { search?: string } | void>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (typeof params === 'object' && params?.search) {
+          queryParams.append('search', params.search);
+        }
+        const queryString = queryParams.toString();
+        return `/admin/rbac/roles${queryString ? `?${queryString}` : ''}`;
+      },
       providesTags: ['Roles'],
     }),
     getRoleById: builder.query<{ status: string; data: Role }, string>({

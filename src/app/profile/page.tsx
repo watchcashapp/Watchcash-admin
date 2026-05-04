@@ -360,7 +360,7 @@ export default function ProfilePage() {
 
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Full Name"
                       name="name"
                       value={formData.name}
@@ -371,20 +371,8 @@ export default function ProfilePage() {
                       required
                       fullWidth
                       size="small"
-                      slotProps={{
-                        input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                        inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                      }}
-                      sx={{
-                        '& .MuiInputLabel-root': {
-                          transform: 'translate(14px, -6px) scale(0.75)',
-                          bgcolor: 'background.paper',
-                          px: 0.5,
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          transform: 'translate(14px, -6px) scale(0.75)',
-                        }
-                      }}
+                      maxLength={50}
+                      showCount
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>

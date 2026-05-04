@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -70,14 +70,18 @@ export default function AddUserPage() {
     }
   }, [permissionsResponse]);
 
-  const handleRoleToggle = (roleId: string) => {
+  const handleRoleToggle = useCallback((roleId: string) => {
     setFormData(prev => ({
       ...prev,
       roles: prev.roles.includes(roleId)
         ? prev.roles.filter(id => id !== roleId)
         : [...prev.roles, roleId]
     }));
-  };
+  }, []);
+
+  const handlePermissionsChange = useCallback((value: string[]) => {
+    setFormData(prev => ({ ...prev, permissions: value }));
+  }, []);
 
   const handleInputChange = (field: 'name' | 'email', value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -174,6 +178,43 @@ export default function AddUserPage() {
     }
   };
 
+  const rolesContent = useMemo(() => (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: 1,
+      }}
+    >
+      {rolesResponse?.data?.map((role) => (
+        <FormControlLabel
+          key={role.id}
+          control={
+            <Checkbox
+              checked={formData.roles.includes(role.id)}
+              onChange={() => handleRoleToggle(role.id)}
+              sx={{
+                color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
+                '&.Mui-checked': {
+                  color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
+                },
+                py: 0.5,
+              }}
+              disabled={isCreating}
+              />
+          }
+          label={role.name}
+          sx={{
+            m: 0,
+            '& .MuiFormControlLabel-label': {
+              fontSize: '0.9rem',
+            },
+          }}
+        />
+      ))}
+    </Box>
+  ), [rolesResponse?.data, formData.roles, isCreating]);
+
   if (loadingPermissions || loadingRoles) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -237,6 +278,8 @@ export default function AddUserPage() {
                 required
                 placeholder="Enter user name"
                 disabled={isCreating}
+                maxLength={50}
+                showCount
                 />
             </Grid>
 
@@ -270,40 +313,7 @@ export default function AddUserPage() {
                 <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
                   Roles <span style={{ color: '#d32f2f' }}>*</span>
                 </Typography>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                    gap: 1,
-                  }}
-                >
-                  {rolesResponse?.data?.map((role) => (
-                    <FormControlLabel
-                      key={role.id}
-                      control={
-                        <Checkbox
-                          checked={formData.roles.includes(role.id)}
-                          onChange={() => handleRoleToggle(role.id)}
-                          sx={{
-                            color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
-                            '&.Mui-checked': {
-                              color: (theme) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
-                            },
-                            py: 0.5,
-                          }}
-                          disabled={isCreating}
-                          />
-                      }
-                      label={role.name}
-                      sx={{
-                        m: 0,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.9rem',
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
+                {rolesContent}
               </Box>
             </Grid>
 
@@ -324,7 +334,7 @@ export default function AddUserPage() {
                 <GroupedPermissionsSelect
                   groupedPermissions={permissionsResponse?.data || {}}
                   value={formData.permissions}
-                  onChange={(value) => setFormData({ ...formData, permissions: value })}
+                  onChange={handlePermissionsChange}
                   disabled={isCreating}
                 />
               </Box>

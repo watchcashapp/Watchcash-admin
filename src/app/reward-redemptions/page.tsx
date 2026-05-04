@@ -358,49 +358,23 @@ export default function RewardRedemptionsPage() {
           }}
         >
           <Grid container spacing={1.5} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <Tooltip title="Future dates are not allowed" arrow>
-                <Box>
-                  <Input
-                    fullWidth
-                    type="date"
-                    label="From"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    slotProps={{
-                      input: { 
-                        sx: { fontSize: '0.75rem', height: '32px' },
-                      },
-                      htmlInput: {
-                        max: today
-                      }
-                    }}
-                  />
-                </Box>
-              </Tooltip>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <Tooltip title="Future dates are not allowed" arrow>
-                <Box>
-                  <Input
-                    fullWidth
-                    type="date"
-                    label="To"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    slotProps={{
-                      input: { 
-                        sx: { fontSize: '0.75rem', height: '32px' },
-                      },
-                      htmlInput: {
-                        max: today
-                      }
-                    }}
-                  />
-                </Box>
-              </Tooltip>
+            <Grid size={{ xs: 12, sm: 12, md: 4.5 }}>
+              <Input
+                label="Search"
+                placeholder="ID or User ID"
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                slotProps={{
+                  input: {
+                    sx: { fontSize: '0.75rem', height: '32px' },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <Input
@@ -424,23 +398,49 @@ export default function RewardRedemptionsPage() {
                 <MenuItem value="PROCESSED" sx={{ fontSize: '0.75rem' }}>Processed</MenuItem>
               </Input>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 5 }}>
-              <Input
-                label="Search"
-                placeholder="ID or User ID"
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                slotProps={{
-                  input: {
-                    sx: { fontSize: '0.75rem', height: '32px' },
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+            <Grid size={{ xs: 12, sm: 6, md: 2.25 }}>
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="From"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2.25 }}>
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="To"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, md: 1 }}>
               <Button
@@ -539,7 +539,18 @@ export default function RewardRedemptionsPage() {
                 </Box>
               </Box>
               <Box mb={3}>
-                <TextField fullWidth multiline rows={3} label="Internal Note" value={reviewForm.admin_note} onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })} disabled={isReviewing} placeholder="Add admin note..." slotProps={{ inputLabel: { shrink: true } }} />
+                <Input
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Internal Note"
+                  value={reviewForm.admin_note}
+                  onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })}
+                  disabled={isReviewing}
+                  placeholder="Add admin note..."
+                  maxLength={500}
+                  showCount
+                />
               </Box>
             </Box>
             <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">

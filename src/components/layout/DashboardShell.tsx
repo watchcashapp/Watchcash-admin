@@ -229,6 +229,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     try {
       await markAllAsRead();
       showSuccess('All notifications marked as read');
+      handleNotificationMenuClose();
     } catch (error: any) {
       showError(error?.data?.message || error?.message || 'Failed to mark notifications');
     }

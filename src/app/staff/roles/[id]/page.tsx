@@ -215,6 +215,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 helperText={errors.name}
                 required
                 placeholder="e.g., Content Manager"
+                maxLength={50}
+                showCount
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
                   inputLabel: { sx: { fontSize: '0.75rem' } }
@@ -252,6 +254,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
                 required
                 fullWidth
                 placeholder="Describe the role..."
+                maxLength={500}
+                showCount
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem' } },
                   inputLabel: { sx: { fontSize: '0.75rem' } }

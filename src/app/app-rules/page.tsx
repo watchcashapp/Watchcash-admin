@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -20,8 +20,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Add, NavigateBefore, NavigateNext, Search, Upload, Image as ImageIcon } from "@mui/icons-material";
-import DataTable, { Column } from "@/components/shared/DataTable";
-import { useToast, ConfirmDialog, MultiSelect, PermissionGuard, Button, Input } from "@/components/shared";
+import { useToast, ConfirmDialog, MultiSelect, PermissionGuard, Button, Input, DataTable } from "@/components/shared";
+import { Column } from "@/components/shared/DataTable";
 import {
   useGetAppRulesQuery,
   useGetAppRuleByIdQuery,
@@ -32,11 +32,11 @@ import {
   AppRule,
   CreateAppRuleRequest,
 } from "@/store/api/appRulesApi";
-import { useGetPermissionsQuery } from "@/store/api/rbacApi";
 
-interface FormData extends CreateAppRuleRequest { }
 
-const initialFormData: FormData = {
+interface AppRuleFormData extends CreateAppRuleRequest { }
+
+const initialFormData: AppRuleFormData = {
   appName: "",
   icon: "", 
   pointsPerMinute: 1,
@@ -53,6 +53,7 @@ const initialFormData: FormData = {
 export default function AppRulesPage() {
   const router = useRouter();
   const { showSuccess, showError, showToast } = useToast();
+  const getRowId = useCallback((row: any) => row.id, []);
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -95,8 +96,8 @@ export default function AppRulesPage() {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<AppRule | null>(null);
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [formData, setFormData] = useState<AppRuleFormData>(initialFormData);
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof AppRuleFormData, string>>>({});
   const [iconPreview, setIconPreview] = useState<string>(""); // For icon preview
   const [iconBinary, setIconBinary] = useState<File | null>(null); // Store binary file
 
@@ -208,13 +209,12 @@ export default function AppRulesPage() {
     );
   }, [formData, editingRule, ruleDetail]);
 
-  const handleOpenDialog = (rule?: AppRule) => {
+  const handleOpenDialog = useCallback((rule?: AppRule) => {
     if (rule) {
       setEditingRule(rule);
-      // Pre-fill from the list data first while the detail is fetching
       setFormData({
         appName: rule.appName,
-        icon: rule.icon || "", // Icon field
+        icon: rule.icon || "",
         pointsPerMinute: rule.pointsPerMinute,
         dailyHardCap: rule.dailyHardCap,
         dailySoftCap: rule.dailySoftCap,
@@ -225,7 +225,6 @@ export default function AppRulesPage() {
         enabled: rule.enabled,
         permissions: rule.permissions || [],
       });
-      // Set initial icon preview from iconUrl if available in the list data
       setIconPreview((rule as any).iconUrl || rule.icon || "");
     } else {
       setEditingRule(null);
@@ -233,26 +232,24 @@ export default function AppRulesPage() {
     }
     setFormErrors({});
     setOpenDialog(true);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setOpenDialog(false);
     setEditingRule(null);
     setFormData(initialFormData);
     setFormErrors({});
-    setIconPreview(""); // Reset icon preview
-    setIconBinary(null); // Reset binary file
-  };
+    setIconPreview("");
+    setIconBinary(null);
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-
     let processedValue: any;
 
     if (type === 'checkbox') {
       processedValue = checked;
     } else if (type === 'number') {
-      // Convert to number and handle empty string
       processedValue = value === '' ? '' : Number(value);
     } else {
       processedValue = value;
@@ -263,13 +260,13 @@ export default function AppRulesPage() {
       [name]: processedValue,
     }));
 
-    if (formErrors[name as keyof FormData]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
-  };
+    setFormErrors(prev => {
+      if (!prev[name as keyof AppRuleFormData]) return prev;
+      const newErrors = { ...prev };
+      delete newErrors[name as keyof AppRuleFormData];
+      return newErrors;
+    });
+  }, []);
 
   const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -302,7 +299,7 @@ export default function AppRulesPage() {
   };
 
   const validateForm = (): boolean => {
-    const errors: Partial<Record<keyof FormData, string>> = {};
+    const errors: Partial<Record<keyof AppRuleFormData, string>> = {};
 
     if (!formData.appName.trim()) {
       errors.appName = "App name is required";
@@ -386,12 +383,12 @@ export default function AppRulesPage() {
     }
   };
 
-  const handleDelete = async (rule: AppRule) => {
+  const handleDelete = useCallback((rule: AppRule) => {
     setConfirmDialog({
       open: true,
       ruleToDelete: rule,
     });
-  };
+  }, []);
 
   const handleConfirmDelete = async () => {
     if (!confirmDialog.ruleToDelete) return;
@@ -410,7 +407,7 @@ export default function AppRulesPage() {
     setConfirmDialog({ open: false, ruleToDelete: null });
   };
 
-  const handleToggle = async (rule: AppRule) => {
+  const handleToggle = useCallback(async (rule: AppRule) => {
     try {
       await toggleStatus({ id: rule.id, enabled: !rule.enabled }).unwrap();
       showSuccess(`App rule ${rule.enabled ? 'disabled' : 'enabled'} successfully!`);
@@ -418,7 +415,7 @@ export default function AppRulesPage() {
       const errorMessage = error?.data?.message || error?.message || 'Toggle failed';
       showError(errorMessage);
     }
-  };
+  }, [toggleStatus, showSuccess, showError]);
 
   return (
     <PermissionGuard permission="app_rules:list">
@@ -472,6 +469,25 @@ export default function AppRulesPage() {
           }}
         >
           <Grid container spacing={1.5} alignItems="center">
+            <Grid size={{ xs: 12, sm: 12, md: 5 }}>
+              <Input
+                fullWidth
+                label="Search"
+                placeholder="Search by Rule Name"
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                slotProps={{
+                  input: {
+                    sx: { fontSize: '0.75rem', height: '32px' },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Tooltip title="Future dates are not allowed" arrow>
                 <Box>
@@ -518,25 +534,6 @@ export default function AppRulesPage() {
                 </Box>
               </Tooltip>
             </Grid>
-            <Grid size={{ xs: 12, sm: 12, md: 5 }}>
-              <Input
-                fullWidth
-                label="Search"
-                placeholder="Search by Rule Name"
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                slotProps={{
-                  input: {
-                    sx: { fontSize: '0.75rem', height: '32px' },
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            </Grid>
             <Grid size={{ xs: 12, md: 1 }}>
               <Button
                 fullWidth
@@ -574,7 +571,7 @@ export default function AppRulesPage() {
           onEdit={handleOpenDialog}
           onDelete={handleDelete}
           onToggle={handleToggle}
-          getRowId={(row: any) => row.id}
+          getRowId={getRowId}
         />
 
         {/* Pagination */}
@@ -610,6 +607,8 @@ export default function AppRulesPage() {
                   required
                   fullWidth
                   disabled={isCreating || isUpdating || isFetchingDetail}
+                  maxLength={50}
+                  showCount
                 />
               </Grid>
               

@@ -514,6 +514,8 @@ export default function StaffPage() {
                   helperText={formErrors.name}
                   required
                   fullWidth
+                  maxLength={50}
+                  showCount
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>

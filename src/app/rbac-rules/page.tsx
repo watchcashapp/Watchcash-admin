@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -14,9 +14,11 @@ import {
   CircularProgress,
   Alert,
   TextField,
+  Paper,
+  InputAdornment,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
-import { DataTable, useToast, ConfirmDialog } from "@/components/shared";
+import { Add, Search } from "@mui/icons-material";
+import { DataTable, useToast, ConfirmDialog, Input, PermissionGuard } from "@/components/shared";
 import {
   useGetRolesQuery,
   useCreateRoleMutation,
@@ -25,14 +27,27 @@ import {
   Role,
 } from "@/store/api/rbacApi";
 import { usePermissions } from "@/hooks/usePermissions";
-import { PermissionGuard } from "@/components/shared/PermissionGuard";
 
 export default function RbacRulesPage() {
   const router = useRouter();
   const { hasPermission } = usePermissions();
   const { showSuccess, showError } = useToast();
+  const getRowId = useCallback((row: any) => row.id, []);
   
-  const { data: rolesData, isLoading, error } = useGetRolesQuery(undefined, {
+  const [search, setSearch] = useState("");
+  const [localSearch, setLocalSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(localSearch);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [localSearch]);
+
+  const { data: rolesData, isLoading, error } = useGetRolesQuery({ search: debouncedSearch }, {
     refetchOnMountOrArgChange: false,
   });
   
@@ -54,7 +69,7 @@ export default function RbacRulesPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleOpenDialog = (role?: Role) => {
+  const handleOpenDialog = useCallback((role?: Role) => {
     if (role) {
       setEditingRole(role);
       setFormData({
@@ -72,9 +87,9 @@ export default function RbacRulesPage() {
     }
     setErrors({});
     setOpenDialog(true);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setOpenDialog(false);
     setEditingRole(null);
     setFormData({
@@ -83,7 +98,7 @@ export default function RbacRulesPage() {
       description: "",
     });
     setErrors({});
-  };
+  }, []);
 
   const generateCode = (name: string): string => {
     return name
@@ -93,14 +108,25 @@ export default function RbacRulesPage() {
       .replace(/\s+/g, '_');
   };
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
-    setFormData({
-      ...formData,
+    const newCode = editingRole ? formData.code : generateCode(newName);
+    
+    setFormData(prev => ({
+      ...prev,
       name: newName,
-      code: editingRole ? formData.code : generateCode(newName),
+      code: newCode,
+    }));
+
+    // Clear errors as user types
+    setErrors(prev => {
+      if (!prev.name && !prev.code) return prev;
+      const newErrs = { ...prev };
+      if (newName.trim()) delete newErrs.name;
+      if (newCode.trim()) delete newErrs.code;
+      return newErrs;
     });
-  };
+  }, [editingRole, formData.code]);
 
   const isChanged = useMemo(() => {
     if (!editingRole) return true; // Always allow create
@@ -209,11 +235,38 @@ export default function RbacRulesPage() {
           </Button>
         </Box>
 
+        <Paper sx={{
+          p: 1.5,
+          mb: 2,
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}>
+          <Input
+            label="Search Roles"
+            placeholder="Search by Name or Code"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            slotProps={{
+              input: {
+                sx: { fontSize: '0.75rem', height: '32px' },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ fontSize: '1rem', color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ width: { xs: '100%', sm: 300 } }}
+          />
+        </Paper>
+
         <DataTable
           columns={columns}
           data={rolesData?.data || []}
-          getRowId={(row: any) => row.id}
-          onEdit={(row: any) => handleOpenDialog(row)}
+          getRowId={getRowId}
+          onEdit={handleOpenDialog}
         />
 
         <Dialog
@@ -245,7 +298,7 @@ export default function RbacRulesPage() {
           <DialogContent>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                <TextField
+                <Input
                   disabled={isCreating || isUpdating}
                   label="Name"
                   value={formData.name}
@@ -254,6 +307,8 @@ export default function RbacRulesPage() {
                   helperText={errors.name}
                   required
                   fullWidth
+                  maxLength={50}
+                  showCount
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -282,17 +337,28 @@ export default function RbacRulesPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   disabled={isCreating || isUpdating}
                   label="Description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData({ ...formData, description: val });
+                    if (errors.description && val.trim()) {
+                      setErrors(prev => {
+                        const { description, ...rest } = prev;
+                        return rest;
+                      });
+                    }
+                  }}
                   error={!!errors.description}
                   helperText={errors.description}
                   required
                   fullWidth
                   multiline
                   rows={3}
+                  maxLength={500}
+                  showCount
                 />
               </Grid>
             </Grid>

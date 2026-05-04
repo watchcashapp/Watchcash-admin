@@ -195,6 +195,8 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           placeholder="Please provide a detailed reason for banning this user..."
           sx={{ fontSize: "0.8rem" }}
           disabled={isLoading}
+          maxLength={500}
+          showCount
         />
       </DialogContent>
 

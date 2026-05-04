@@ -12,6 +12,8 @@ export interface InputProps extends Omit<TextFieldProps, 'variant'> {
   size?: 'small' | 'medium';
   preventLeadingZeros?: boolean;
   preventNegative?: boolean;
+  maxLength?: number;
+  showCount?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -25,7 +27,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     sx,
     preventLeadingZeros = true,
     preventNegative = true,
+    maxLength,
+    showCount,
     onChange,
+    value,
     ...props
   }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -50,9 +55,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const handleInternalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!onChange) return;
 
+      let val = e.target.value;
+
+      // Enforce maxLength
+      if (maxLength !== undefined && val.length > maxLength) {
+        val = val.substring(0, maxLength);
+      }
+
       if (type === 'number') {
-        let val = e.target.value;
-        
         // Prevent negative values
         if (preventNegative && val.startsWith('-')) {
           val = val.replace('-', '');
@@ -63,32 +73,35 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           val = val.replace(/^0+/, '');
           if (val === '') val = '0';
         }
-
-        // Create a new event-like object to pass to the parent
-        const newEvent = {
-          ...e,
-          target: {
-            ...e.target,
-            name: props.name || '',
-            value: val
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        
-        onChange(newEvent);
-      } else {
-        onChange(e);
       }
+
+      // Create a new event-like object to pass to the parent
+      const newEvent = {
+        ...e,
+        target: {
+          ...e.target,
+          name: props.name || '',
+          value: val
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      
+      onChange(newEvent);
     };
+
+    const charCount = typeof value === 'string' ? value.length : 0;
+    const countDisplay = showCount && maxLength ? `${charCount}/${maxLength}` : undefined;
+    const finalHelperText = helperText || countDisplay;
 
     return (
       <TextField
         ref={ref}
         label={label}
         error={error}
-        helperText={helperText}
+        helperText={finalHelperText}
         fullWidth={fullWidth}
         size={size}
         variant="outlined"
+        value={value}
         type={isPasswordField && mounted && showPassword ? 'text' : type}
         onChange={handleInternalChange}
         onKeyDown={handleKeyDown}
@@ -112,6 +125,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           },
           htmlInput: {
             suppressHydrationWarning: true,
+            maxLength: maxLength,
           },
         }}
         sx={{
@@ -121,6 +135,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           },
           '& .MuiInputLabel-root': {
             fontSize: '14px',
+          },
+          '& .MuiFormHelperText-root': {
+            display: 'flex',
+            justifyContent: countDisplay && !helperText ? 'flex-end' : 'space-between',
+            margin: '4px 0 0',
           },
           ...sx
         }}

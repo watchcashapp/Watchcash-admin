@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   FormControl,
@@ -31,7 +31,7 @@ interface GroupedPermissionsSelectProps {
   disabled?: boolean;
 }
 
-export default function GroupedPermissionsSelect({
+function GroupedPermissionsSelect({
   label,
   groupedPermissions,
   value,
@@ -274,3 +274,4 @@ export default function GroupedPermissionsSelect({
     </FormControl>
   );
 }
+export default React.memo(GroupedPermissionsSelect);

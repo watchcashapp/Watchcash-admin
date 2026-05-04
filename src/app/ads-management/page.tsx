@@ -624,17 +624,18 @@ export default function AdsManagementPage() {
         <DialogContent dividers>
           <Grid container spacing={2} sx={{ mt: 0.5 }}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <Input
                 fullWidth
                 label="Provider Name"
                 value={providerForm.provider_name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., Google AdMob"
-                size="small"
                 required
                 error={providerTouched.has('provider_name') && !providerForm.provider_name.trim()}
                 helperText={providerTouched.has('provider_name') && !providerForm.provider_name.trim() ? "Provider Name is required" : ""}
                 disabled={isUpdatingSettings || isSavingProvider || isUpdatingStatus}
+                maxLength={50}
+                showCount
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>

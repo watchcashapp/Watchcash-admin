@@ -179,6 +179,8 @@ export default function AddRolePage() {
                 required
                 placeholder="e.g., Content Manager"
                 disabled={isCreating}
+                maxLength={50}
+                showCount
                 />
             </Grid>
 
@@ -188,7 +190,8 @@ export default function AddRolePage() {
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
-                disabled={true || isCreating}                 helperText="Auto-generated from name"
+                disabled={true || isCreating}
+                helperText="Auto-generated from name"
                 slotProps={{
                   input: { sx: { height: '32px' } }
                 }}
@@ -208,6 +211,8 @@ export default function AddRolePage() {
                 fullWidth
                 placeholder="Describe the role and its responsibilities"
                 disabled={isCreating}
+                maxLength={500}
+                showCount
                 />
             </Grid>
 

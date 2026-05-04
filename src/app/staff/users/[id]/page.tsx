@@ -294,6 +294,8 @@ export default function EditUserPage() {
                 required
                 placeholder="Enter user name"
                 disabled={isUpdating}
+                maxLength={50}
+                showCount
                 />
             </Grid>
 

@@ -212,6 +212,8 @@ function SignupForm() {
                 helperText={errors.name}
                 required
                 fullWidth
+                maxLength={50}
+                showCount
                 sx={{
                   '& .MuiInputLabel-root': {
                     transform: 'translate(14px, -6px) scale(0.75)',

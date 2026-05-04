@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -16,10 +16,20 @@ import { useGetRolesQuery, Role } from '@/store/api/rbacApi';
 export default function RolesPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
 
-  const { data: rolesData, isLoading } = useGetRolesQuery(undefined);
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const { data: rolesData, isLoading } = useGetRolesQuery({ search: debouncedSearch });
 
   const columns = useMemo(() => [
     { id: 'name', label: 'Role Name', minWidth: 200 },
@@ -32,12 +42,6 @@ export default function RolesPage() {
         if (!value) return 'N/A';
         return value.length > 30 ? `${value.substring(0, 30)}...` : value;
       },
-    },
-    {
-      id: 'permissions',
-      label: 'Permissions',
-      minWidth: 120,
-      format: (value: string[]) => `${value?.length || 0} permissions`,
     },
     {
       id: 'createdAt',
@@ -55,10 +59,8 @@ export default function RolesPage() {
   ], []);
 
   // Filter roles based on search
-  const filteredRoles = useMemo(() => rolesData?.data?.filter((role: Role) =>
-    role.name.toLowerCase().includes(search.toLowerCase()) ||
-    role.code.toLowerCase().includes(search.toLowerCase())
-  ) || [], [rolesData, search]);
+  // Filter roles based on search (as fallback if server-side is exact match)
+  const filteredRoles = useMemo(() => rolesData?.data || [], [rolesData]);
 
   const totalPages = useMemo(() => Math.ceil(filteredRoles.length / itemsPerPage), [filteredRoles.length]);
   const paginatedRoles = useMemo(() => filteredRoles.slice((page - 1) * itemsPerPage, page * itemsPerPage), [filteredRoles, page]);

@@ -284,15 +284,16 @@ export default function AppManagementPage() {
                                 </Box>
                                 
                                 <Stack spacing={2}>
-                                  <TextField
+                                  <Input
                                     fullWidth
                                     label="Plan Name"
-                                    size="small"
                                     required
                                     value={plan.name}
                                     onChange={(e) => handlePlanInputChange(index, "name", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!plan.name}
+                                    maxLength={50}
+                                    showCount
                                   />
                                   <Input
                                     fullWidth
