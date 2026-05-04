@@ -46,7 +46,9 @@ export default function RolesPage() {
 
     if (changed) {
       const queryString = params.toString();
-      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      // Use window.history.replaceState to update URL without losing focus
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, [debouncedSearch, pathname, router, searchParams]);
 

@@ -69,7 +69,7 @@ export default function SessionsPage() {
     reset();
   }, [status, debouncedSearch, fromDate, toDate, reset]);
 
-  const { data: sessionsData, isLoading } = useGetSessionsQuery({
+  const { data: sessionsData, isLoading, isFetching } = useGetSessionsQuery({
     cursor,
     limit,
     status: status || undefined,
@@ -426,6 +426,7 @@ export default function SessionsPage() {
             <DataTable
               columns={columns}
               data={sessions}
+              isLoading={isLoading || isFetching}
               getRowId={(row: any) => row.session_id || row.id}
             />
 

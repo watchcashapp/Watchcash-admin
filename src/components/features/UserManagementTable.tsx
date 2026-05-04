@@ -109,7 +109,9 @@ export default function UserManagementTable({
 
     if (changed) {
       const queryString = params.toString();
-      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      // Use window.history.replaceState to update URL without losing focus
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, [search, isActive, userType, fromDate, toDate, limit, defaultUserType, pathname, router, searchParams]);
   
@@ -442,7 +444,6 @@ export default function UserManagementTable({
               placeholder="Name or Email"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              disabled={isLoading || isFetching}
               slotProps={{
                 input: {
                   sx: { fontSize: '0.75rem', height: '32px' },
@@ -463,7 +464,6 @@ export default function UserManagementTable({
               label="User Type"
               value={userType || ""}
               onChange={(e) => setUserType(e.target.value)}
-              disabled={isLoading || isFetching}
               SelectProps={{ displayEmpty: true }}
               InputLabelProps={{ shrink: true }}
               slotProps={{
@@ -487,7 +487,6 @@ export default function UserManagementTable({
               label="Status"
               value={isActive || ""}
               onChange={(e) => setIsActive(e.target.value)}
-              disabled={isLoading || isFetching}
               SelectProps={{ displayEmpty: true }}
               InputLabelProps={{ shrink: true }}
               slotProps={{
@@ -511,7 +510,6 @@ export default function UserManagementTable({
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  disabled={isLoading || isFetching}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                   slotProps={{
@@ -535,7 +533,6 @@ export default function UserManagementTable({
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  disabled={isLoading || isFetching}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                   slotProps={{
@@ -593,7 +590,7 @@ export default function UserManagementTable({
       <DataTable
         columns={columns}
         data={data?.users || []}
-        isLoading={isLoading}
+        isLoading={isLoading || isFetching}
         onView={hasPermission('users:view') ? (row: User) => handleView(row) : undefined}
         onEdit={showEditAction && hasPermission('users:update') ? (row: User) => handleEdit(row) : undefined}
         onDelete={showDeleteAction && hasPermission('users:delete') ? (row: User) => setDeleteConfirm({ open: true, user: row }) : undefined}

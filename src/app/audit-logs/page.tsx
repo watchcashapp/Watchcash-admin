@@ -92,7 +92,9 @@ export default function AuditLogsPage() {
 
         if (changed) {
             const queryString = params.toString();
-            router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+            const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+            // Use window.history.replaceState to update URL without losing focus
+            window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
         }
     }, [actionSearch, targetUserSearch, fromDate, toDate, pathname, router, searchParams]);
 
@@ -109,7 +111,7 @@ export default function AuditLogsPage() {
         to: toDate ? new Date(toDate).toISOString() : undefined,
     }), [cursor, limit, actionSearch, targetUserSearch, fromDate, toDate]);
 
-    const { data, isLoading } = useGetAuditLogsQuery(queryArgs, {
+    const { data, isLoading, isFetching } = useGetAuditLogsQuery(queryArgs, {
         refetchOnMountOrArgChange: true,
     });
 
@@ -428,7 +430,7 @@ export default function AuditLogsPage() {
                     columns={columns}
                     data={data?.items || []}
                     getRowId={(row: any) => row.id}
-                    isLoading={isLoading}
+                    isLoading={isLoading || isFetching}
                     emptyMessage="No audit logs found"
                     onView={hasPermission('admin_audit_logs:view') ? (row: any) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
                     renderPagination={() => data && data.items && data.items.length > 0 ? (

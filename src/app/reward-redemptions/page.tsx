@@ -106,7 +106,9 @@ export default function RewardRedemptionsPage() {
 
     if (changed) {
       const queryString = params.toString();
-      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      // Use window.history.replaceState to update URL without losing focus
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, [search, status, fromDate, toDate, limit, pathname, router, searchParams]);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -141,7 +143,7 @@ export default function RewardRedemptionsPage() {
     reset();
   }, [search, status, fromDate, toDate, reset]);
 
-  const { data: response, isLoading, error } = useGetRewardRedemptionsQuery({
+  const { data: response, isLoading, isFetching, error } = useGetRewardRedemptionsQuery({
     search,
     status,
     from: fromDate,
@@ -517,7 +519,7 @@ export default function RewardRedemptionsPage() {
         <DataTable
           columns={columns}
           data={redemptions}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
           getRowId={(row: any) => row.id}
           emptyMessage="No reward redemptions found. Try adjusting your filters."
           onView={hasPermission('reward_redemptions:view') ? handleView : undefined}

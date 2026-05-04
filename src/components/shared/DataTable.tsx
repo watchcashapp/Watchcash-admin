@@ -12,6 +12,7 @@ import {
   Box,
   Typography,
   CircularProgress,
+  LinearProgress,
   Tooltip,
 } from '@mui/material';
 import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block, CheckCircle } from '@mui/icons-material';
@@ -109,9 +110,29 @@ function DataTable<T extends Record<string, any>>({
         border: (theme) => theme.palette.mode === 'dark'
           ? '1px solid rgba(255, 255, 255, 0.1)'
           : '1px solid rgba(0, 0, 0, 0.05)',
-        borderRadius: 3,
-      }}
-    >
+      borderRadius: 3,
+      position: 'relative',
+    }}
+  >
+    {isLoading && (
+      <LinearProgress 
+        sx={{ 
+          height: 3, 
+          borderTopLeftRadius: 12, 
+          borderTopRightRadius: 12,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1,
+          '& .MuiLinearProgress-bar': {
+            background: (theme) => theme.palette.mode === 'dark' 
+              ? 'linear-gradient(90deg, #6AB344, #213350)' 
+              : 'linear-gradient(90deg, #6AB344, #213350)',
+          }
+        }} 
+      />
+    )}
       <TableContainer 
         sx={{ 
           overflowX: 'auto',
