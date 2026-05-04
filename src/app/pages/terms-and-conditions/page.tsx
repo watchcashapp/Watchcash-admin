@@ -11,6 +11,7 @@ import { useToast } from '@/components/shared/Toaster';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { usePermissions } from '@/hooks/usePermissions';
+import PublicFooter from '@/components/shared/PublicFooter';
 
 export default function TermsAndConditionsPage() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -169,6 +170,7 @@ export default function TermsAndConditionsPage() {
           />
         )}
       </Box>
+      {!isAuthenticated && <PublicFooter />}
     </Box>
   );
 }
