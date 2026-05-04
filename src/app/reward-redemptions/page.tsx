@@ -5,9 +5,7 @@ import {
   Box,
   Paper,
   Typography,
-  Button,
   CircularProgress,
-  TextField,
   InputAdornment,
   Chip,
   IconButton,
@@ -18,6 +16,7 @@ import {
   Drawer,
   MenuItem,
   Alert,
+  Tooltip,
 } from '@mui/material';
 import {
   Search,
@@ -27,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable, Column, useToast, TablePagination } from '@/components/shared';
+import { DataTable, Column, useToast, TablePagination, Input, Button } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -57,8 +56,10 @@ export default function RewardRedemptionsPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
+  const today = new Date().toISOString().split('T')[0];
 
   const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [status, setStatus] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -77,6 +78,21 @@ export default function RewardRedemptionsPage() {
   });
 
   const hasFilters = search || status || fromDate || toDate;
+
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearch(localSearch);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [localSearch]);
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (search === '') {
+      setLocalSearch('');
+    }
+  }, [search]);
 
   useEffect(() => {
     reset();
@@ -157,6 +173,15 @@ export default function RewardRedemptionsPage() {
     } catch (err) {
       showError('Failed to export reward redemptions');
     }
+  };
+
+  const handleClearFilters = () => {
+    setLocalSearch('');
+    setSearch('');
+    setStatus('');
+    setFromDate('');
+    setToDate('');
+    reset();
   };
 
   const getStatusColor = (status: string) => {
@@ -332,80 +357,63 @@ export default function RewardRedemptionsPage() {
           }}
         >
           <Grid container spacing={1.5} alignItems="center">
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="From"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="To"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                }}
-              />
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="From"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="To"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <Input
                 select
-                fullWidth
-                size="small"
                 label="Status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
                 slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
                   },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
                 }}
               >
                 <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
@@ -413,16 +421,14 @@ export default function RewardRedemptionsPage() {
                 <MenuItem value="APPROVED" sx={{ fontSize: '0.75rem' }}>Approved</MenuItem>
                 <MenuItem value="REJECTED" sx={{ fontSize: '0.75rem' }}>Rejected</MenuItem>
                 <MenuItem value="PROCESSED" sx={{ fontSize: '0.75rem' }}>Processed</MenuItem>
-              </TextField>
+              </Input>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
-                fullWidth
-                size="small"
+            <Grid size={{ xs: 12, sm: 6, md: 5 }}>
+              <Input
                 label="Search"
                 placeholder="ID or User ID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 slotProps={{
                   input: {
                     sx: { fontSize: '0.75rem', height: '32px' },
@@ -432,17 +438,6 @@ export default function RewardRedemptionsPage() {
                       </InputAdornment>
                     ),
                   },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
                 }}
               />
             </Grid>
@@ -450,13 +445,7 @@ export default function RewardRedemptionsPage() {
               <Button
                 fullWidth
                 variant="outlined"
-                onClick={() => {
-                  setSearch('');
-                  setStatus('');
-                  setFromDate('');
-                  setToDate('');
-                  reset();
-                }}
+                onClick={handleClearFilters}
                 disabled={!hasFilters}
                 sx={{
                   height: '32px',

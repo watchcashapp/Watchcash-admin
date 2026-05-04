@@ -37,6 +37,10 @@ const TablePagination: React.FC<TablePaginationProps> = ({
 }) => {
     if (isLoading) return null;
 
+    if (resultsOnPage === 0 && pageNumber === 1 && !hasMore) {
+        return null;
+    }
+
     return (
         <Box sx={{
             display: 'flex',

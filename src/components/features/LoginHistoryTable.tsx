@@ -14,12 +14,9 @@ import {
     Paper,
     Tooltip,
 } from "@mui/material";
-import { Search, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import DataTable, { Column } from "@/components/shared/DataTable";
-import { useToast } from "@/components/shared";
-import { useGetLoginHistoryQuery, LoginHistory } from "@/store/api/usersApi";
-import { useCursorPagination } from '@/hooks/useCursorPagination';
-import { TablePagination } from "@/components/shared";
+import { useToast, Button, Input, TablePagination } from "@/components/shared";
 
 interface LoginHistoryTableProps {
     title?: string;
@@ -33,6 +30,7 @@ export default function LoginHistoryTable({
     const { showError } = useToast();
     const [limit, setLimit] = useState(10);
     const [userId, setUserId] = useState(initialUserId);
+    const [localSearch, setLocalSearch] = useState(initialUserId);
     const [isAdmin, setIsAdmin] = useState<string>("");
     const [debouncedUserName, setDebouncedUserName] = useState(initialUserId);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
@@ -40,10 +38,17 @@ export default function LoginHistoryTable({
     // Debounce Username
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedUserName(userId);
-        }, 500);
+            setDebouncedUserName(localSearch);
+        }, 100);
         return () => clearTimeout(timer);
-    }, [userId]);
+    }, [localSearch]);
+
+    // Sync local search with global search (only for external resets like Clear Filters)
+    useEffect(() => {
+        if (debouncedUserName === "") {
+            setLocalSearch("");
+        }
+    }, [debouncedUserName]);
 
     // Reset page when filters change
     useEffect(() => {
@@ -139,7 +144,8 @@ export default function LoginHistoryTable({
     ];
 
     const handleClearFilters = () => {
-        setUserId(initialUserId);
+        setLocalSearch("");
+        setDebouncedUserName("");
         setIsAdmin("");
         reset();
     };
@@ -176,13 +182,12 @@ export default function LoginHistoryTable({
             >
                 <Grid container spacing={1.5} alignItems="center">
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <TextField
+                        <Input
                             fullWidth
-                            size="small"
                             label="Username"
                             placeholder="Search by Username"
-                            value={userId}
-                            onChange={(e) => setUserId(e.target.value)}
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
                             slotProps={{
                                 input: {
                                     sx: { fontSize: '0.75rem', height: '32px' },
@@ -192,43 +197,30 @@ export default function LoginHistoryTable({
                                         </InputAdornment>
                                     ),
                                 },
-                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                            }}
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                    bgcolor: 'background.paper',
-                                    px: 0.5,
-                                },
                             }}
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                        <TextField
+                        <Input
                             select
                             fullWidth
-                            size="small"
                             label="User Source"
                             value={isAdmin}
                             onChange={(e) => setIsAdmin(e.target.value)}
+                            SelectProps={{ displayEmpty: true }}
+                            InputLabelProps={{ shrink: true }}
                             slotProps={{
-                                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                            }}
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                    bgcolor: 'background.paper',
-                                    px: 0.5,
+                                select: { 
+                                    displayEmpty: true,
+                                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
                                 },
-                                '& .MuiSelect-select': { py: 0, display: 'flex', alignItems: 'center' }
                             }}
                         >
                             <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Sources</MenuItem>
                             <MenuItem value="true" sx={{ fontSize: '0.75rem' }}>Admin Panel</MenuItem>
                             <MenuItem value="false" sx={{ fontSize: '0.75rem' }}>App</MenuItem>
-                        </TextField>
+                        </Input>
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6, md: 1 }}>

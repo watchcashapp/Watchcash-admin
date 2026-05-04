@@ -15,10 +15,9 @@ import {
   Chip,
   Switch,
   FormControlLabel,
-  Alert,
   IconButton,
-  InputAdornment
-
+  InputAdornment,
+  Tooltip,
 } from "@mui/material";
 import { Add, NavigateBefore, NavigateNext, Search, Upload, Image as ImageIcon } from "@mui/icons-material";
 import DataTable, { Column } from "@/components/shared/DataTable";
@@ -54,22 +53,31 @@ const initialFormData: FormData = {
 export default function AppRulesPage() {
   const router = useRouter();
   const { showSuccess, showError, showToast } = useToast();
+  const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
-  const hasFilters = fromDate || toDate;
+  const hasFilters = fromDate || toDate || searchQuery;
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
+      setDebouncedSearchQuery(localSearch);
       setPage(1); // Reset page on search
     }, 500);
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [localSearch]);
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (debouncedSearchQuery === '') {
+      setLocalSearch('');
+    }
+  }, [debouncedSearchQuery]);
 
   // Data fetching
   const { data: appRules = [], isLoading, error } = useGetAppRulesQuery({
@@ -465,42 +473,58 @@ export default function AppRulesPage() {
         >
           <Grid container spacing={1.5} alignItems="center">
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="From"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                disabled={isUpdating}
-                />
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="From"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                    disabled={isUpdating}
+                    />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                fullWidth
-                size="small"
-                type="date"
-                label="To"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                disabled={isUpdating}
-                />
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    type="date"
+                    label="To"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                    disabled={isUpdating}
+                    />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 12, md: 5 }}>
               <Input
                 fullWidth
                 label="Search"
                 placeholder="Search by Rule Name"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 slotProps={{
                   input: {
                     sx: { fontSize: '0.75rem', height: '32px' },
@@ -520,10 +544,11 @@ export default function AppRulesPage() {
                 onClick={() => {
                   setFromDate('');
                   setToDate('');
-                  setSearchQuery('');
+                  setLocalSearch('');
+                  setDebouncedSearchQuery('');
                   setPage(1);
                 }}
-                disabled={!fromDate && !toDate && !searchQuery}
+                disabled={!fromDate && !toDate && !localSearch}
                 sx={{
                   height: '32px',
                   minHeight: '32px',

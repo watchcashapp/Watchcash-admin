@@ -51,9 +51,9 @@ export default function Error({
           An unexpected error occurred. We have been notified and are working on it.
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button
-            onClick={() => reset()}
+            onClick={() => window.location.reload()}
             variant="contained"
             startIcon={<Refresh />}
             sx={{
@@ -70,27 +70,7 @@ export default function Error({
               }
             }}
           >
-            Try Again
-          </Button>
-          
-          <Button
-            onClick={() => window.location.href = '/dashboard'}
-            variant="outlined"
-            sx={{
-              borderRadius: '8px',
-              px: 4,
-              py: 1.5,
-              fontWeight: 600,
-              textTransform: 'none',
-              borderColor: 'divider',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'rgba(33, 51, 80, 0.05)',
-              }
-            }}
-          >
-            Go to Home
+            Reload Application
           </Button>
         </Box>
       </Box>

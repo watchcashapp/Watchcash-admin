@@ -12,6 +12,7 @@ import {
   IconButton, 
   Paper,
   LinearProgress,
+  Tooltip,
 } from "@mui/material";
 import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -58,10 +59,12 @@ export default function UserManagementTable({
   const { hasPermission } = usePermissions();
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
+  const [localSearch, setLocalSearch] = useState("");
   const [isActive, setIsActive] = useState<string>("");
   const [userType, setUserType] = useState<string>(defaultUserType);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const today = new Date().toISOString().split('T')[0];
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
   
   const hasFilters = useMemo(() => 
@@ -100,6 +103,22 @@ export default function UserManagementTable({
   });
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [unbanUser, { isLoading: isUnbanning }] = useUnbanUserMutation();
+  
+  // Debounce local search to global search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearch(localSearch);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [localSearch]);
+
+  // Sync local search with global search (only for external resets like Clear Filters)
+  useEffect(() => {
+    if (search === "") {
+      setLocalSearch("");
+    }
+  }, [search]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -375,8 +394,8 @@ export default function UserManagementTable({
             <Input
               label="Search"
               placeholder="Name or Email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               disabled={isLoading || isFetching}
               slotProps={{
                 input: {
@@ -394,20 +413,25 @@ export default function UserManagementTable({
           {!hideUserTypeFilter && (
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <Input
-                select
-                label="User Type"
-                value={userType}
-                onChange={(e) => setUserType(e.target.value)}
-                disabled={isLoading || isFetching}
-                slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                }}
-              >
-                <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Types</MenuItem>
-                <MenuItem value="APP" sx={{ fontSize: '0.75rem' }}>APP</MenuItem>
-                <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>ADMIN</MenuItem>
-                <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>STAFF</MenuItem>
-              </Input>
+              select
+              label="User Type"
+              value={userType || ""}
+              onChange={(e) => setUserType(e.target.value)}
+              disabled={isLoading || isFetching}
+              SelectProps={{ displayEmpty: true }}
+              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                select: { 
+                  displayEmpty: true,
+                  sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
+                },
+              }}
+            >
+              <MenuItem value="">All Types</MenuItem>
+              <MenuItem value="APP">APP</MenuItem>
+              <MenuItem value="ADMIN">ADMIN</MenuItem>
+              <MenuItem value="STAFF">STAFF</MenuItem>
+            </Input>
             </Grid>
           )}
 
@@ -415,45 +439,70 @@ export default function UserManagementTable({
             <Input
               select
               label="Status"
-              value={isActive}
+              value={isActive || ""}
               onChange={(e) => setIsActive(e.target.value)}
               disabled={isLoading || isFetching}
+              SelectProps={{ displayEmpty: true }}
+              InputLabelProps={{ shrink: true }}
               slotProps={{
-                select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
+                select: { 
+                  displayEmpty: true,
+                  sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
+                },
               }}
             >
-              <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
-              <MenuItem value="true" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
-              <MenuItem value="false" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
+              <MenuItem value="">All Status</MenuItem>
+              <MenuItem value="true">Active</MenuItem>
+              <MenuItem value="false">Inactive</MenuItem>
             </Input>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <Input
-              label="From"
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              disabled={isLoading || isFetching}
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { shrink: true }
-              }}
-            />
+            <Tooltip title="Future dates are not allowed" arrow>
+              <Box>
+                <Input
+                  label="From"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  disabled={isLoading || isFetching}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    input: { 
+                      sx: { fontSize: '0.75rem', height: '32px' },
+                    },
+                    htmlInput: {
+                      max: today
+                    }
+                  }}
+                />
+              </Box>
+            </Tooltip>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-            <Input
-              label="To"
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              disabled={isLoading || isFetching}
-              slotProps={{
-                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                inputLabel: { shrink: true }
-              }}
-            />
+            <Tooltip title="Future dates are not allowed" arrow>
+              <Box>
+                <Input
+                  label="To"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  disabled={isLoading || isFetching}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    input: { 
+                      sx: { fontSize: '0.75rem', height: '32px' },
+                    },
+                    htmlInput: {
+                      max: today
+                    }
+                  }}
+                />
+              </Box>
+            </Tooltip>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 1 }}>

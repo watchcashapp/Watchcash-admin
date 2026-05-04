@@ -40,6 +40,7 @@ import {
 } from '@/store/api/rewardCatalogsApi';
 import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { getTokenFromCookie } from "@/utils/auth";
+import { Input } from '@/components/shared';
 
 function CatalogSkeleton() {
   return (
@@ -87,6 +88,8 @@ function CatalogSkeleton() {
 export default function RewardCatalogPage() {
   const { showSuccess, showError } = useToast();
   const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [currency, setCurrency] = useState('');
   const [limit] = useState(8);
@@ -96,8 +99,23 @@ export default function RewardCatalogPage() {
   const [isManualUploading, setIsManualUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(localSearch);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [localSearch]);
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (debouncedSearch === '') {
+      setLocalSearch('');
+    }
+  }, [debouncedSearch]);
+
   const { data, isLoading, isFetching, refetch } = useGetRewardCatalogsQuery({
-    search,
+    search: debouncedSearch,
     status: status || undefined,
     currency: currency || undefined,
     limit,
@@ -126,7 +144,7 @@ export default function RewardCatalogPage() {
   }, [allRewards, cursor, data?.items]);
 
   const handleSearchChange = (val: string) => {
-    setSearch(val);
+    setLocalSearch(val);
     setCursor(undefined);
     setAllRewards([]);
   };
@@ -281,11 +299,10 @@ export default function RewardCatalogPage() {
         >
           <Grid container spacing={2} alignItems="center">
             <Grid size={{ xs: 12, md: 5 }}>
-              <TextField
+              <Input
                 placeholder="Search rewards or brands..."
-                size="small"
                 fullWidth
-                value={search}
+                value={localSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 disabled={isManualUploading || isFetching}
                 slotProps={{
@@ -302,36 +319,48 @@ export default function RewardCatalogPage() {
             </Grid>
             
             <Grid size={{ xs: 6, md: 3 }}>
-              <FormControl size="small" fullWidth disabled={isManualUploading || isFetching}>
-                <InputLabel sx={{ fontSize: '0.8rem' }}>Status</InputLabel>
-                <Select
-                  value={status}
-                  label="Status"
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  sx={{ fontSize: '0.8rem', height: '36px' }}
-                >
-                  <MenuItem value="" sx={{ fontSize: '0.8rem' }}>All Status</MenuItem>
-                  <MenuItem value="ACTIVE" sx={{ fontSize: '0.8rem' }}>Active</MenuItem>
-                  <MenuItem value="INACTIVE" sx={{ fontSize: '0.8rem' }}>Inactive</MenuItem>
-                </Select>
-              </FormControl>
+              <Input
+                select
+                label="Status"
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                disabled={isManualUploading || isFetching}
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.8rem', height: '36px', display: 'flex', alignItems: 'center' } 
+                  },
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.8rem' }}>All Status</MenuItem>
+                <MenuItem value="ACTIVE" sx={{ fontSize: '0.8rem' }}>Active</MenuItem>
+                <MenuItem value="INACTIVE" sx={{ fontSize: '0.8rem' }}>Inactive</MenuItem>
+              </Input>
             </Grid>
 
             <Grid size={{ xs: 6, md: 3 }}>
-              <FormControl size="small" fullWidth disabled={isManualUploading || isFetching}>
-                <InputLabel sx={{ fontSize: '0.8rem' }}>Currency</InputLabel>
-                <Select
-                  value={currency}
-                  label="Currency"
-                  onChange={(e) => handleCurrencyChange(e.target.value)}
-                  sx={{ fontSize: '0.8rem', height: '36px' }}
-                >
-                  <MenuItem value="" sx={{ fontSize: '0.8rem' }}>All Currencies</MenuItem>
-                  <MenuItem value="USD" sx={{ fontSize: '0.8rem' }}>USD</MenuItem>
-                  <MenuItem value="INR" sx={{ fontSize: '0.8rem' }}>INR</MenuItem>
-                  <MenuItem value="EUR" sx={{ fontSize: '0.8rem' }}>EUR</MenuItem>
-                </Select>
-              </FormControl>
+              <Input
+                select
+                label="Currency"
+                value={currency}
+                onChange={(e) => handleCurrencyChange(e.target.value)}
+                disabled={isManualUploading || isFetching}
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.8rem', height: '36px', display: 'flex', alignItems: 'center' } 
+                  },
+                }}
+              >
+                <MenuItem value="" sx={{ fontSize: '0.8rem' }}>All Currencies</MenuItem>
+                <MenuItem value="USD" sx={{ fontSize: '0.8rem' }}>USD</MenuItem>
+                <MenuItem value="INR" sx={{ fontSize: '0.8rem' }}>INR</MenuItem>
+                <MenuItem value="EUR" sx={{ fontSize: '0.8rem' }}>EUR</MenuItem>
+              </Input>
             </Grid>
 
             <Grid size={{ xs: 12, md: 1 }}>
@@ -340,6 +369,8 @@ export default function RewardCatalogPage() {
                 size="small" 
                 variant="outlined" 
                 onClick={() => {
+                  setLocalSearch('');
+                  setDebouncedSearch('');
                   setSearch('');
                   setStatus('');
                   setCurrency('');

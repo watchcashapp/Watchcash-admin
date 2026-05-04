@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useEffect } from 'react';
 import {
   Box,
@@ -11,13 +12,12 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  Button,
   Grid,
 } from '@mui/material';
 import { Visibility, NavigateBefore, NavigateNext, GetApp } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable, useToast, TablePagination } from '@/components/shared';
+import { DataTable, useToast, TablePagination, Input, Button } from '@/components/shared';
 import { useGetSessionsQuery } from '@/store/api/sessionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -37,9 +37,12 @@ import { getTokenFromCookie } from "@/utils/auth";
 export default function SessionsPage() {
   const router = useRouter();
   const { showError } = useToast();
+  const today = new Date().toISOString().split('T')[0];
+
   const [limit, setLimit] = useState(10);
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -49,10 +52,17 @@ export default function SessionsPage() {
   // Debounce User Name and Device ID
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
+      setDebouncedSearch(localSearch);
     }, 500);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [localSearch]);
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (debouncedSearch === '') {
+      setLocalSearch('');
+    }
+  }, [debouncedSearch]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -291,59 +301,33 @@ export default function SessionsPage() {
         >
           <Grid container spacing={1.5} alignItems="center">
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
+              <Input
                 label="Search"
-                value={search}
+                value={localSearch}
                 onChange={(e) => {
-                  setSearch(e.target.value);
+                  setLocalSearch(e.target.value);
                 }}
-                size="small"
-                fullWidth
                 placeholder="Name, Email or Session ID"
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
                 }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
+              <Input
                 select
                 label="Status"
                 value={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
                 }}
-                size="small"
-                fullWidth
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
                 slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
                   },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
                 }}
               >
                 {statusOptions.map((option) => (
@@ -351,59 +335,55 @@ export default function SessionsPage() {
                     {option.label}
                   </MenuItem>
                 ))}
-              </TextField>
+              </Input>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
-                label="From"
-                type="date"
-                value={fromDate}
-                onChange={(e) => {
-                  setFromDate(e.target.value);
-                }}
-                size="small"
-                fullWidth
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    label="From"
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => {
+                      setFromDate(e.target.value);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-              <TextField
-                label="To"
-                type="date"
-                value={toDate}
-                onChange={(e) => {
-                  setToDate(e.target.value);
-                }}
-                size="small"
-                fullWidth
-                slotProps={{
-                  input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
-                }}
-              />
+              <Tooltip title="Future dates are not allowed" arrow>
+                <Box>
+                  <Input
+                    fullWidth
+                    label="To"
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => {
+                      setToDate(e.target.value);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    slotProps={{
+                      input: { 
+                        sx: { fontSize: '0.75rem', height: '32px' },
+                      },
+                      htmlInput: {
+                        max: today
+                      }
+                    }}
+                  />
+                </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 1 }}>
               <Button
@@ -411,7 +391,8 @@ export default function SessionsPage() {
                 variant="outlined"
                 onClick={() => {
                   setStatus('');
-                  setSearch('');
+                  setLocalSearch('');
+                  setDebouncedSearch('');
                   setFromDate('');
                   setToDate('');
                   reset();

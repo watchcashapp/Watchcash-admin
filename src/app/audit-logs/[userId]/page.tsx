@@ -10,10 +10,11 @@ import {
     InputAdornment,
     Button,
     IconButton,
+    Tooltip,
 } from '@mui/material';
 import { Search, ArrowBack, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
-import { DataTable, useToast } from '@/components/shared';
+import { DataTable, useToast, Input } from '@/components/shared';
 import { useGetAuditLogsByUserQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -28,11 +29,21 @@ export default function AuditLogsUserPage() {
     const rowsPerPage = 6;
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
+    const today = new Date().toISOString().split('T')[0];
 
     // Filters
     const [actionSearch, setActionSearch] = useState('');
+    const [localActionSearch, setLocalActionSearch] = useState('');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
+
+    // Debounce Action Search
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setActionSearch(localActionSearch);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [localActionSearch]);
 
     const queryArgs = useMemo(() => ({
         user_id: userId,
@@ -178,13 +189,12 @@ export default function AuditLogsUserPage() {
             >
                 <Grid container spacing={1.5} alignItems="center">
                     <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
+                        <Input
                             fullWidth
-                            size="small"
                             placeholder="Filter by Action..."
-                            value={actionSearch}
+                            value={localActionSearch}
                             onChange={(e) => {
-                                setActionSearch(e.target.value);
+                                setLocalActionSearch(e.target.value);
                             }}
                             slotProps={{
                                 input: {
@@ -194,74 +204,59 @@ export default function AuditLogsUserPage() {
                                         </InputAdornment>
                                     ),
                                     sx: { fontSize: '0.75rem', height: '32px' }
-                                },
-                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                            }}
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                    bgcolor: 'background.paper',
-                                    px: 0.5,
-                                },
-                                '& .MuiInputLabel-shrink': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
                                 }
                             }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            label="From"
-                            type="date"
-                            value={fromDate}
-                            onChange={(e) => {
-                                setFromDate(e.target.value);
-                                reset();
-                            }}
-                            size="small"
-                            fullWidth
-                            slotProps={{
-                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                            }}
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                    bgcolor: 'background.paper',
-                                    px: 0.5,
-                                },
-                                '& .MuiInputLabel-shrink': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                }
-                            }}
-                        />
+                        <Tooltip title="Future dates are not allowed" arrow>
+                            <Box>
+                                <Input
+                                    label="From"
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => {
+                                        setFromDate(e.target.value);
+                                        reset();
+                                    }}
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    slotProps={{
+                                        input: { 
+                                            sx: { fontSize: '0.75rem', height: '32px' },
+                                        },
+                                        htmlInput: {
+                                            max: today
+                                        }
+                                    }}
+                                />
+                            </Box>
+                        </Tooltip>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            label="To"
-                            type="date"
-                            value={toDate}
-                            onChange={(e) => {
-                                setToDate(e.target.value);
-                                reset();
-                            }}
-                            size="small"
-                            fullWidth
-                            slotProps={{
-                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                            }}
-                            sx={{
-                                '& .MuiInputLabel-root': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                    bgcolor: 'background.paper',
-                                    px: 0.5,
-                                },
-                                '& .MuiInputLabel-shrink': {
-                                    transform: 'translate(14px, -6px) scale(0.75)',
-                                }
-                            }}
-                        />
+                        <Tooltip title="Future dates are not allowed" arrow>
+                            <Box>
+                                <Input
+                                    label="To"
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => {
+                                        setToDate(e.target.value);
+                                        reset();
+                                    }}
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                    slotProps={{
+                                        input: { 
+                                            sx: { fontSize: '0.75rem', height: '32px' },
+                                        },
+                                        htmlInput: {
+                                            max: today
+                                        }
+                                    }}
+                                />
+                            </Box>
+                        </Tooltip>
                     </Grid>
                 </Grid>
             </Paper>

@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useState, useMemo } from 'react';
 import {
     Box,
@@ -8,11 +9,11 @@ import {
     Grid,
     TextField,
     InputAdornment,
-    Button,
     IconButton,
     CircularProgress,
+    Tooltip,
 } from '@mui/material';
-import { DataTable, useToast, TablePagination } from '@/components/shared';
+import { DataTable, useToast, TablePagination, Input, Button } from '@/components/shared';
 import { useGetAuditLogsQuery } from '@/store/api/auditLogsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -28,12 +29,37 @@ export default function AuditLogsPage() {
     const [limit, setLimit] = useState(8);
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
+    const today = new Date().toISOString().split('T')[0];
 
     // Filters
     const [actionSearch, setActionSearch] = useState('');
+    const [localActionSearch, setLocalActionSearch] = useState('');
     const [targetUserSearch, setTargetUserSearch] = useState('');
+    const [localTargetUserSearch, setLocalTargetUserSearch] = useState('');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
+
+    // Debounce Action Search
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setActionSearch(localActionSearch);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [localActionSearch]);
+
+    // Debounce Target User Search
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setTargetUserSearch(localTargetUserSearch);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [localTargetUserSearch]);
+
+    // Sync local searches with global state
+    React.useEffect(() => {
+        if (actionSearch === '') setLocalActionSearch('');
+        if (targetUserSearch === '') setLocalTargetUserSearch('');
+    }, [actionSearch, targetUserSearch]);
 
     React.useEffect(() => {
         reset();
@@ -243,14 +269,12 @@ export default function AuditLogsPage() {
                 >
                     <Grid container spacing={1.5} alignItems="center">
                         <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-                            <TextField
-                                fullWidth
-                                size="small"
+                            <Input
                                 placeholder="Action..."
                                 label="Action"
-                                value={actionSearch}
+                                value={localActionSearch}
                                 onChange={(e) => {
-                                    setActionSearch(e.target.value);
+                                    setLocalActionSearch(e.target.value);
                                 }}
                                 slotProps={{
                                     input: {
@@ -261,29 +285,16 @@ export default function AuditLogsPage() {
                                         ),
                                         sx: { fontSize: '0.75rem', height: '32px' }
                                     },
-                                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                                }}
-                                sx={{
-                                    '& .MuiInputLabel-root': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                        bgcolor: 'background.paper',
-                                        px: 0.5,
-                                    },
-                                    '& .MuiInputLabel-shrink': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                    }
                                 }}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-                            <TextField
-                                fullWidth
-                                size="small"
+                            <Input
                                 placeholder="Target User..."
                                 label="Target User"
-                                value={targetUserSearch}
+                                value={localTargetUserSearch}
                                 onChange={(e) => {
-                                    setTargetUserSearch(e.target.value);
+                                    setLocalTargetUserSearch(e.target.value);
                                 }}
                                 slotProps={{
                                     input: {
@@ -294,71 +305,56 @@ export default function AuditLogsPage() {
                                         ),
                                         sx: { fontSize: '0.75rem', height: '32px' }
                                     },
-                                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                                }}
-                                sx={{
-                                    '& .MuiInputLabel-root': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                        bgcolor: 'background.paper',
-                                        px: 0.5,
-                                    },
-                                    '& .MuiInputLabel-shrink': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                    }
                                 }}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-                            <TextField
-                                type="date"
-                                label="From"
-                                value={fromDate}
-                                onChange={(e) => {
-                                    setFromDate(e.target.value);
-                                }}
-                                size="small"
-                                fullWidth
-                                slotProps={{
-                                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                                }}
-                                sx={{
-                                    '& .MuiInputLabel-root': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                        bgcolor: 'background.paper',
-                                        px: 0.5,
-                                    },
-                                    '& .MuiInputLabel-shrink': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                    }
-                                }}
-                            />
+                            <Tooltip title="Future dates are not allowed" arrow>
+                                <Box>
+                                    <Input
+                                        fullWidth
+                                        type="date"
+                                        label="From"
+                                        value={fromDate}
+                                        onChange={(e) => {
+                                            setFromDate(e.target.value);
+                                        }}
+                                        InputLabelProps={{ shrink: true }}
+                                        slotProps={{
+                                            input: { 
+                                                sx: { fontSize: '0.75rem', height: '32px' },
+                                            },
+                                            htmlInput: {
+                                                max: today
+                                            }
+                                        }}
+                                    />
+                                </Box>
+                            </Tooltip>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 2.5 }}>
-                            <TextField
-                                type="date"
-                                label="To"
-                                value={toDate}
-                                onChange={(e) => {
-                                    setToDate(e.target.value);
-                                }}
-                                size="small"
-                                fullWidth
-                                slotProps={{
-                                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                                }}
-                                sx={{
-                                    '& .MuiInputLabel-root': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                        bgcolor: 'background.paper',
-                                        px: 0.5,
-                                    },
-                                    '& .MuiInputLabel-shrink': {
-                                        transform: 'translate(14px, -6px) scale(0.75)',
-                                    }
-                                }}
-                            />
+                            <Tooltip title="Future dates are not allowed" arrow>
+                                <Box>
+                                    <Input
+                                        fullWidth
+                                        type="date"
+                                        label="To"
+                                        value={toDate}
+                                        onChange={(e) => {
+                                            setToDate(e.target.value);
+                                        }}
+                                        InputLabelProps={{ shrink: true }}
+                                        slotProps={{
+                                            input: { 
+                                                sx: { fontSize: '0.75rem', height: '32px' },
+                                            },
+                                            htmlInput: {
+                                                max: today
+                                            }
+                                        }}
+                                    />
+                                </Box>
+                            </Tooltip>
                         </Grid>
                         <Grid size={{ xs: 12, md: 1 }}>
                             <Button
@@ -366,13 +362,15 @@ export default function AuditLogsPage() {
                                 variant="outlined"
                                 size="small"
                                 onClick={() => {
+                                    setLocalActionSearch('');
+                                    setLocalTargetUserSearch('');
                                     setActionSearch('');
                                     setTargetUserSearch('');
                                     setFromDate('');
                                     setToDate('');
                                     reset();
                                 }}
-                                disabled={!actionSearch && !targetUserSearch && !fromDate && !toDate}
+                                disabled={!localActionSearch && !localTargetUserSearch && !fromDate && !toDate}
                                 sx={{
                                     height: '32px',
                                     minHeight: '32px',

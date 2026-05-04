@@ -54,6 +54,8 @@ export default function StaffPage() {
   const { showSuccess, showError } = useToast();
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
+  const [localSearch, setLocalSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
@@ -63,14 +65,29 @@ export default function StaffPage() {
   const { data, isLoading, error } = useGetStaffQuery({
     cursor,
     limit,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     role: roleFilter || undefined,
     isActive: statusFilter === "" ? undefined : statusFilter === "active",
   });
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(localSearch);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  // Sync local search with global search
+  useEffect(() => {
+    if (debouncedSearch === "") {
+      setLocalSearch("");
+    }
+  }, [debouncedSearch]);
+
   useEffect(() => {
     reset();
-  }, [search, roleFilter, statusFilter, reset]);
+  }, [debouncedSearch, roleFilter, statusFilter, reset]);
 
   const [createStaff, { isLoading: isCreating }] = useCreateStaffMutation();
   const [updateStaff, { isLoading: isUpdating }] = useUpdateStaffMutation();
@@ -370,95 +387,59 @@ export default function StaffPage() {
         >
           <Grid container spacing={1.5}>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
+              <Input
                 label="Search"
                 placeholder="Search by name or email"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 fullWidth
-                size="small"
                 slotProps={{
                   input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
-                  },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  }
                 }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
+              <Input
                 label="Role"
                 select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
                 fullWidth
-                size="small"
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
                 slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
                   },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
                 }}
               >
                 <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Roles</MenuItem>
                 <MenuItem value="ADMIN" sx={{ fontSize: '0.75rem' }}>Admin</MenuItem>
                 <MenuItem value="MANAGER" sx={{ fontSize: '0.75rem' }}>Manager</MenuItem>
                 <MenuItem value="STAFF" sx={{ fontSize: '0.75rem' }}>Staff</MenuItem>
-              </TextField>
+              </Input>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
+              <Input
                 label="Status"
                 select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 fullWidth
-                size="small"
+                SelectProps={{ displayEmpty: true }}
+                InputLabelProps={{ shrink: true }}
                 slotProps={{
-                  select: { sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } },
-                  inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
-                }}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                    bgcolor: 'background.paper',
-                    px: 0.5,
+                  select: { 
+                    displayEmpty: true,
+                    sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
                   },
-                  '& .MuiInputLabel-shrink': {
-                    transform: 'translate(14px, -6px) scale(0.75)',
-                  },
-                  '& .MuiSelect-select': {
-                    py: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }
                 }}
               >
                 <MenuItem value="" sx={{ fontSize: '0.75rem' }}>All Status</MenuItem>
                 <MenuItem value="active" sx={{ fontSize: '0.75rem' }}>Active</MenuItem>
                 <MenuItem value="inactive" sx={{ fontSize: '0.75rem' }}>Inactive</MenuItem>
-              </TextField>
+              </Input>
             </Grid>
           </Grid>
         </Paper>
