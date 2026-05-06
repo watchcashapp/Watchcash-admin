@@ -231,7 +231,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       showSuccess('All notifications marked as read');
       handleNotificationMenuClose();
     } catch (error: any) {
-      showError(error?.data?.message || error?.message || 'Failed to mark notifications');
+      showError(error);
     }
   };
 
@@ -255,7 +255,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       showSuccess('Logged out successfully!');
       window.location.href = '/auth/login';
     } catch (error: any) {
-      showError(error?.data?.message || 'Logout failed');
+      showError(error);
       setIsLoggingOut(false);
       setLogoutConfirmOpen(false);
     }

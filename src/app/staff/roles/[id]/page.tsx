@@ -12,6 +12,7 @@ import { ArrowBack, Save } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { Input, Textarea, GroupedPermissionsSelect, useToast, PermissionGuard, Button } from '@/components/shared';
 import { useGetRoleByIdQuery, useUpdateRoleMutation, useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { getFieldErrors } from '@/utils/form-errors';
 
 export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -115,7 +116,23 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
       showSuccess('Role updated successfully!');
       router.push('/staff/roles');
     } catch (error: any) {
-      showError(error?.data?.message || 'Failed to update role');
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors as any);
+        
+        // Scroll to first error field
+        setTimeout(() => {
+          if (fieldErrors.name && nameRef.current) {
+            nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            nameRef.current?.focus();
+          } else if (fieldErrors.description && descriptionRef.current) {
+            descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            descriptionRef.current?.focus();
+          }
+        }, 100);
+      } else {
+        showError(error?.data?.message || 'Failed to update role');
+      }
     }
   };
 

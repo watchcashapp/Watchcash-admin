@@ -12,6 +12,7 @@ import { useRegisterMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
+import { getFieldErrors } from "@/utils/form-errors";
 
 interface DecodedToken {
   sub: string;
@@ -107,8 +108,13 @@ function SignupForm() {
       // Force a hard navigation to ensure middleware picks up the cookie
       window.location.href = '/dashboard';
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Registration failed. Please try again.';
-      showError(errorMessage);
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      } else {
+        const errorMessage = error?.data?.message || error?.message || 'Registration failed. Please try again.';
+        showError(errorMessage);
+      }
     }
   };
 

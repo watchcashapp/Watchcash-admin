@@ -13,6 +13,7 @@ import { useLoginMutation } from "@/store/api/authApi";
 import { setUser } from "@/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
+import { getFieldErrors } from "@/utils/form-errors";
 
 interface DecodedToken {
   sub: string;
@@ -107,8 +108,13 @@ function LoginForm() {
       // Force a hard navigation to ensure middleware picks up the cookie
       window.location.href = returnTo;
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Login failed. Please try again.';
-      showError(errorMessage);
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      } else {
+        const errorMessage = error?.data?.message || error?.message || 'Login failed. Please try again.';
+        showError(errorMessage);
+      }
     }
   };
 

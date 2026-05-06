@@ -183,8 +183,7 @@ export default function StaffPage() {
       }
       handleCloseDialog();
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || "Operation failed";
-      showError(errorMessage);
+      showError(error);
     }
   };
 
@@ -196,8 +195,7 @@ export default function StaffPage() {
       showSuccess("Staff deleted successfully!");
       setDeleteConfirm(null);
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || "Delete failed";
-      showError(errorMessage);
+      showError(error);
     }
   };
 
@@ -209,8 +207,7 @@ export default function StaffPage() {
       }).unwrap();
       showSuccess(`Staff ${!staff.isActive ? "activated" : "deactivated"} successfully!`);
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || "Status update failed";
-      showError(errorMessage);
+      showError(error);
     }
   };
 

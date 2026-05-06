@@ -9,6 +9,7 @@ import { useToast } from "@/components/shared/Toaster";
 import Input from "@/components/shared/Input";
 import Button from "@/components/shared/Button";
 import { useForgotPasswordMutation } from "@/store/api/authApi";
+import { getFieldErrors } from "@/utils/form-errors";
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -37,8 +38,13 @@ export default function ForgotPassword() {
       setSent(true);
       showSuccess('Password reset link sent successfully!');
     } catch (error: any) {
-      const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to send reset link. Please try again.');
-      showError(errorMessage);
+      const fieldErrors = getFieldErrors(error);
+      if (fieldErrors.email) {
+        setError(fieldErrors.email);
+      } else {
+        const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to send reset link. Please try again.');
+        showError(errorMessage);
+      }
     }
   };
 

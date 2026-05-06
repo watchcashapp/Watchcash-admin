@@ -17,6 +17,7 @@ import { Input, GroupedPermissionsSelect, useToast, PermissionGuard } from '@/co
 import { useGetUserByIdQuery, useUpdateUserMutation } from '@/store/api/usersApi';
 import { useGetPermissionsQuery, useGetRolesQuery } from '@/store/api/rbacApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { getFieldErrors } from '@/utils/form-errors';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -174,21 +175,16 @@ export default function EditUserPage() {
       const errorMessage = error?.data?.message || error?.message || 'Failed to update user';
 
       // Handle validation errors from API
-      if (error?.data?.details?.errors) {
-        const apiErrors: typeof errors = {};
-        error.data.details.errors.forEach((err: any) => {
-          if (err.path && err.path[0]) {
-            apiErrors[err.path[0] as keyof typeof errors] = err.message;
-          }
-        });
-        setErrors(apiErrors);
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors as any);
 
         // Scroll to first API error field
         setTimeout(() => {
-          if (apiErrors.name && nameRef.current) {
+          if (fieldErrors.name && nameRef.current) {
             nameRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
             nameRef.current.focus();
-          } else if (apiErrors.email && emailRef.current) {
+          } else if (fieldErrors.email && emailRef.current) {
             emailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
             emailRef.current.focus();
           }

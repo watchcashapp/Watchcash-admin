@@ -17,6 +17,7 @@ import {
 import { Block } from "@mui/icons-material";
 import { Input, Textarea, useToast } from "@/components/shared";
 import { BanReasonCode, useBanUserMutation, User } from "@/store/api/usersApi";
+import { getFieldErrors } from "@/utils/form-errors";
 
 /** Human-readable labels for ban reason codes */
 const BAN_REASON_LABELS: Record<BanReasonCode, string> = {
@@ -67,11 +68,13 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
   const [reasonCode, setReasonCode] = useState<BanReasonCode | "">("");
   const [durationSeconds, setDurationSeconds] = useState("86400");
   const [note, setNote] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const resetForm = useCallback(() => {
     setReasonCode("");
     setDurationSeconds("86400");
     setNote("");
+    setErrors({});
   }, []);
 
   const handleCancel = useCallback(() => {
@@ -100,7 +103,12 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
       resetForm();
       onSuccess();
     } catch (err: any) {
-      showError(err?.data?.message || "Failed to ban user");
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      } else {
+        showError(err);
+      }
     }
   }, [user, reasonCode, durationSeconds, note, banUser, showSuccess, showError, resetForm, onSuccess]);
 
@@ -178,8 +186,12 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           label="Duration (seconds) *"
           type="number"
           value={durationSeconds}
-          onChange={(e) => setDurationSeconds(e.target.value)}
-          helperText="Default: 86400 (24 hours)"
+          onChange={(e) => {
+            setDurationSeconds(e.target.value);
+            if (errors.durationSeconds) setErrors(prev => ({ ...prev, durationSeconds: undefined }));
+          }}
+          error={!!errors.durationSeconds}
+          helperText={errors.durationSeconds || "Default: 86400 (24 hours)"}
           disabled={isLoading}
           slotProps={{
             input: { sx: { fontSize: "0.8rem", height: "38px" } },
@@ -191,7 +203,12 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           label="Note *"
           rows={3}
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) => {
+            setNote(e.target.value);
+            if (errors.note) setErrors(prev => ({ ...prev, note: undefined }));
+          }}
+          error={!!errors.note}
+          helperText={errors.note}
           placeholder="Please provide a detailed reason for banning this user..."
           sx={{ fontSize: "0.8rem" }}
           disabled={isLoading}

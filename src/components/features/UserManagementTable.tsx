@@ -217,7 +217,7 @@ export default function UserManagementTable({
       showSuccess('User deleted successfully!');
       setDeleteConfirm({ open: false, user: null });
     } catch (error: any) {
-      showError(error?.data?.message || 'Delete failed');
+      showError(error);
     }
   };
 
@@ -232,7 +232,7 @@ export default function UserManagementTable({
       showSuccess('User unbanned successfully!');
       setUnbanConfirm({ open: false, user: null });
     } catch (error: any) {
-      showError(error?.data?.message || 'Unban failed');
+      showError(error);
     }
   };
 

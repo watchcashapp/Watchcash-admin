@@ -32,6 +32,7 @@ import {
   AppRule,
   CreateAppRuleRequest,
 } from "@/store/api/appRulesApi";
+import { getFieldErrors } from "@/utils/form-errors";
 
 
 interface AppRuleFormData extends CreateAppRuleRequest { }
@@ -410,7 +411,15 @@ export default function AppRulesPage() {
       }
     } catch (error: any) {
       console.error('Error saving app rule:', error);
-      showToast(error.data?.message || 'Failed to save app rule', 'error');
+      
+      // Extract and set field-level errors
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setFormErrors(fieldErrors as any);
+        showToast('Please correct the errors in the form', 'error');
+      } else {
+        showToast(error.data?.message || 'Failed to save app rule', 'error');
+      }
     }
   };
 

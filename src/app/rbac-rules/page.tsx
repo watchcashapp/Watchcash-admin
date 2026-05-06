@@ -27,6 +27,7 @@ import {
   Role,
 } from "@/store/api/rbacApi";
 import { usePermissions } from "@/hooks/usePermissions";
+import { getFieldErrors } from "@/utils/form-errors";
 
 export default function RbacRulesPage() {
   const router = useRouter();
@@ -178,7 +179,12 @@ export default function RbacRulesPage() {
       }
       handleCloseDialog();
     } catch (error: any) {
-      showError(error?.data?.message || error?.message || "Operation failed");
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors as any);
+      } else {
+        showError(error);
+      }
     }
   };
 
@@ -189,7 +195,7 @@ export default function RbacRulesPage() {
       showSuccess("Role deleted successfully!");
       setDeleteConfirm({ open: false, role: null });
     } catch (error: any) {
-      showError(error?.data?.message || error?.message || "Failed to delete role");
+      showError(error);
     }
   };
 

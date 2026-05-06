@@ -286,7 +286,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             showSuccess('User unbanned successfully!');
             setUnbanConfirmOpen(false);
           } catch (error: any) {
-            showError(error?.data?.message || 'Unban failed');
+            showError(error);
           }
         }}
         onCancel={() => setUnbanConfirmOpen(false)}

@@ -168,7 +168,7 @@ export default function RewardRedemptionsPage() {
       setReviewDialogOpen(false);
       setSelectedRedemption(null);
     } catch (err: any) {
-      showError(err?.data?.message || err?.message || 'Failed to review redemption');
+      showError(err);
     }
   };
 

@@ -148,7 +148,7 @@ export default function SettingsPage() {
             showSuccess('Settings updated successfully');
         } catch (error: any) {
             if (error.message !== 'Validation failed') {
-                showError(error?.data?.message || error?.message || 'Failed to update settings');
+                showError(error);
             }
         }
     };

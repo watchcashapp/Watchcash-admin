@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Input, Textarea, GroupedPermissionsSelect, useToast, PermissionGuard, Button } from '@/components/shared';
 import { useCreateRoleMutation } from '@/store/api/rbacApi';
 import { useGetPermissionsQuery } from '@/store/api/rbacApi';
+import { getFieldErrors } from '@/utils/form-errors';
 
 export default function AddRolePage() {
   const router = useRouter();
@@ -106,7 +107,23 @@ export default function AddRolePage() {
       showSuccess('Role created successfully!');
       router.push('/staff/roles');
     } catch (error: any) {
-      showError(error?.data?.message || 'Failed to create role');
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors as any);
+        
+        // Scroll to first error field
+        setTimeout(() => {
+          if (fieldErrors.name && nameRef.current) {
+            nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            nameRef.current?.focus();
+          } else if (fieldErrors.description && descriptionRef.current) {
+            descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            descriptionRef.current?.focus();
+          }
+        }, 100);
+      } else {
+        showError(error?.data?.message || 'Failed to create role');
+      }
     }
   };
 

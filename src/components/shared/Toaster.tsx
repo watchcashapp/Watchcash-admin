@@ -13,7 +13,7 @@ export interface ToastMessage {
 interface ToastContextType {
   showToast: (message: string, severity?: AlertProps['severity'], duration?: number) => void;
   showSuccess: (message: string, duration?: number) => void;
-  showError: (message: string, duration?: number) => void;
+  showError: (error: any, duration?: number) => void;
   showWarning: (message: string, duration?: number) => void;
   showInfo: (message: string, duration?: number) => void;
 }
@@ -52,8 +52,22 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     showToast(message, 'success', duration);
   }, [showToast]);
 
-  const showError = useCallback((message: string, duration?: number) => {
-    showToast(message, 'error', duration);
+  const showError = useCallback((error: any, duration?: number) => {
+    let finalMessage = 'An unexpected error occurred';
+    
+    if (typeof error === 'string') {
+      finalMessage = error;
+    } else {
+      // Handle API validation errors with details
+      const detailsErrors = error?.data?.details?.errors;
+      if (Array.isArray(detailsErrors) && detailsErrors.length > 0) {
+        finalMessage = detailsErrors.map((err: any) => err.message).join(', ');
+      } else {
+        finalMessage = error?.data?.message || error?.message || finalMessage;
+      }
+    }
+    
+    showToast(finalMessage, 'error', duration);
   }, [showToast]);
 
   const showWarning = useCallback((message: string, duration?: number) => {
