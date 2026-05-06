@@ -41,10 +41,8 @@ export default function ForgotPassword() {
       const fieldErrors = getFieldErrors(error);
       if (fieldErrors.email) {
         setError(fieldErrors.email);
-      } else {
-        const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to send reset link. Please try again.');
-        showError(errorMessage);
       }
+      showError(error);
     }
   };
 

@@ -416,10 +416,8 @@ export default function AppRulesPage() {
       const fieldErrors = getFieldErrors(error);
       if (Object.keys(fieldErrors).length > 0) {
         setFormErrors(fieldErrors as any);
-        showToast('Please correct the errors in the form', 'error');
-      } else {
-        showToast(error.data?.message || 'Failed to save app rule', 'error');
       }
+      showError(error);
     }
   };
 

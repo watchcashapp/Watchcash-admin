@@ -111,10 +111,8 @@ function LoginForm() {
       const fieldErrors = getFieldErrors(error);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
-      } else {
-        const errorMessage = error?.data?.message || error?.message || 'Login failed. Please try again.';
-        showError(errorMessage);
       }
+      showError(error);
     }
   };
 

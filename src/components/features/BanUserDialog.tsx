@@ -106,9 +106,8 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
       const fieldErrors = getFieldErrors(err);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
-      } else {
-        showError(err);
       }
+      showError(err);
     }
   }, [user, reasonCode, durationSeconds, note, banUser, showSuccess, showError, resetForm, onSuccess]);
 
@@ -188,7 +187,12 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           value={durationSeconds}
           onChange={(e) => {
             setDurationSeconds(e.target.value);
-            if (errors.durationSeconds) setErrors(prev => ({ ...prev, durationSeconds: undefined }));
+            if (errors.durationSeconds) {
+              setErrors(prev => {
+                const { durationSeconds, ...rest } = prev;
+                return rest;
+              });
+            }
           }}
           error={!!errors.durationSeconds}
           helperText={errors.durationSeconds || "Default: 86400 (24 hours)"}
@@ -205,7 +209,12 @@ function BanUserDialog({ open, user, onCancel, onSuccess }: BanUserDialogProps) 
           value={note}
           onChange={(e) => {
             setNote(e.target.value);
-            if (errors.note) setErrors(prev => ({ ...prev, note: undefined }));
+            if (errors.note) {
+              setErrors(prev => {
+                const { note, ...rest } = prev;
+                return rest;
+              });
+            }
           }}
           error={!!errors.note}
           helperText={errors.note}

@@ -47,10 +47,8 @@ export default function ResetPassword() {
       const fieldErrors = getFieldErrors(error);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
-      } else {
-        const errorMessage = error?.data?.message || (typeof error?.data === 'string' ? error.data : 'Failed to reset password. Please try again.');
-        showError(errorMessage);
       }
+      showError(error);
     }
   };
 

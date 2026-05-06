@@ -58,13 +58,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     if (typeof error === 'string') {
       finalMessage = error;
     } else {
-      // Handle API validation errors with details
-      const detailsErrors = error?.data?.details?.errors;
-      if (Array.isArray(detailsErrors) && detailsErrors.length > 0) {
-        finalMessage = detailsErrors.map((err: any) => err.message).join(', ');
-      } else {
-        finalMessage = error?.data?.message || error?.message || finalMessage;
-      }
+      // Prioritize the top-level API message
+      finalMessage = error?.data?.message || error?.message || finalMessage;
     }
     
     showToast(finalMessage, 'error', duration);

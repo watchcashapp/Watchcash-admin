@@ -182,9 +182,8 @@ export default function RbacRulesPage() {
       const fieldErrors = getFieldErrors(error);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors as any);
-      } else {
-        showError(error);
       }
+      showError(error);
     }
   };
 

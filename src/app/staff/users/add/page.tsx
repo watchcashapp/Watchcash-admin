@@ -88,7 +88,11 @@ export default function AddUserPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -170,7 +174,7 @@ export default function AddUserPage() {
         }, 100);
       }
 
-      showError(errorMessage);
+      showError(error);
     }
   };
 

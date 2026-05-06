@@ -65,7 +65,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     setFormData({ ...formData, name: e.target.value });
     // Clear error when user starts typing
     if (errors.name) {
-      setErrors(prev => ({ ...prev, name: undefined }));
+      setErrors(({ name, ...rest }) => rest);
     }
   };
 
@@ -73,7 +73,7 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
     setFormData({ ...formData, description: e.target.value });
     // Clear error when user starts typing
     if (errors.description) {
-      setErrors(prev => ({ ...prev, description: undefined }));
+      setErrors(({ description, ...rest }) => rest);
     }
   };
 
@@ -130,9 +130,8 @@ export default function EditRolePage({ params }: { params: Promise<{ id: string 
             descriptionRef.current?.focus();
           }
         }, 100);
-      } else {
-        showError(error?.data?.message || 'Failed to update role');
       }
+      showError(error);
     }
   };
 
