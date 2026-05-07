@@ -397,7 +397,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
 
     const unsubscribeDashboardUpdate = subscribeToDashboardUpdateEvents((payload: any) => {
-      console.log('Socket - dashboard_update received:', payload);
+      console.log('%cSocket - dashboard_update received:', 'background: #213350; color: #6AB344; padding: 2px 5px; border-radius: 3px; font-weight: bold;', payload);
       // Invalidate dashboard tags to force refresh of stats and sessions
       dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
       showSuccess('Dashboard data updated in real-time.');

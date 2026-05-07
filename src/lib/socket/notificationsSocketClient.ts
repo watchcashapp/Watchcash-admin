@@ -247,7 +247,7 @@ export const connectNotificationsSocket = (token: string) => {
 
   dashboardEventNames.forEach(name => {
     socket?.on(name, (payload) => {
-      console.log(`[Socket] ${name} received:`, payload);
+      console.log(`%c[Socket] ${name} received:`, 'color: #6AB344; font-weight: bold; font-size: 12px;', payload);
       for (const listener of dashboardUpdateListeners) {
         listener(payload);
       }
@@ -256,11 +256,20 @@ export const connectNotificationsSocket = (token: string) => {
 
   // Debug all socket events
   socket.onAny((eventName, ...args) => {
-    console.log(`[Socket Debug] Event: ${eventName}`, args);
+    console.log(`[Socket ALL Events] Event: "${eventName}"`, {
+      payload: args[0],
+      fullArgs: args,
+      timestamp: new Date().toLocaleTimeString()
+    });
   });
 
-  socket.on('test:pong', () => {
-    // Optional smoke test event support.
+  socket.on('connect', () => {
+    console.log('[Socket] Connected! Sending test ping...');
+    socket?.emit('ping');
+  });
+
+  socket.on('pong', () => {
+    console.log('[Socket] Received pong from server');
   });
 
   socket.connect();

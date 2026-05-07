@@ -5,29 +5,26 @@ import {
   Box,
   Paper,
   Typography,
+  Button,
   CircularProgress,
+  TextField,
   InputAdornment,
   Chip,
-  IconButton,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  Drawer,
   MenuItem,
-  Alert,
+  Drawer,
+  Grid,
   Tooltip,
-  TextField,
+  Alert,
+  Menu,
 } from '@mui/material';
 import {
   Search,
-  NavigateBefore,
-  NavigateNext,
+  Visibility,
   FileDownload,
 } from '@mui/icons-material';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { config } from '@/config/env';
-import { DataTable, Column, useToast, TablePagination, Input, Button } from '@/components/shared';
+import { DataTable, Column, useToast, TablePagination, Input } from '@/components/shared';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -57,10 +54,10 @@ export default function RewardRedemptionsPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { hasPermission } = usePermissions();
-  const today = new Date().toISOString().split('T')[0];
 
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const today = new Date().toISOString().split('T')[0];
 
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [localSearch, setLocalSearch] = useState(searchParams.get('search') || '');
@@ -69,9 +66,24 @@ export default function RewardRedemptionsPage() {
   const [toDate, setToDate] = useState(searchParams.get('to') || '');
   const [limit, setLimit] = useState(Number(searchParams.get('limit')) || 10);
   const [selectedRedemption, setSelectedRedemption] = useState<RewardRedemption | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewForm, setReviewForm] = useState<{
+    decision: 'approve' | 'reject' | 'hold';
+    admin_reason_code: string;
+    admin_note: string;
+  }>({
+    decision: 'approve',
+    admin_reason_code: '',
+    admin_note: '',
+  });
+
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
 
-  // Sync state with URL
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     
@@ -107,24 +119,10 @@ export default function RewardRedemptionsPage() {
     if (changed) {
       const queryString = params.toString();
       const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-      // Use window.history.replaceState to update URL without losing focus
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
-  }, [search, status, fromDate, toDate, limit, pathname, router, searchParams]);
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [reviewForm, setReviewForm] = useState<{
-    decision: 'approve' | 'reject' | 'hold';
-    admin_reason_code: string;
-    admin_note: string;
-  }>({
-    decision: 'approve',
-    admin_reason_code: '',
-    admin_note: '',
-  });
+  }, [search, status, fromDate, toDate, limit, pathname, searchParams]);
 
-  const hasFilters = search || status || fromDate || toDate;
-
-  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setSearch(localSearch);
@@ -132,7 +130,6 @@ export default function RewardRedemptionsPage() {
     return () => clearTimeout(handler);
   }, [localSearch]);
 
-  // Sync local search with global search
   useEffect(() => {
     if (search === '') {
       setLocalSearch('');
@@ -157,33 +154,7 @@ export default function RewardRedemptionsPage() {
   const redemptions = response?.items || [];
   const pagination = response?.pagination;
 
-  const handleReviewSubmit = async () => {
-    if (!selectedRedemption) return;
-    try {
-      await reviewRewardRedemption({
-        id: selectedRedemption.id,
-        data: reviewForm,
-      }).unwrap();
-      showSuccess('Reward redemption reviewed successfully');
-      setReviewDialogOpen(false);
-      setSelectedRedemption(null);
-    } catch (err: any) {
-      showError(err);
-    }
-  };
-
-  const handleReviewClick = (redemption: RewardRedemption) => {
-    setSelectedRedemption(redemption);
-    setReviewDialogOpen(true);
-  };
-
-  const handleView = (redemption: RewardRedemption) => {
-    if (!hasPermission('reward_redemptions:view')) {
-      showError('You do not have permission to view reward redemption details');
-      return;
-    }
-    router.push(`/reward-redemptions/${redemption.id}`);
-  };
+  const hasFilters = search || status || fromDate || toDate;
 
   const handleExportCSV = async () => {
     try {
@@ -217,6 +188,29 @@ export default function RewardRedemptionsPage() {
       showSuccess('Export started successfully');
     } catch (err) {
       showError('Failed to export reward redemptions');
+    }
+  };
+
+  const handleView = (redemption: RewardRedemption) => {
+    if (!hasPermission('reward_redemptions:view')) {
+      showError('You do not have permission to view reward redemption details');
+      return;
+    }
+    router.push(`/reward-redemptions/${redemption.id}`);
+  };
+
+  const handleReviewSubmit = async () => {
+    if (!selectedRedemption) return;
+    try {
+      await reviewRewardRedemption({
+        id: selectedRedemption.id,
+        data: reviewForm,
+      }).unwrap();
+      showSuccess('Reward redemption reviewed successfully');
+      setReviewDialogOpen(false);
+      setSelectedRedemption(null);
+    } catch (err: any) {
+      showError(err);
     }
   };
 

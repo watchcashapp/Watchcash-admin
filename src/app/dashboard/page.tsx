@@ -37,6 +37,7 @@ import { RootState } from '@/store';
 import { useGetDashboardStatsQuery, useGetSessionsSummaryQuery } from '@/store/api/dashboardApi';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useNotifications } from '@/components/notifications/NotificationsProvider';
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -44,6 +45,7 @@ export default function DashboardPage() {
   const { data: summaryData, isLoading: isLoadingSummary, error: summaryError } = useGetSessionsSummaryQuery();
   const router = useRouter();
   const { hasPermission, isFullProfileLoaded, isInitialized: isPermsInitialized } = usePermissions();
+  const { socketStatus, socketMessage } = useNotifications();
 
   const isLoading = isLoadingStats || !isFullProfileLoaded || !isPermsInitialized;
   
@@ -181,13 +183,22 @@ export default function DashboardPage() {
           >
             Welcome back{user?.name ? `, ${user.name}` : ''}!
           </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ fontWeight: 400, display: 'block' }}
-          >
-            Here's what's happening with your platform today.
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1} mb={0.25}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 400 }}
+            >
+              Here's what's happening with your platform today.
+            </Typography>
+            <Chip 
+              label={`Socket: ${socketStatus.toUpperCase()}`}
+              size="small"
+              color={socketStatus === 'connected' ? 'success' : 'warning'}
+              variant="outlined"
+              sx={{ height: '18px', fontSize: '0.6rem', fontWeight: 700 }}
+            />
+          </Box>
         </Box>
 
         {/* Stats Cards */}

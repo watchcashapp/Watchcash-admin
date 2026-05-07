@@ -358,6 +358,9 @@ export default function EditUserPage() {
                         m: 0,
                         '& .MuiFormControlLabel-label': {
                           fontSize: '0.9rem',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
+                          width: '100%',
                         },
                       }}
                     />
