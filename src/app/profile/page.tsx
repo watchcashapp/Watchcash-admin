@@ -17,6 +17,7 @@ import {
 import { Edit, Save, Lock } from "@mui/icons-material";
 import { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } from "@/store/api/authApi";
 import { useToast, Input } from "@/components/shared";
+import { getFieldErrors } from "@/utils/form-errors";
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -114,10 +115,14 @@ export default function ProfilePage() {
 
       showSuccess('Profile updated successfully!');
       setIsEditing(false);
+      setErrors({});
       refetch();
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Failed to update profile';
-      showError(errorMessage);
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors);
+      }
+      showError(error);
     }
   };
 
@@ -203,8 +208,16 @@ export default function ProfilePage() {
         window.location.href = '/auth/login';
       }, 1500);
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Failed to change password';
-      showError(errorMessage);
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        // Map snake_case from API to camelCase in state if needed
+        const mappedErrors: any = {};
+        if (fieldErrors.current_password) mappedErrors.currentPassword = fieldErrors.current_password;
+        if (fieldErrors.new_password) mappedErrors.newPassword = fieldErrors.new_password;
+        Object.assign(mappedErrors, fieldErrors);
+        setPasswordErrors(mappedErrors);
+      }
+      showError(error);
     }
   };
 

@@ -21,6 +21,8 @@ import {
   GlobalRules,
 } from "@/store/api/globalRulesApi";
 
+import { getFieldErrors } from "@/utils/form-errors";
+
 export default function GlobalRulesPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -145,9 +147,14 @@ export default function GlobalRulesPage() {
       await updateGlobalRules(formData).unwrap();
       showSuccess('Global rules updated successfully!');
       setIsEditing(false);
+      setFormErrors({});
     } catch (error: any) {
-      const errorMessage = error?.data?.message || error?.message || 'Update failed';
-      showError(errorMessage);
+      // Extract and set field-level errors
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        setFormErrors(fieldErrors as any);
+      }
+      showError(error);
     }
   };
 

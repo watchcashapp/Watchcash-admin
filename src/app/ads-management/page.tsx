@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useToast, Input, PermissionGuard } from '@/components/shared';
 import { usePermissions } from '@/hooks/usePermissions';
+import { getFieldErrors } from '@/utils/form-errors';
 import {
   useGetAdSettingsQuery,
   useUpdateAdSettingsMutation,
@@ -118,6 +119,7 @@ export default function AdsManagementPage() {
     max_points_per_day: 1,
     cooldown_seconds: 1
   });
+  const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
 
   // Providers Pagination State
   const [cursor, setCursor] = useState<string | null>(null);
@@ -137,6 +139,7 @@ export default function AdsManagementPage() {
     is_enabled: true,
     config: {}
   });
+  const [providerErrors, setProviderErrors] = useState<Record<string, string>>({});
   const [providerTouched, setProviderTouched] = useState<Set<string>>(new Set());
 
   const isSettingsChanged = React.useMemo(() => {
@@ -222,8 +225,13 @@ export default function AdsManagementPage() {
       await updateAdSettings(payload).unwrap();
       showSuccess('Ad settings updated successfully');
       setIsEditingSettings(false);
+      setSettingsErrors({});
     } catch (err: any) {
-      showError(err?.data?.message || 'Failed to update ad settings');
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setSettingsErrors(fieldErrors);
+      }
+      showError(err);
     }
   };
 
@@ -253,6 +261,7 @@ export default function AdsManagementPage() {
       });
     }
     setProviderTouched(new Set());
+    setProviderErrors({});
     setOpenProviderDialog(true);
   };
 
@@ -271,9 +280,14 @@ export default function AdsManagementPage() {
       await saveProvider({ ...providerForm, config: finalConfig }).unwrap();
       showSuccess(editingProvider ? 'Provider updated' : 'Provider added');
       setOpenProviderDialog(false);
+      setProviderErrors({});
       setCursor(null); // Reset pagination on save
     } catch (err: any) {
-      showError(err?.data?.message || 'Failed to save provider');
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setProviderErrors(fieldErrors);
+      }
+      showError(err);
     }
   };
 
@@ -519,12 +533,15 @@ export default function AdsManagementPage() {
                   onChange={(e) => {
                     const val = e.target.value === '' ? 0 : Number(e.target.value);
                     setSettingsForm({ ...settingsForm, points_per_ad: val });
+                    if (settingsErrors.points_per_ad) setSettingsErrors(prev => { const n = { ...prev }; delete n.points_per_ad; return n; });
                   }}
                   onBlur={() => {
                     if (settingsForm.points_per_ad <= 0) setSettingsForm(prev => ({ ...prev, points_per_ad: 1 }));
                   }}
                   disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
+                  error={!!settingsErrors.points_per_ad}
+                  helperText={settingsErrors.points_per_ad}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -535,12 +552,15 @@ export default function AdsManagementPage() {
                   onChange={(e) => {
                     const val = e.target.value === '' ? 0 : Number(e.target.value);
                     setSettingsForm({ ...settingsForm, cooldown_seconds: val });
+                    if (settingsErrors.cooldown_seconds) setSettingsErrors(prev => { const n = { ...prev }; delete n.cooldown_seconds; return n; });
                   }}
                   onBlur={() => {
                     if (settingsForm.cooldown_seconds <= 0) setSettingsForm(prev => ({ ...prev, cooldown_seconds: 1 }));
                   }}
                   disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
+                  error={!!settingsErrors.cooldown_seconds}
+                  helperText={settingsErrors.cooldown_seconds}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -551,12 +571,15 @@ export default function AdsManagementPage() {
                   onChange={(e) => {
                     const val = e.target.value === '' ? 0 : Number(e.target.value);
                     setSettingsForm({ ...settingsForm, max_ads_per_day: val });
+                    if (settingsErrors.max_ads_per_day) setSettingsErrors(prev => { const n = { ...prev }; delete n.max_ads_per_day; return n; });
                   }}
                   onBlur={() => {
                     if (settingsForm.max_ads_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_ads_per_day: 1 }));
                   }}
                   disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
+                  error={!!settingsErrors.max_ads_per_day}
+                  helperText={settingsErrors.max_ads_per_day}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -567,12 +590,15 @@ export default function AdsManagementPage() {
                   onChange={(e) => {
                     const val = e.target.value === '' ? 0 : Number(e.target.value);
                     setSettingsForm({ ...settingsForm, max_points_per_day: val });
+                    if (settingsErrors.max_points_per_day) setSettingsErrors(prev => { const n = { ...prev }; delete n.max_points_per_day; return n; });
                   }}
                   onBlur={() => {
                     if (settingsForm.max_points_per_day <= 0) setSettingsForm(prev => ({ ...prev, max_points_per_day: 1 }));
                   }}
                   disabled={!isEditingSettings || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                   fullWidth
+                  error={!!settingsErrors.max_points_per_day}
+                  helperText={settingsErrors.max_points_per_day}
                 />
               </Grid>
 
@@ -628,11 +654,14 @@ export default function AdsManagementPage() {
                 fullWidth
                 label="Provider Name"
                 value={providerForm.provider_name}
-                onChange={(e) => handleNameChange(e.target.value)}
+                onChange={(e) => {
+                  handleNameChange(e.target.value);
+                  if (providerErrors.provider_name) setProviderErrors(prev => { const n = { ...prev }; delete n.provider_name; return n; });
+                }}
                 placeholder="e.g., Google AdMob"
                 required
-                error={providerTouched.has('provider_name') && !providerForm.provider_name.trim()}
-                helperText={providerTouched.has('provider_name') && !providerForm.provider_name.trim() ? "Provider Name is required" : ""}
+                error={!!providerErrors.provider_name || (providerTouched.has('provider_name') && !providerForm.provider_name.trim())}
+                helperText={providerErrors.provider_name || (providerTouched.has('provider_name') && !providerForm.provider_name.trim() ? "Provider Name is required" : "")}
                 disabled={isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                 maxLength={50}
                 showCount
@@ -644,12 +673,15 @@ export default function AdsManagementPage() {
                 label="Provider Code"
                 disabled={!!editingProvider || isUpdatingSettings || isSavingProvider || isUpdatingStatus}
                 value={providerForm.provider_code}
-                onChange={(e) => handleProviderInputChange('provider_code', e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  handleProviderInputChange('provider_code', e.target.value.toUpperCase());
+                  if (providerErrors.provider_code) setProviderErrors(prev => { const n = { ...prev }; delete n.provider_code; return n; });
+                }}
                 placeholder="e.g., ADMOB"
                 size="small"
                 required
-                error={providerTouched.has('provider_code') && !providerForm.provider_code.trim()}
-                helperText={providerTouched.has('provider_code') && !providerForm.provider_code.trim() ? "Provider Code is required" : (providerTouched.has('provider_name') && !editingProvider ? "Auto-generated from name" : "")}
+                error={!!providerErrors.provider_code || (providerTouched.has('provider_code') && !providerForm.provider_code.trim())}
+                helperText={providerErrors.provider_code || (providerTouched.has('provider_code') && !providerForm.provider_code.trim() ? "Provider Code is required" : (providerTouched.has('provider_name') && !editingProvider ? "Auto-generated from name" : ""))}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>

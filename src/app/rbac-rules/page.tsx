@@ -338,7 +338,7 @@ export default function RbacRulesPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField
+                <Input
                   label="Code"
                   value={formData.code}
                   error={!!errors.code}
@@ -351,15 +351,6 @@ export default function RbacRulesPage() {
                   required
                   fullWidth
                   disabled
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  sx={{
-                    '& .MuiInputBase-input.Mui-disabled': {
-                      WebkitTextFillColor: 'rgba(0, 0, 0, 0.6)',
-                      color: 'rgba(0, 0, 0, 0.6)',
-                    },
-                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>

@@ -11,15 +11,17 @@ import {
     CircularProgress,
 } from '@mui/material';
 import { Add, Delete, Edit } from '@mui/icons-material';
-import { useToast, PermissionGuard } from '@/components/shared';
+import { useToast, PermissionGuard, Input } from '@/components/shared';
 import { useRouter } from 'next/navigation';
 import { useGetSettingsQuery, useUpdateSettingsMutation } from '@/store/api/settingsApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { getFieldErrors } from '@/utils/form-errors';
 
 export default function SettingsPage() {
     const [metadata, setMetadata] = useState([{ metakey: '', metavalue: '' }]);
     const [originalSettings, setOriginalSettings] = useState<Record<string, any>>({});
     const [editingRows, setEditingRows] = useState<Record<number, boolean>>({});
+    const [metaErrors, setMetaErrors] = useState<Record<string, string>>({});
     const { showSuccess, showError } = useToast();
 
     const { data: response, isLoading: isFetching } = useGetSettingsQuery();
@@ -39,6 +41,7 @@ export default function SettingsPage() {
             // Always start with a blank row at the top
             setMetadata([{ metakey: '', metavalue: '' }, ...initialMetadata]);
             setEditingRows({});
+            setMetaErrors({});
         }
     }, [response]);
 
@@ -93,6 +96,17 @@ export default function SettingsPage() {
         const newMetadata = [...metadata];
         newMetadata[index][field] = processedValue;
         setMetadata(newMetadata);
+
+        // Clear error for this index and field
+        const errorKey = `${index}.${field}`;
+        if (metaErrors[errorKey] || metaErrors[newMetadata[index].metakey]) {
+            setMetaErrors(prev => {
+                const next = { ...prev };
+                delete next[errorKey];
+                delete next[newMetadata[index].metakey];
+                return next;
+            });
+        }
     };
 
     const handleSubmit = async () => {
@@ -146,8 +160,13 @@ export default function SettingsPage() {
 
             await updateSettings({ settings: settingsPayload }).unwrap();
             showSuccess('Settings updated successfully');
+            setMetaErrors({});
         } catch (error: any) {
             if (error.message !== 'Validation failed') {
+                const fieldErrors = getFieldErrors(error);
+                if (Object.keys(fieldErrors).length > 0) {
+                    setMetaErrors(fieldErrors);
+                }
                 showError(error);
             }
         }
@@ -258,7 +277,7 @@ export default function SettingsPage() {
                                             bgcolor: index === 0 ? 'rgba(33, 51, 80, 0.04)' : 'transparent',
                                         }}
                                     >
-                                        <TextField
+                                        <Input
                                             fullWidth
                                             label="Meta Key"
                                             value={row.metakey}
@@ -266,6 +285,8 @@ export default function SettingsPage() {
                                             size="small"
                                             disabled={isUpdating || isExisting}
                                             required
+                                            error={!!metaErrors[`settings.${row.metakey}`] || !!metaErrors[row.metakey]}
+                                            helperText={metaErrors[`settings.${row.metakey}`] || metaErrors[row.metakey]}
                                             slotProps={{
                                                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
                                                 inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
@@ -285,7 +306,7 @@ export default function SettingsPage() {
                                                 }
                                             }}
                                         />
-                                        <TextField
+                                        <Input
                                             fullWidth
                                             label="Meta Value"
                                             value={row.metavalue}
@@ -293,6 +314,8 @@ export default function SettingsPage() {
                                             size="small"
                                             disabled={isDisabled}
                                             required
+                                            error={!!metaErrors[`settings.${row.metakey}`] || !!metaErrors[row.metakey]}
+                                            helperText={metaErrors[`settings.${row.metakey}`] || metaErrors[row.metakey]}
                                             slotProps={{
                                                 input: { sx: { fontSize: '0.75rem', height: '32px' } },
                                                 inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }

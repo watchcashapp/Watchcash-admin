@@ -34,6 +34,7 @@ import { useGetSettingsQuery, useUpdateSettingsMutation } from "@/store/api/sett
 import { useGetPlanSettingsQuery, useUpdatePlanSettingsMutation } from "@/store/api/planSettingsApi";
 import { usePermissions } from "@/hooks/usePermissions";
 import { WorkspacePremium } from "@mui/icons-material";
+import { getFieldErrors } from "@/utils/form-errors";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -80,6 +81,7 @@ export default function AppManagementPage() {
   const { data: settingsData, isLoading: isLoadingSettings, refetch } = useGetSettingsQuery();
   const [updateSettings, { isLoading: isUpdating }] = useUpdateSettingsMutation();
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -95,6 +97,13 @@ export default function AppManagementPage() {
   const handleInputChange = (key: string, value: any) => {
     setTouchedFields(prev => new Set(prev).add(key));
     setFormData((prev) => ({ ...prev, [key]: value }));
+    if (formErrors[key]) {
+      setFormErrors(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
   };
 
   const isSettingsChanged = React.useMemo(() => {
@@ -106,9 +115,14 @@ export default function AppManagementPage() {
     try {
       await updateSettings({ settings: formData }).unwrap();
       showSuccess("Settings updated successfully");
+      setFormErrors({});
       refetch();
     } catch (err: any) {
-      showError(err?.data?.message || "Failed to update settings");
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setFormErrors(fieldErrors);
+      }
+      showError(err);
     }
   };
 
@@ -116,6 +130,7 @@ export default function AppManagementPage() {
   const { data: planData, isLoading: isLoadingPlans, refetch: refetchPlans } = useGetPlanSettingsQuery(undefined, { skip: !canViewPlanSettings });
   const [updatePlanSettings, { isLoading: isUpdatingPlans }] = useUpdatePlanSettingsMutation();
   const [plansList, setPlansList] = useState<any[]>([]);
+  const [planErrors, setPlanErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (planData?.plans) {
@@ -129,6 +144,21 @@ export default function AppManagementPage() {
       newList[index] = { ...newList[index], [key]: value };
       return newList;
     });
+
+    // Clear error for this field
+    const errorKey = `plans.${index}.${key}`;
+    // Also handle snake_case if that's what API sends back
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    const snakeErrorKey = `plans.${index}.${snakeKey}`;
+
+    if (planErrors[errorKey] || planErrors[snakeErrorKey]) {
+      setPlanErrors(prev => {
+        const next = { ...prev };
+        delete next[errorKey];
+        delete next[snakeErrorKey];
+        return next;
+      });
+    }
   };
 
   const handleAddFeature = (index: number, feature: string) => {
@@ -187,9 +217,14 @@ export default function AppManagementPage() {
       
       await updatePlanSettings({ plans: payloadPlans }).unwrap();
       showSuccess("Plan settings updated successfully");
+      setPlanErrors({});
       refetchPlans();
     } catch (err: any) {
-      showError(err?.data?.message || "Failed to update plan settings");
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setPlanErrors(fieldErrors);
+      }
+      showError(err);
     }
   };
 
@@ -291,7 +326,8 @@ export default function AppManagementPage() {
                                     value={plan.name}
                                     onChange={(e) => handlePlanInputChange(index, "name", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
-                                    error={!plan.name}
+                                    error={!!planErrors[`plans.${index}.name`] || !plan.name}
+                                    helperText={planErrors[`plans.${index}.name`]}
                                     maxLength={50}
                                     showCount
                                   />
@@ -303,7 +339,8 @@ export default function AppManagementPage() {
                                     value={plan.priceUsd}
                                     onChange={(e) => handlePlanInputChange(index, "priceUsd", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
-                                    error={!plan.priceUsd || Number(plan.priceUsd) < 0}
+                                    error={!!planErrors[`plans.${index}.priceUsd`] || !!planErrors[`plans.${index}.price_usd`] || !plan.priceUsd || Number(plan.priceUsd) < 0}
+                                    helperText={planErrors[`plans.${index}.priceUsd`] || planErrors[`plans.${index}.price_usd`]}
                                   />
                                   <Input
                                     fullWidth
@@ -313,7 +350,8 @@ export default function AppManagementPage() {
                                     value={plan.earningPointsPerMin}
                                     onChange={(e) => handlePlanInputChange(index, "earningPointsPerMin", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
-                                    error={!plan.earningPointsPerMin || Number(plan.earningPointsPerMin) < 0}
+                                    error={!!planErrors[`plans.${index}.earningPointsPerMin`] || !!planErrors[`plans.${index}.earning_points_per_min`] || !plan.earningPointsPerMin || Number(plan.earningPointsPerMin) < 0}
+                                    helperText={planErrors[`plans.${index}.earningPointsPerMin`] || planErrors[`plans.${index}.earning_points_per_min`]}
                                   />
                                   <Input
                                     fullWidth
@@ -323,7 +361,8 @@ export default function AppManagementPage() {
                                     value={plan.dailyLimitMinutes}
                                     onChange={(e) => handlePlanInputChange(index, "dailyLimitMinutes", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
-                                    error={!plan.dailyLimitMinutes || Number(plan.dailyLimitMinutes) < 0}
+                                    error={!!planErrors[`plans.${index}.dailyLimitMinutes`] || !!planErrors[`plans.${index}.daily_limit_minutes`] || !plan.dailyLimitMinutes || Number(plan.dailyLimitMinutes) < 0}
+                                    helperText={planErrors[`plans.${index}.dailyLimitMinutes`] || planErrors[`plans.${index}.daily_limit_minutes`]}
                                   />
                                   <Box sx={{ mt: 1 }}>
                                       <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>Features</Typography>

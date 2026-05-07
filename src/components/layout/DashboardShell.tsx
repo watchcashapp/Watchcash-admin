@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -139,6 +139,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [openSubMenus, setOpenSubMenus] = useState<{ [key: string]: boolean }>({});
   const [activeOverride, setActiveOverride] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
   // Skeletons should show until the full profile (and permissions) has finished loading
   const showSkeletons = !isMounted || !isInitialized || isLoading || !user;
@@ -206,6 +207,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       setActiveOverride(null);
     }
   }, [pathname, activeOverride]);
+  
+  // Auto-scroll main content to top on pathname change
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+  }, [pathname]);
 
   // Add Ctrl+K keyboard shortcut for Theme Switcher
   useEffect(() => {
@@ -476,11 +484,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           {drawer}
         </Drawer>
       </Box>
-      <Box component="main" sx={{
-        flexGrow: 1, p: { xs: 2, sm: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` },
-        bgcolor: 'background.default', height: '100vh', overflowY: 'auto', overflowX: 'hidden',
-        '&::-webkit-scrollbar': { width: '4px' },
-      }}>
+      <Box 
+        component="main" 
+        ref={mainContentRef}
+        sx={{
+          flexGrow: 1, p: { xs: 2, sm: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` },
+          bgcolor: 'background.default', height: '100vh', overflowY: 'auto', overflowX: 'hidden',
+          '&::-webkit-scrollbar': { width: '4px' },
+        }}
+      >
         <Toolbar sx={{ minHeight: '64px !important' }} />
         {children}
       </Box>

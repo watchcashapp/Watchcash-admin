@@ -101,7 +101,14 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
           <Alert
             onClose={() => handleClose(toast.id)}
             severity={toast.severity}
-            sx={{ width: '100%' }}
+            sx={{ 
+              width: '100%',
+              color: '#fff',
+              fontWeight: 500,
+              '& .MuiAlert-icon': {
+                color: '#fff'
+              }
+            }}
             variant="filled"
           >
             {toast.message}
