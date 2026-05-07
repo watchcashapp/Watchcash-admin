@@ -25,6 +25,7 @@ import {
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { config } from '@/config/env';
 import { DataTable, Column, useToast, TablePagination, Input } from '@/components/shared';
+import { getFieldErrors } from '@/utils/form-errors';
 import { useGetRewardRedemptionsQuery, useReviewRewardRedemptionMutation, RewardRedemption } from '@/store/api/rewardRedemptionsApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCursorPagination } from '@/hooks/useCursorPagination';
@@ -77,6 +78,8 @@ export default function RewardRedemptionsPage() {
     admin_reason_code: '',
     admin_note: '',
   });
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
 
@@ -201,6 +204,7 @@ export default function RewardRedemptionsPage() {
 
   const handleReviewSubmit = async () => {
     if (!selectedRedemption) return;
+    setFormErrors({});
     try {
       await reviewRewardRedemption({
         id: selectedRedemption.id,
@@ -210,6 +214,10 @@ export default function RewardRedemptionsPage() {
       setReviewDialogOpen(false);
       setSelectedRedemption(null);
     } catch (err: any) {
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setFormErrors(fieldErrors);
+      }
       showError(err);
     }
   };
@@ -554,14 +562,33 @@ export default function RewardRedemptionsPage() {
             </Box>
             <Box flex={1} sx={{ overflowY: 'auto' }} p={3}>
               <Box mb={3}>
-                <TextField select fullWidth label="Decision" value={reviewForm.decision} onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} disabled={isReviewing} slotProps={{ inputLabel: { shrink: true, required: true } }}>
+                <TextField 
+                  select 
+                  fullWidth 
+                  label="Decision" 
+                  value={reviewForm.decision} 
+                  onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} 
+                  disabled={isReviewing} 
+                  error={!!formErrors.decision}
+                  helperText={formErrors.decision}
+                  slotProps={{ inputLabel: { shrink: true, required: true } }}
+                >
                   <MenuItem value="approve">Approve</MenuItem>
                   <MenuItem value="reject">Reject</MenuItem>
                   <MenuItem value="hold">Hold</MenuItem>
                 </TextField>
               </Box>
               <Box mb={3}>
-                <TextField fullWidth label="Reason Code" value={reviewForm.admin_reason_code} onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} disabled={isReviewing} placeholder="E.g. valid_activity" />
+                <TextField 
+                  fullWidth 
+                  label="Reason Code" 
+                  value={reviewForm.admin_reason_code} 
+                  onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} 
+                  disabled={isReviewing} 
+                  error={!!formErrors.admin_reason_code}
+                  helperText={formErrors.admin_reason_code}
+                  placeholder="E.g. valid_activity" 
+                />
                 <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
                   {PREDEFINED_REASONS.map((reason) => (
                     <Chip
@@ -585,8 +612,10 @@ export default function RewardRedemptionsPage() {
                   value={reviewForm.admin_note}
                   onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })}
                   disabled={isReviewing}
+                  error={!!formErrors.admin_note}
+                  helperText={formErrors.admin_note}
                   placeholder="Add admin note..."
-                  maxLength={500}
+                  maxLength={1000}
                   showCount
                 />
               </Box>

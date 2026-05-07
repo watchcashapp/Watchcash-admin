@@ -15,11 +15,17 @@ import {
   Tab,
   IconButton,
   Skeleton,
+  Drawer,
+  TextField,
+  MenuItem,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import { ArrowBack, RateReview, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useGetSessionByIdQuery, useReviewSessionMutation, ReviewSessionRequest } from '@/store/api/sessionsApi';
-import { DataTable, useToast } from '@/components/shared';
+import { Input, GroupedPermissionsSelect, useToast, PermissionGuard, DataTable } from '@/components/shared';
+import { getFieldErrors } from '@/utils/form-errors';
 import { usePermissions } from '@/hooks/usePermissions';
 
 // Dynamic import for heavy map component
@@ -27,13 +33,6 @@ const LocationMap = dynamic(() => import('@/components/shared/LocationMap'), {
   ssr: false,
   loading: () => <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 2 }} />
 });
-import {
-  Drawer,
-  TextField,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-} from '@mui/material';
 
 const PREDEFINED_REASONS = [
   { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -117,11 +116,15 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
     block_minutes: 0,
   });
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const handleReviewSubmit = async () => {
     if (!reviewForm.reason) {
       showError('Reason is required');
       return;
     }
+
+    setFormErrors({});
 
     try {
       await reviewSession({
@@ -131,7 +134,11 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       showSuccess('Session reviewed successfully');
       setReviewDialogOpen(false);
     } catch (err: any) {
-      showError(err?.data?.message || err?.message || 'Failed to review session');
+      const fieldErrors = getFieldErrors(err);
+      if (Object.keys(fieldErrors).length > 0) {
+        setFormErrors(fieldErrors);
+      }
+      showError(err);
     }
   };
 
@@ -921,6 +928,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
           <ReviewFormComponent
             reviewForm={reviewForm}
             setReviewForm={setReviewForm}
+            formErrors={formErrors}
             refreshingIsReviewing={refreshingIsReviewing}
             handleReviewSubmit={handleReviewSubmit}
             setReviewDialogOpen={setReviewDialogOpen}
@@ -958,6 +966,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             <ReviewFormComponent
               reviewForm={reviewForm}
               setReviewForm={setReviewForm}
+              formErrors={formErrors}
               refreshingIsReviewing={refreshingIsReviewing}
               handleReviewSubmit={handleReviewSubmit}
               setReviewDialogOpen={setReviewDialogOpen}
@@ -973,6 +982,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 function ReviewFormComponent({
   reviewForm,
   setReviewForm,
+  formErrors,
   refreshingIsReviewing,
   handleReviewSubmit,
   setReviewDialogOpen,
@@ -1015,6 +1025,8 @@ function ReviewFormComponent({
               value={reviewForm.decision}
               onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as any })}
               disabled={refreshingIsReviewing}
+              error={!!formErrors.decision}
+              helperText={formErrors.decision}
               InputLabelProps={{ shrink: true, required: true }}
             >
               <MenuItem value="approve">Approve</MenuItem>
@@ -1029,6 +1041,8 @@ function ReviewFormComponent({
               value={reviewForm.reason}
               onChange={(e) => setReviewForm({ ...reviewForm, reason: e.target.value })}
               disabled={refreshingIsReviewing}
+              error={!!formErrors.reason}
+              helperText={formErrors.reason}
               placeholder="Select a reason..."
               InputLabelProps={{ shrink: true, required: true }}
             >
@@ -1049,6 +1063,8 @@ function ReviewFormComponent({
               value={reviewForm.note}
               onChange={(e) => setReviewForm({ ...reviewForm, note: e.target.value })}
               disabled={refreshingIsReviewing}
+              error={!!formErrors.note}
+              helperText={formErrors.note}
               InputLabelProps={{ shrink: true }}
             />
           </Grid>

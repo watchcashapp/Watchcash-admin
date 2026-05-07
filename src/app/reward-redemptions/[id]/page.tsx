@@ -26,6 +26,7 @@ import { useGetRewardCatalogsQuery } from '@/store/api/rewardCatalogsApi';
 import { useToast } from '@/components/shared';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { usePermissions } from '@/hooks/usePermissions';
+import { getFieldErrors } from '@/utils/form-errors';
 
 const PREDEFINED_REASONS = [
     { value: 'fraud_suspected', label: 'Fraud Suspicion' },
@@ -70,6 +71,7 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
         admin_note: '',
         utid: '',
     });
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const handleReviewSubmit = async () => {
         try {
@@ -84,8 +86,13 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
             }).unwrap();
             showSuccess('Reward redemption reviewed successfully');
             setReviewDialogOpen(false);
+            setFormErrors({});
         } catch (err: any) {
-            showError(err?.data?.message || err?.message || 'Failed to review redemption');
+            const fieldErrors = getFieldErrors(err);
+            if (Object.keys(fieldErrors).length > 0) {
+                setFormErrors(fieldErrors);
+            }
+            showError(err);
         }
     };
 
@@ -402,6 +409,8 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                     <ReviewForm
                                         reviewForm={reviewForm}
                                         setReviewForm={setReviewForm}
+                                        formErrors={formErrors}
+                                        setFormErrors={setFormErrors}
                                         isReviewing={isReviewing}
                                         handleReviewSubmit={handleReviewSubmit}
                                     />
@@ -425,14 +434,16 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                         }}
                     >
                         {hasPermission('reward_redemptions:mark_reviewed') && (
-                            <ReviewForm
-                                mobile
-                                reviewForm={reviewForm}
-                                setReviewForm={setReviewForm}
-                                  isReviewing={isReviewing}
-                                handleReviewSubmit={handleReviewSubmit}
-                                setReviewDialogOpen={setReviewDialogOpen}
-                            />
+                                <ReviewForm
+                                    mobile
+                                    reviewForm={reviewForm}
+                                    setReviewForm={setReviewForm}
+                                    formErrors={formErrors}
+                                    setFormErrors={setFormErrors}
+                                    isReviewing={isReviewing}
+                                    handleReviewSubmit={handleReviewSubmit}
+                                    setReviewDialogOpen={setReviewDialogOpen}
+                                />
                         )}
                     </Drawer>
                 </Box>
@@ -449,6 +460,8 @@ interface ReviewFormProps {
         utid: string;
     };
     setReviewForm: (form: any) => void;
+    formErrors: Record<string, string>;
+    setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
     isReviewing: boolean;
     handleReviewSubmit: () => void;
     setReviewDialogOpen?: (open: boolean) => void;
@@ -458,6 +471,8 @@ function ReviewForm({
     mobile,
     reviewForm,
     setReviewForm,
+    formErrors,
+    setFormErrors,
     isReviewing,
     handleReviewSubmit,
     setReviewDialogOpen
@@ -478,8 +493,18 @@ function ReviewForm({
                         size="small"
                         label="Decision"
                         value={reviewForm.decision}
-                        onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })}
+                        onChange={(e) => {
+                            setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' });
+                            if (formErrors.decision) {
+                                setFormErrors(prev => {
+                                    const { decision, ...rest } = prev;
+                                    return rest;
+                                });
+                            }
+                        }}
                         disabled={isReviewing}
+                        error={!!formErrors.decision}
+                        helperText={formErrors.decision}
                         slotProps={{
                             input: { sx: { fontSize: '0.75rem', height: '32px' } },
                             inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
@@ -497,9 +522,19 @@ function ReviewForm({
                         size="small"
                         label="Reason Code"
                         value={reviewForm.admin_reason_code}
-                        onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })}
+                        onChange={(e) => {
+                            setReviewForm({ ...reviewForm, admin_reason_code: e.target.value });
+                            if (formErrors.admin_reason_code) {
+                                setFormErrors(prev => {
+                                    const { admin_reason_code, ...rest } = prev;
+                                    return rest;
+                                });
+                            }
+                        }}
                         disabled={isReviewing}
                         placeholder="Select..."
+                        error={!!formErrors.admin_reason_code}
+                        helperText={formErrors.admin_reason_code}
                         slotProps={{
                             input: { sx: { fontSize: '0.75rem', height: '32px' } },
                             inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
@@ -512,7 +547,13 @@ function ReviewForm({
                         ))}
                     </TextField>
                 </Box>
-                <RewardCatalogField reviewForm={reviewForm} setReviewForm={setReviewForm} isReviewing={isReviewing} />
+                <RewardCatalogField 
+                    reviewForm={reviewForm} 
+                    setReviewForm={setReviewForm} 
+                    formErrors={formErrors}
+                    setFormErrors={setFormErrors}
+                    isReviewing={isReviewing} 
+                />
                 <Box mb={2}>
                     <TextField
                         fullWidth
@@ -521,9 +562,19 @@ function ReviewForm({
                         rows={2}
                         label="Internal Note"
                         value={reviewForm.admin_note}
-                        onChange={(e) => setReviewForm({ ...reviewForm, admin_note: e.target.value })}
+                        onChange={(e) => {
+                            setReviewForm({ ...reviewForm, admin_note: e.target.value });
+                            if (formErrors.admin_note) {
+                                setFormErrors(prev => {
+                                    const { admin_note, ...rest } = prev;
+                                    return rest;
+                                });
+                            }
+                        }}
                         disabled={isReviewing}
                         placeholder="Add note..."
+                        error={!!formErrors.admin_note}
+                        helperText={formErrors.admin_note}
                         slotProps={{
                             input: { sx: { fontSize: '0.75rem' } },
                             inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true }
@@ -551,7 +602,19 @@ function ReviewForm({
     );
 }
 
-function RewardCatalogField({ reviewForm, setReviewForm, isReviewing }: { reviewForm: any, setReviewForm: any, isReviewing: boolean }) {
+function RewardCatalogField({ 
+    reviewForm, 
+    setReviewForm, 
+    formErrors,
+    setFormErrors,
+    isReviewing 
+}: { 
+    reviewForm: any, 
+    setReviewForm: any, 
+    formErrors: Record<string, string>,
+    setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+    isReviewing: boolean 
+}) {
     const { data: catalogResponse, isLoading } = useGetRewardCatalogsQuery({ status: 'ACTIVE', limit: 100 });
     const catalogs = catalogResponse?.items || [];
 
@@ -563,9 +626,19 @@ function RewardCatalogField({ reviewForm, setReviewForm, isReviewing }: { review
                 size="small"
                 label="Reward Catalog"
                 value={reviewForm.utid}
-                onChange={(e) => setReviewForm({ ...reviewForm, utid: e.target.value })}
+                onChange={(e) => {
+                    setReviewForm({ ...reviewForm, utid: e.target.value });
+                    if (formErrors.utid) {
+                        setFormErrors(prev => {
+                            const { utid, ...rest } = prev;
+                            return rest;
+                        });
+                    }
+                }}
                 disabled={isReviewing || isLoading}
                 placeholder={isLoading ? "Loading..." : "Select catalog item..."}
+                error={!!formErrors.utid}
+                helperText={formErrors.utid}
                 slotProps={{
                     input: { sx: { fontSize: '0.75rem', height: '32px' } },
                     inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
