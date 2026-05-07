@@ -55,9 +55,21 @@ export const dashboardApi = createApi({
     baseQuery: baseQueryWithReauth,
     tagTypes: ['Dashboard'],
     endpoints: (builder) => ({
-        getDashboardStats: builder.query<DashboardStats, void>({
+        getDashboardStats: builder.query<DashboardStats['data'], void>({
             query: () => '/admin/dashboard',
             providesTags: ['Dashboard'],
+            transformResponse: (response: any) => {
+                console.log('[Dashboard API Debug] Raw response:', response);
+                const d = response.data || {};
+                return {
+                    totalUsers: d.totalUsers ?? d.total_users ?? 0,
+                    activeUsers: d.activeUsers ?? d.active_users ?? 0,
+                    totalStaffUsers: d.totalStaffUsers ?? d.total_staff_users ?? 0,
+                    activeStaffUsers: d.activeStaffUsers ?? d.active_staff_users ?? 0,
+                    bannedUsers: d.bannedUsers ?? d.banned_users ?? 0,
+                    totalSessionsInDay: d.totalSessionsInDay ?? d.total_sessions_in_day ?? 0,
+                };
+            }
         }),
         getSessionsSummary: builder.query<SessionsSummaryResponse, void>({
             query: () => '/admin/sessions/summary',

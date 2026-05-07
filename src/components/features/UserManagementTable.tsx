@@ -64,6 +64,7 @@ export default function UserManagementTable({
   const [search, setSearch] = useState(searchParams.get('search') || "");
   const [localSearch, setLocalSearch] = useState(searchParams.get('search') || "");
   const [isActive, setIsActive] = useState<string>(searchParams.get('isActive') || "");
+  const [isBanned, setIsBanned] = useState<string>(searchParams.get('isBanned') || "");
   const [userType, setUserType] = useState<string>(searchParams.get('userType') || defaultUserType);
   const [fromDate, setFromDate] = useState(searchParams.get('from') || "");
   const [toDate, setToDate] = useState(searchParams.get('to') || "");
@@ -77,6 +78,7 @@ export default function UserManagementTable({
     let changed = false;
     const urlSearch = searchParams.get('search') || "";
     const urlIsActive = searchParams.get('isActive') || "";
+    const urlIsBanned = searchParams.get('isBanned') || "";
     const urlUserType = searchParams.get('userType') || defaultUserType;
     const urlFrom = searchParams.get('from') || "";
     const urlTo = searchParams.get('to') || "";
@@ -88,6 +90,10 @@ export default function UserManagementTable({
     }
     if (isActive !== urlIsActive) {
       if (isActive !== "") params.set('isActive', isActive); else params.delete('isActive');
+      changed = true;
+    }
+    if (isBanned !== urlIsBanned) {
+      if (isBanned !== "") params.set('isBanned', isBanned); else params.delete('isBanned');
       changed = true;
     }
     if (userType !== urlUserType) {
@@ -113,11 +119,11 @@ export default function UserManagementTable({
       // Use window.history.replaceState to update URL without losing focus
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
-  }, [search, isActive, userType, fromDate, toDate, limit, defaultUserType, pathname, router, searchParams]);
+  }, [search, isActive, isBanned, userType, fromDate, toDate, limit, defaultUserType, pathname, router, searchParams]);
   
   const hasFilters = useMemo(() => 
-    !!(search || isActive !== "" || userType !== defaultUserType || fromDate || toDate),
-    [search, isActive, userType, defaultUserType, fromDate, toDate]
+    !!(search || isActive !== "" || isBanned !== "" || userType !== defaultUserType || fromDate || toDate),
+    [search, isActive, isBanned, userType, defaultUserType, fromDate, toDate]
   );
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; user: User | null }>({
@@ -140,11 +146,12 @@ export default function UserManagementTable({
     const params: any = { cursor, limit };
     if (search) params.search = search;
     if (isActive !== "") params.isActive = isActive === "true";
+    if (isBanned !== "") params.isBanned = isBanned === "true";
     if (effectiveUserType) params.userType = effectiveUserType;
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
     return params;
-  }, [cursor, limit, search, isActive, effectiveUserType, fromDate, toDate]);
+  }, [cursor, limit, search, isActive, isBanned, effectiveUserType, fromDate, toDate]);
 
   const { data, isLoading, error, isFetching } = useGetUsersQuery(queryParams, {
     refetchOnMountOrArgChange: true,
@@ -171,7 +178,7 @@ export default function UserManagementTable({
   // Reset page when filters change
   useEffect(() => {
     reset();
-  }, [search, isActive, userType, fromDate, toDate, reset]);
+  }, [search, isActive, isBanned, userType, fromDate, toDate, reset]);
 
   const handleView = useCallback((user: User) => {
     if (!hasPermission('users:view')) {
@@ -342,6 +349,7 @@ export default function UserManagementTable({
   const handleClearFilters = () => {
     setSearch("");
     setIsActive("");
+    setIsBanned("");
     setUserType(defaultUserType);
     setFromDate("");
     setToDate("");
@@ -526,6 +534,27 @@ export default function UserManagementTable({
               <MenuItem value="">All Status</MenuItem>
               <MenuItem value="true">Active</MenuItem>
               <MenuItem value="false">Inactive</MenuItem>
+            </Input>
+          </Grid>
+          
+          <Grid size={{ xs: 12, sm: 6, md: 1.5 }}>
+            <Input
+              select
+              label="Banned"
+              value={isBanned || ""}
+              onChange={(e) => setIsBanned(e.target.value)}
+              SelectProps={{ displayEmpty: true }}
+              InputLabelProps={{ shrink: true }}
+              slotProps={{
+                select: { 
+                  displayEmpty: true,
+                  sx: { fontSize: '0.75rem', height: '32px', display: 'flex', alignItems: 'center' } 
+                },
+              }}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="true">Banned</MenuItem>
+              <MenuItem value="false">Not Banned</MenuItem>
             </Input>
           </Grid>
 

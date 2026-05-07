@@ -46,6 +46,15 @@ export default function DashboardPage() {
   const { hasPermission, isFullProfileLoaded, isInitialized: isPermsInitialized } = usePermissions();
 
   const isLoading = isLoadingStats || !isFullProfileLoaded || !isPermsInitialized;
+  
+  console.log('[Dashboard Debug]', { 
+    hasData: !!data, 
+    isLoadingStats, 
+    isFullProfileLoaded, 
+    isPermsInitialized, 
+    isLoading 
+  });
+
 
   // Pagination states
   const [flaggedPage, setFlaggedPage] = React.useState(1);
@@ -81,8 +90,10 @@ export default function DashboardPage() {
         router.push('/users');
         break;
       case 'Active Users':
-      case 'Banned Users':
         router.push('/users');
+        break;
+      case 'Banned Users':
+        router.push('/users?isBanned=true');
         break;
       case 'Total Staff':
       case 'Active Staff':
@@ -99,42 +110,42 @@ export default function DashboardPage() {
   const stats = useMemo(() => data ? [
     {
       title: 'Total Users',
-      value: data.data.totalUsers.toString(),
+      value: data.totalUsers.toString(),
       icon: <People />,
       color: (theme: any) => theme.palette.mode === 'dark' ? '#90caf9' : '#213350',
       bgColor: 'rgba(33, 51, 80, 0.1)',
     },
     {
       title: 'Active Users',
-      value: data.data.activeUsers.toString(),
+      value: data.activeUsers.toString(),
       icon: <VerifiedUser />,
       color: '#10b981',
       bgColor: 'rgba(16, 185, 129, 0.1)',
     },
     {
       title: 'Total Staff',
-      value: data.data.totalStaffUsers.toString(),
+      value: data.totalStaffUsers.toString(),
       icon: <PersonAdd />,
       color: '#3b82f6',
       bgColor: 'rgba(59, 130, 246, 0.1)',
     },
     {
       title: 'Active Staff',
-      value: data.data.activeStaffUsers.toString(),
+      value: data.activeStaffUsers.toString(),
       icon: <VerifiedUser />,
       color: '#0ea5e9',
       bgColor: 'rgba(14, 165, 233, 0.1)',
     },
     {
       title: 'Banned Users',
-      value: data.data.bannedUsers.toString(),
+      value: data.bannedUsers.toString(),
       icon: <Block />,
       color: '#ef4444',
       bgColor: 'rgba(239, 68, 68, 0.1)',
     },
     {
       title: 'Today\'s Sessions',
-      value: data.data.totalSessionsInDay.toString(),
+      value: data.totalSessionsInDay.toString(),
       icon: <AccessTime />,
       color: '#6AB344',
       bgColor: 'rgba(106, 179, 68, 0.1)',

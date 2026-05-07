@@ -73,6 +73,7 @@ export interface UsersResponse {
 export interface GetUsersParams extends CursorPaginationParams {
   search?: string;
   isActive?: boolean;
+  isBanned?: boolean;
   userType?: string;
   from?: string;
   to?: string;
@@ -273,7 +274,7 @@ export interface UserSubscriptionResponse {
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Users'],
+  tagTypes: ['Users', 'Dashboard'],
   endpoints: (builder) => ({
     getUsers: builder.query<UsersResponse['data'], GetUsersParams>({
       query: (params = {}) => {
@@ -282,6 +283,7 @@ export const usersApi = createApi({
         appendCursorPagination(queryParams, params);
         if (params.search) queryParams.append('search', params.search);
         if (params.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+        if (params.isBanned !== undefined) queryParams.append('isBanned', params.isBanned.toString());
         if (params.userType) queryParams.append('userType', params.userType);
         if (params.from) queryParams.append('from', params.from);
         if (params.to) queryParams.append('to', params.to);
@@ -327,7 +329,7 @@ export const usersApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['Users', 'Dashboard'],
       transformResponse: (response: { status: string; data: User }) => response.data,
     }),
     updateUser: builder.mutation<User, { id: string; data: UpdateUserRequest }>({
@@ -336,7 +338,7 @@ export const usersApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['Users', 'Dashboard'],
       transformResponse: (response: { status: string; data: User }) => response.data,
     }),
     deleteUser: builder.mutation<void, string>({
@@ -344,7 +346,7 @@ export const usersApi = createApi({
         url: `/admin/users/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['Users', 'Dashboard'],
     }),
     banUser: builder.mutation<void, { id: string; data: BanUserRequest }>({
       query: ({ id, data }) => ({
@@ -352,14 +354,14 @@ export const usersApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['Users', 'Dashboard'],
     }),
     unbanUser: builder.mutation<void, string>({
       query: (id) => ({
         url: `/admin/users/${id}/unban`,
         method: 'POST',
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ['Users', 'Dashboard'],
     }),
     getUserWallet: builder.query<UserWalletResponse['data'], { userId: string } & CursorPaginationParams>({
       query: ({ userId, cursor, limit = 20 }) => {

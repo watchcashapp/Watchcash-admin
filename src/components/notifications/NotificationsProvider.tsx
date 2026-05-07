@@ -21,6 +21,7 @@ import {
   subscribeToPermissionEvents,
   subscribeToBanExpiredEvents,
   subscribeToRankingUpdateEvents,
+  subscribeToDashboardUpdateEvents,
   subscribeToSocketStatus,
 } from '@/lib/socket/notificationsSocketClient';
 import { useDispatch } from 'react-redux';
@@ -293,6 +294,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   }, [unreadOnly]);
 
   useEffect(() => {
+    console.log('[Socket Debug] Token available for connection:', !!resolvedToken);
     if (!resolvedToken) {
       disconnectNotificationsSocket();
       setSocketStatus('unauthorized');
@@ -394,6 +396,21 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       showSuccess('The user rankings have been updated successfully.');
     });
 
+    const unsubscribeDashboardUpdate = subscribeToDashboardUpdateEvents((payload: any) => {
+      console.log('Socket - dashboard_update received:', payload);
+      // Invalidate dashboard tags to force refresh of stats and sessions
+      dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
+      showSuccess('Dashboard data updated in real-time.');
+    });
+
+    // Debugging tool for manual testing
+    if (typeof window !== 'undefined') {
+      (window as any).refreshDashboardStats = () => {
+        console.log('Manual Dashboard Refresh Triggered');
+        dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
+      };
+    }
+
     const handleOnline = () => {
       if (resolvedToken) {
         connectNotificationsSocket(resolvedToken);
@@ -414,6 +431,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       unsubscribePermissions();
       unsubscribeBanExpired();
       unsubscribeRankingUpdate();
+      unsubscribeDashboardUpdate();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       disconnectNotificationsSocket();

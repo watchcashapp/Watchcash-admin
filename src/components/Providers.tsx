@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/shared/Toaster';
 import ThemeRegistry from '@/app/ThemeRegistry';
 import AuthInitializer from '@/components/AuthInitializer';
+import { NotificationsProvider } from '@/components/notifications/NotificationsProvider';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -24,7 +25,9 @@ export default function Providers({ children, initialAuth, initialTheme }: Provi
         <Provider store={store}>
           <AuthInitializer initialAuth={initialAuth} />
           <ToastProvider>
-            {children}
+            <NotificationsProvider>
+              {children}
+            </NotificationsProvider>
           </ToastProvider>
         </Provider>
       </ThemeRegistry>

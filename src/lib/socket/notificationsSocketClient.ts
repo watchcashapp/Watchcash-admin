@@ -25,6 +25,7 @@ const notificationListeners = new Set<NotificationListener>();
 const permissionListeners = new Set<NotificationListener>();
 const banExpiredListeners = new Set<NotificationListener>();
 const rankingUpdateListeners = new Set<NotificationListener>();
+const dashboardUpdateListeners = new Set<NotificationListener>();
 const statusListeners = new Set<StatusListener>();
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -112,6 +113,7 @@ export const connectNotificationsSocket = (token: string) => {
   currentDeviceId = deviceId;
 
   notifyStatus('connecting');
+  console.log(`[Socket] Connecting to ${getSocketBaseUrl()} with deviceId: ${deviceId}`);
   socket = io(getSocketBaseUrl(), {
     autoConnect: false,
     reconnection: true,
@@ -125,6 +127,7 @@ export const connectNotificationsSocket = (token: string) => {
       deviceId,
     },
   });
+  console.log('[Socket Debug] Socket object created:', !!socket);
 
   socket.on('connect', () => {
     notifyStatus('connected');
@@ -221,7 +224,34 @@ export const connectNotificationsSocket = (token: string) => {
       for (const listener of rankingUpdateListeners) {
         listener(payload);
       }
+    } else if (
+      payload.eventName === 'dashboard_update' || 
+      payload.eventName === 'dashboard-update' ||
+      payload.eventName === 'dashboard:update' ||
+      payload.eventName === 'update:dashboard' ||
+      payload.eventName === 'dashboard_stats_updated'
+    ) {
+      for (const listener of dashboardUpdateListeners) {
+        listener(payload);
+      }
     }
+  });
+
+  const dashboardEventNames = [
+    'dashboard_update',
+    'dashboard-update',
+    'dashboard:update',
+    'update:dashboard',
+    'dashboard_stats_updated'
+  ];
+
+  dashboardEventNames.forEach(name => {
+    socket?.on(name, (payload) => {
+      console.log(`[Socket] ${name} received:`, payload);
+      for (const listener of dashboardUpdateListeners) {
+        listener(payload);
+      }
+    });
   });
 
   // Debug all socket events
@@ -267,6 +297,13 @@ export const subscribeToRankingUpdateEvents = (listener: NotificationListener) =
   rankingUpdateListeners.add(listener);
   return () => {
     rankingUpdateListeners.delete(listener);
+  };
+};
+
+export const subscribeToDashboardUpdateEvents = (listener: NotificationListener) => {
+  dashboardUpdateListeners.add(listener);
+  return () => {
+    dashboardUpdateListeners.delete(listener);
   };
 };
 
