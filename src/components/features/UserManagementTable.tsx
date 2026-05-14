@@ -39,6 +39,10 @@ interface UserManagementTableProps {
   showBanButton?: boolean;
   showEditAction?: boolean;
   showDeleteAction?: boolean;
+  showExportButton?: boolean;
+  selectedIds?: string[];
+  onSelectRow?: (id: string) => void;
+  onSelectAll?: (ids: string[]) => void;
 }
 
 export default function UserManagementTable({
@@ -52,6 +56,10 @@ export default function UserManagementTable({
   showBanButton = true,
   showEditAction = true,
   showDeleteAction = true,
+  showExportButton = true,
+  selectedIds,
+  onSelectRow,
+  onSelectAll,
 }: UserManagementTableProps) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -409,7 +417,7 @@ export default function UserManagementTable({
           {title}
         </Typography>
         <Box display="flex" gap={1}>
-          {hasPermission('users:export') && (
+          {hasPermission('users:export') && showExportButton && (
             <Button
               variant="contained"
               size="small"
@@ -668,6 +676,9 @@ export default function UserManagementTable({
         onBan={showBanButton && hasPermission('users:ban') ? (row: User) => setBanConfirm({ open: true, user: row }) : undefined}
         onUnban={showBanButton && hasPermission('users:unban') ? (row: User) => setUnbanConfirm({ open: true, user: row }) : undefined}
         getRowId={(row: User) => row.id}
+        selectedIds={selectedIds}
+        onSelectRow={onSelectRow}
+        onSelectAll={onSelectAll}
       />
 
       <TablePagination

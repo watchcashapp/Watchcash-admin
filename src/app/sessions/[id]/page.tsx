@@ -147,7 +147,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       case 'active':
         return 'success';
       case 'completed':
-        return 'info';
+        return 'success';
       case 'pending':
         return 'warning';
       case 'failed':
@@ -505,7 +505,13 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                   <Chip
                     label={session.status}
                     color={getStatusColor(session.status)}
-                    sx={{ textTransform: 'capitalize', fontWeight: 600, fontSize: '0.65rem', height: '20px' }}
+                    sx={{ 
+                      textTransform: 'capitalize', 
+                      fontWeight: 600, 
+                      fontSize: '0.65rem', 
+                      height: '20px',
+                      color: session.status === 'completed' ? 'white' : 'inherit'
+                    }}
                   />
                 </Box>
 

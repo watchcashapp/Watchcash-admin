@@ -88,7 +88,7 @@ export default function SessionsPage() {
       case 'active':
         return 'success';
       case 'completed':
-        return 'info';
+        return 'success';
       case 'pending':
         return 'warning';
       case 'failed':
@@ -159,7 +159,11 @@ export default function SessionsPage() {
           label={value}
           color={getStatusColor(value)}
           size="small"
-          sx={{ textTransform: 'capitalize', fontWeight: 500 }}
+          sx={{ 
+            textTransform: 'capitalize', 
+            fontWeight: 500,
+            color: value === 'completed' ? 'white' : 'inherit'
+          }}
         />
       ),
     },

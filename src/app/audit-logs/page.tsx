@@ -29,7 +29,20 @@ export default function AuditLogsPage() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
 
-    const [limit, setLimit] = useState(8);
+    const [limit, setLimit] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const isReturning = sessionStorage.getItem('returning_from_detail');
+            const savedLimit = sessionStorage.getItem('audit_logs_limit');
+            
+            // Clear the flag so it doesn't persist for other entries to this page
+            sessionStorage.removeItem('returning_from_detail');
+
+            if (isReturning && savedLimit) {
+                return parseInt(savedLimit, 10);
+            }
+        }
+        return 8;
+    });
     const { cursor, pageNumber, canGoBack, goNext, goPrevious, reset } = useCursorPagination();
     const { hasPermission } = usePermissions();
     const today = new Date().toISOString().split('T')[0];
@@ -432,13 +445,17 @@ export default function AuditLogsPage() {
                     getRowId={(row: any) => row.id}
                     isLoading={isLoading || isFetching}
                     emptyMessage="No audit logs found"
-                    onView={hasPermission('admin_audit_logs:view') ? (row: any) => router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`) : undefined}
+                    onView={hasPermission('admin_audit_logs:view') ? (row: any) => {
+                        sessionStorage.setItem('returning_from_detail', 'true');
+                        router.push(`/audit-logs/${row.targetUser?.id || 'system'}/details/${row.id}`);
+                    } : undefined}
                     renderPagination={() => data && data.items && data.items.length > 0 ? (
                         <TablePagination
                             pageNumber={pageNumber}
                             limit={limit}
                             onLimitChange={(newLimit: number) => {
                                 setLimit(newLimit);
+                                sessionStorage.setItem('audit_logs_limit', newLimit.toString());
                                 reset();
                             }}
                             canGoBack={canGoBack}

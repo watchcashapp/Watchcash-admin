@@ -161,6 +161,8 @@ export default function ProfilePage() {
 
     if (!passwordData.newPassword) {
       newErrors.newPassword = "New password is required";
+    } else if (/\s/.test(passwordData.newPassword)) {
+      newErrors.newPassword = "Password cannot contain spaces";
     } else if (passwordData.newPassword.length < 6) {
       newErrors.newPassword = "Password must be at least 6 characters";
     }

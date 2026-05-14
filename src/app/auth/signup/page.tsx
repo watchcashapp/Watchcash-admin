@@ -55,7 +55,11 @@ function SignupForm() {
 
     if (!name.trim()) nextErrors.name = "Name is required";
     if (!validateEmail(email)) nextErrors.email = "Enter a valid email";
-    if (password.length < 6) nextErrors.password = "Password must be at least 6 characters";
+    if (/\s/.test(password)) {
+      nextErrors.password = "Password cannot contain spaces";
+    } else if (password.length < 6) {
+      nextErrors.password = "Password must be at least 6 characters";
+    }
     if (password !== confirmPassword) nextErrors.confirmPassword = "Passwords do not match";
 
     setErrors(nextErrors);

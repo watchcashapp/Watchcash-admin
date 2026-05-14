@@ -25,6 +25,7 @@ import {
   Collapse,
   CircularProgress,
   Skeleton,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -52,6 +53,11 @@ import {
   FormatListBulleted,
   Person,
   AdsClick,
+  VpnKey,
+  CheckCircle,
+  Error as ErrorIcon,
+  Warning,
+  DeleteOutline,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/components/shared/Toaster';
@@ -99,7 +105,13 @@ const menuItems: MenuItem[] = [
   { text: 'Login History', icon: <Login />, path: '/login-history', permission: 'login_history:list' },
   { text: 'App Management', icon: <AdminPanelSettings />, path: '/app-management', permission: 'admin:full_access' },
   { text: 'Ads Management', icon: <AdsClick />, path: '/ads-management', permission: 'admin:full_access' },
-  { text: 'Notifications', icon: <NotificationsNone />, path: '/notifications' },
+  {
+    text: 'Notifications',
+    icon: <NotificationsNone />,
+    subItems: [
+      { text: 'View All', icon: <FormatListBulleted />, path: '/notifications' },
+    ]
+  },
   { text: 'Profile Settings', icon: <AccountCircle />, path: '/profile' },
   {
     text: 'Pages',
@@ -253,6 +265,58 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     }
   };
 
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getNotificationIcon = (n: any) => {
+    const entityType = (n.entity_type || n.entityType || '').toLowerCase();
+    const section = (n.section || '').toLowerCase();
+    const action = (n.action || '').toLowerCase();
+    const title = (n.title || '').toLowerCase();
+    const message = (n.message || '').toLowerCase();
+    
+    // Check structured data first
+    if (entityType === 'user' || entityType === 'staff') return <Person fontSize="small" />;
+    if (entityType === 'role' || entityType === 'permission') return <AdminPanelSettings fontSize="small" />;
+    if (entityType === 'ad_provider' || section === 'ads') return <AdsClick fontSize="small" />;
+    if (entityType === 'reward_redemption' || section === 'redemptions') return <AccountBalance fontSize="small" />;
+    if (entityType === 'reward_catalog' || section === 'catalog') return <CardGiftcard fontSize="small" />;
+    if (section === 'sessions') return <BarChart fontSize="small" />;
+    if (section === 'audit_logs') return <ReceiptLong fontSize="small" />;
+    if (action.includes('password') || section === 'auth') return <VpnKey fontSize="small" />;
+    
+    // Fallback to title/message parsing
+    if (title.includes('password') || message.includes('password')) return <VpnKey fontSize="small" />;
+    if (title.includes('success') || message.includes('success')) return <CheckCircle fontSize="small" />;
+    if (title.includes('fail') || title.includes('error') || message.includes('fail')) return <ErrorIcon fontSize="small" />;
+    if (title.includes('warning') || title.includes('alert')) return <Warning fontSize="small" />;
+    if (title.includes('user') || message.includes('user')) return <Person fontSize="small" />;
+    
+    return <NotificationsNone fontSize="small" />;
+  };
+
+  const getNotificationColor = (n: any) => {
+    const action = (n.action || '').toLowerCase();
+    const title = (n.title || '').toLowerCase();
+    const message = (n.message || '').toLowerCase();
+
+    if (action.includes('error') || action.includes('fail') || title.includes('fail') || title.includes('error') || message.includes('fail')) return '#ef4444'; // Red
+    if (action.includes('success') || title.includes('success') || message.includes('success')) return '#10b981'; // Green
+    if (action.includes('warning') || title.includes('warning') || title.includes('alert')) return '#f59e0b'; // Amber
+    if (action.includes('create') || action.includes('add')) return '#3b82f6'; // Blue
+    
+    return '#213350'; // Default dark navy
+  };
+
   const handleLogoutConfirm = async () => {
     setIsLoggingOut(true);
     try {
@@ -400,20 +464,131 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             <IconButton onClick={handleNotificationMenuOpen} color="inherit">
               <Badge badgeContent={unreadCount} color="error"><NotificationsNone /></Badge>
             </IconButton>
-            <Menu anchorEl={notificationAnchorEl} open={Boolean(notificationAnchorEl)} onClose={handleNotificationMenuClose}>
-              <Box sx={{ px: 2, py: 1 }}>
+            <Menu 
+              anchorEl={notificationAnchorEl} 
+              open={Boolean(notificationAnchorEl)} 
+              onClose={handleNotificationMenuClose}
+              PaperProps={{
+                sx: {
+                  width: 320,
+                  maxHeight: 480,
+                  mt: 1.5,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }
+              }}
+            >
+              <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Notifications</Typography>
+                {unreadCount > 0 && (
+                  <Typography 
+                    variant="caption" 
+                    onClick={handleMarkAllNotificationsRead}
+                    sx={{ 
+                      color: 'primary.main', 
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      '&:hover': { textDecoration: 'underline' } 
+                    }}
+                  >
+                    Mark all read
+                  </Typography>
+                )}
               </Box>
               <Divider />
-              {bellItems.length === 0 ? <Box sx={{ p: 2 }}><Typography variant="body2">No notifications</Typography></Box> :
-                bellItems.map(n => (
-                  <MuiMenuItem key={n.id} onClick={() => handleNotificationClick(n.id, n.is_read)} sx={{ bgcolor: n.is_read ? 'transparent' : 'rgba(33, 51, 80, 0.04)' }}>
-                    <Box><Typography variant="body2" sx={{ fontWeight: n.is_read ? 400 : 600 }}>{n.title}</Typography></Box>
-                  </MuiMenuItem>
-                ))
-              }
+              <Box sx={{ 
+                maxHeight: 350, 
+                overflowY: 'auto', 
+                '&::-webkit-scrollbar': { width: '4px' }, 
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.1)', borderRadius: 2 } 
+              }}>
+                {bellItems.length === 0 ? (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <NotificationsNone sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">No notifications</Typography>
+                  </Box>
+                ) : (
+                  bellItems.map(n => (
+                    <MuiMenuItem 
+                      key={n.id} 
+                      onClick={() => handleNotificationClick(n.id, n.is_read)} 
+                      sx={{ 
+                        py: 1.5,
+                        px: 2,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        whiteSpace: 'normal',
+                        alignItems: 'flex-start',
+                        gap: 1.5,
+                        bgcolor: n.is_read ? 'transparent' : 'rgba(106, 179, 68, 0.05)',
+                        '&:hover': { bgcolor: 'rgba(33, 51, 80, 0.04)' }
+                      }}
+                    >
+                      <Avatar sx={{ 
+                        width: 34, 
+                        height: 34, 
+                        bgcolor: n.is_read ? 'action.disabledBackground' : getNotificationColor(n),
+                        color: 'white',
+                        fontSize: '1rem',
+                        boxShadow: n.is_read ? 'none' : '0 2px 8px rgba(0,0,0,0.1)'
+                      }}>
+                        {getNotificationIcon(n)}
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: n.is_read ? 500 : 700, fontSize: '0.8rem', mb: 0.25, color: 'text.primary' }}>
+                          {n.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.75rem', lineHeight: 1.3, mb: 0.5 }}>
+                          {n.message}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'primary.main', fontSize: '0.65rem', fontWeight: 600 }}>
+                          {formatTimeAgo(n.created_at)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        {!n.is_read && (
+                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
+                        )}
+                        {!n.is_read && (
+                          <Tooltip title="Mark as read">
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markOneAsRead(n.id);
+                              }}
+                              sx={{ 
+                                p: 0.5,
+                                color: 'primary.main',
+                                '&:hover': { bgcolor: 'rgba(106, 179, 68, 0.1)' }
+                              }}
+                            >
+                              <DoneAll sx={{ fontSize: '0.9rem' }} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
+                    </MuiMenuItem>
+                  ))
+                )}
+              </Box>
               <Divider />
-              <MuiMenuItem onClick={handleMarkAllNotificationsRead} sx={{ justifyContent: 'center', color: 'primary.main' }}>Read all</MuiMenuItem>
+              <MuiMenuItem 
+                onClick={() => { handleNotificationMenuClose(); router.push('/notifications'); }}
+                sx={{ 
+                  justifyContent: 'center', 
+                  py: 1.5,
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
+                }}
+              >
+                View all notifications
+              </MuiMenuItem>
             </Menu>
             {showSkeletons ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1 }}>

@@ -15,7 +15,7 @@ import {
   LinearProgress,
   Tooltip,
 } from '@mui/material';
-import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block, CheckCircle } from '@mui/icons-material';
+import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block, CheckCircle, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -41,6 +41,9 @@ export interface DataTableProps<T> {
   getRowId: (row: T) => string;
   emptyMessage?: string;
   renderPagination?: () => React.ReactNode;
+  selectedIds?: string[];
+  onSelectRow?: (id: string) => void;
+  onSelectAll?: (ids: string[]) => void;
 }
 
 function DataTable<T extends Record<string, any>>({
@@ -59,6 +62,9 @@ function DataTable<T extends Record<string, any>>({
   getRowId,
   emptyMessage = 'No data available',
   renderPagination,
+  selectedIds = [],
+  onSelectRow,
+  onSelectAll,
 }: DataTableProps<T>) {
 
   console.log('DataTable rendered with onDelete:', !!onDelete, 'canDeleteRow:', !!canDeleteRow);
@@ -154,6 +160,39 @@ function DataTable<T extends Record<string, any>>({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
+              {onSelectRow && (
+                <TableCell
+                  padding="checkbox"
+                  sx={{
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(33, 51, 80, 0.15) 0%, rgba(106, 179, 68, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(33, 51, 80, 0.08) 0%, rgba(106, 179, 68, 0.08) 100%)',
+                    borderBottom: (theme) => theme.palette.mode === 'dark'
+                      ? '2px solid rgba(33, 51, 80, 0.3)'
+                      : '2px solid rgba(33, 51, 80, 0.2)',
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      if (onSelectAll) {
+                        if (selectedIds.length === data.length) {
+                          onSelectAll([]);
+                        } else {
+                          onSelectAll(data.map(row => getRowId(row)));
+                        }
+                      }
+                    }}
+                    sx={{ color: selectedIds.length > 0 ? 'primary.main' : 'text.secondary' }}
+                  >
+                    {selectedIds.length === data.length && data.length > 0 ? (
+                      <CheckBox fontSize="small" />
+                    ) : (
+                      <CheckBoxOutlineBlank fontSize="small" />
+                    )}
+                  </IconButton>
+                </TableCell>
+              )}
               {columns.map((column) => (
                 <TableCell
                   key={String(column.id)}
@@ -203,11 +242,21 @@ function DataTable<T extends Record<string, any>>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row, index) => (
+            {data.map((row, index) => {
+              const rowId = getRowId(row);
+              const isSelected = selectedIds.includes(rowId);
+              
+              return (
               <TableRow
                 hover
-                key={getRowId(row)}
+                key={rowId}
+                selected={isSelected}
                 sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(106, 179, 68, 0.1) !important'
+                      : 'rgba(106, 179, 68, 0.05) !important',
+                  },
                   '&:hover': {
                     backgroundColor: (theme) => theme.palette.mode === 'dark'
                       ? 'rgba(33, 51, 80, 0.08)'
@@ -221,6 +270,17 @@ function DataTable<T extends Record<string, any>>({
                   },
                 }}
               >
+                {onSelectRow && (
+                  <TableCell padding="checkbox" sx={{ py: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => onSelectRow(rowId)}
+                      sx={{ color: isSelected ? 'primary.main' : 'text.disabled' }}
+                    >
+                      {isSelected ? <CheckBox fontSize="small" /> : <CheckBoxOutlineBlank fontSize="small" />}
+                    </IconButton>
+                  </TableCell>
+                )}
                 {columns.map((column) => {
                   const value = column.id.toString().includes('.')
                     ? column.id.toString().split('.').reduce((obj, key) => obj?.[key], row)
@@ -413,7 +473,8 @@ function DataTable<T extends Record<string, any>>({
                   </TableCell>
                 )}
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

@@ -29,7 +29,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
-    if (password.length < 6) next.password = "Password needs 6+ characters";
+    if (/\s/.test(password)) {
+      next.password = "Password cannot contain spaces";
+    } else if (password.length < 6) {
+      next.password = "Password needs 6+ characters";
+    }
     if (password !== confirm) next.confirm = "Passwords do not match";
     setErrors(next);
     if (Object.keys(next).length) return;

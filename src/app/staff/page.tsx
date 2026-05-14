@@ -152,6 +152,8 @@ export default function StaffPage() {
 
     if (!editingStaff && !formData.password) {
       errors.password = "Password is required";
+    } else if (!editingStaff && /\s/.test(formData.password)) {
+      errors.password = "Password cannot contain spaces";
     } else if (!editingStaff && formData.password.length < 6) {
       errors.password = "Password must be at least 6 characters";
     }

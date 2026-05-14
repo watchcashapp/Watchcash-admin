@@ -392,7 +392,7 @@ export default function DashboardPage() {
                                   size="small"
                                   label={session.status}
                                   color={session.status === 'completed' ? 'success' : 'default'}
-                                  sx={{ fontSize: '0.75rem' }}
+                                  sx={{ fontSize: '0.75rem', color: session.status === 'completed' ? 'white' : 'inherit' }}
                                 />
                               </TableCell>
                             </TableRow>

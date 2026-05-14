@@ -26,6 +26,26 @@ export interface GetNotificationsArgs {
   unreadOnly?: boolean;
 }
 
+export interface SendNotificationArgs {
+  category: string;
+  title: string;
+  message: string;
+  section?: string;
+  action?: string;
+  entityType?: string;
+  entityId?: string;
+  entityPublicId?: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface SendSelectedNotificationArgs extends SendNotificationArgs {
+  userIds: string[];
+}
+
+export interface UpdateNotificationCategoriesArgs {
+  toggles: Record<string, boolean>;
+}
+
 export interface NotificationsListResult {
   items: Notification[];
   nextCursor: string | null;
@@ -124,7 +144,7 @@ const normalizeNotificationsResponse = (response: unknown): NotificationsListRes
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Notifications'],
+  tagTypes: ['Notifications', 'NotificationCategories'],
   endpoints: (builder) => ({
     getNotifications: builder.query<NotificationsListResult, GetNotificationsArgs | void>({
       query: (args) => {
@@ -197,6 +217,41 @@ export const notificationsApi = createApi({
       }),
       invalidatesTags: [{ type: 'Notifications', id: 'LIST' }],
     }),
+    sendGlobalNotification: builder.mutation<{ status?: string; message?: string }, SendNotificationArgs>({
+      query: (body) => ({
+        url: '/admin/notifications/send/global',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Notifications', id: 'LIST' }],
+    }),
+    sendSelectedNotification: builder.mutation<{ status?: string; message?: string }, SendSelectedNotificationArgs>({
+      query: (body) => ({
+        url: '/admin/notifications/send/selected',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Notifications', id: 'LIST' }],
+    }),
+    updateNotificationCategories: builder.mutation<{ status?: string; message?: string }, UpdateNotificationCategoriesArgs>({
+      query: (body) => ({
+        url: '/admin/notifications/categories',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['NotificationCategories'],
+    }),
+    getNotificationCategories: builder.query<{ toggles: Record<string, boolean> }, void>({
+      query: () => ({
+        url: '/admin/notifications/categories',
+        method: 'GET',
+      }),
+      providesTags: ['NotificationCategories'],
+      transformResponse: (response: any) => {
+        // Handle nested data property if present
+        return response.data || response;
+      }
+    }),
   }),
 });
 
@@ -208,4 +263,8 @@ export const {
   useDeleteNotificationMutation,
   useDeleteMultipleNotificationsMutation,
   useDeleteAllNotificationsMutation,
+  useSendGlobalNotificationMutation,
+  useSendSelectedNotificationMutation,
+  useUpdateNotificationCategoriesMutation,
+  useGetNotificationCategoriesQuery,
 } = notificationsApi;
