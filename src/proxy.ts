@@ -32,7 +32,13 @@ export function proxy(req: NextRequest) {
   const authRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'];
   
   // Routes accessible by EVERYONE (guests AND authenticated users)
-  const globalAccessRoutes = ['/pages/terms-and-conditions', '/pages/privacy-policy'];
+  const globalAccessRoutes = [
+    '/pages/terms-and-conditions',
+    '/pages/privacy-policy',
+    '/pages/how-to-delete-account',
+    '/billing/success',
+    '/billing/cancel',
+  ];
   
   const protectedPrefixes = [
     '/dashboard', '/profile', '/app-rules', '/global-rules',
