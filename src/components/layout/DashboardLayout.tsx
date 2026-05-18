@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { isNoAuthPublicRoute, isPublicLegalRoute } from '@/utils/publicRoutes';
 
 const DashboardShell = dynamic(() => import('./DashboardShell'), {
   ssr: false,
@@ -47,13 +48,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
   const isAuthPage = pathname?.startsWith('/auth');
 
-  const isPublicPage = pathname?.startsWith('/pages/privacy-policy') || 
-                       pathname?.startsWith('/pages/terms-and-conditions');
+  const isNoAuthPublic = isNoAuthPublicRoute(pathname);
+  const isPublicLegal = isPublicLegalRoute(pathname);
 
-  // If it's an auth page OR (is a public page AND not authenticated)
-  // we render children directly in a simple container. 
-  // We wait for initialization to avoid flicker.
-  if (isAuthPage || (isPublicPage && isInitialized && !isAuthenticated)) {
+  // Auth pages + fully public help/billing pages: no admin shell, no login required.
+  // Legal pages: public layout for guests only (admins keep shell to edit content).
+  if (
+    isAuthPage ||
+    isNoAuthPublic ||
+    (isPublicLegal && isInitialized && !isAuthenticated)
+  ) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {children}

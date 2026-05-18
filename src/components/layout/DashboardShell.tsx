@@ -68,6 +68,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import dynamic from 'next/dynamic';
 import { usePermissions } from '@/hooks/usePermissions';
+import { isPublicGuestRoute } from '@/utils/publicRoutes';
 import { useNotifications, NotificationsProvider } from '@/components/notifications/NotificationsProvider';
 
 const ThemeSwitcher = dynamic(() => import('@/components/ThemeSwitcher'), { ssr: false });
@@ -175,8 +176,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Redirect to login if not authenticated and initialized
   useEffect(() => {
-    const isPublic = pathname?.startsWith('/pages/privacy-policy') || 
-                     pathname?.startsWith('/pages/terms-and-conditions');
+    const isPublic = isPublicGuestRoute(pathname);
                      
     if (isMounted && isInitialized && !isAuthenticated && !isPublic) {
       router.push('/auth/login');

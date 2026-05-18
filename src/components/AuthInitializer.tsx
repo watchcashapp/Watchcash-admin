@@ -6,6 +6,7 @@ import { setUser, setAuthLoading, setInitialized, setAuthenticatedWithTokens, cl
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { getTokenFromCookie, decodeAccessToken } from '@/utils/auth';
+import { isPublicGuestRoute } from '@/utils/publicRoutes';
 import { useGetProfileQuery } from '@/store/api/authApi';
 
 interface AuthInitializerProps {
@@ -86,8 +87,7 @@ export default function AuthInitializer({ initialAuth }: AuthInitializerProps) {
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         
-        const isPublicPage = window.location.pathname.startsWith('/pages/privacy-policy') || 
-                             window.location.pathname.startsWith('/pages/terms-and-conditions');
+        const isPublicPage = isPublicGuestRoute(window.location.pathname);
                              
         if (!isPublicPage) {
           window.location.replace('/auth/login');
