@@ -39,6 +39,7 @@ interface AppRuleFormData extends CreateAppRuleRequest { }
 
 const initialFormData: AppRuleFormData = {
   appName: "",
+  packageName: "",
   icon: "", 
   pointsPerMinute: 1,
   dailyHardCap: 1,
@@ -155,6 +156,16 @@ export default function AppRulesPage() {
         </Typography>
       )
     },
+    { 
+      id: 'packageName', 
+      label: 'Package Name', 
+      minWidth: 180,
+      format: (value: string) => (
+        <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+          {value}
+        </Typography>
+      )
+    },
     {
       id: 'pointsPerMinute',
       label: 'Points/Min',
@@ -225,10 +236,11 @@ export default function AppRulesPage() {
   ], []);
 
   const isDirty = useMemo(() => {
-    if (!editingRule) return !!formData.appName.trim(); // For create, active if appName is entered
+    if (!editingRule) return !!formData.appName.trim() || !!formData.packageName.trim(); // For create, active if appName is entered
     if (!ruleDetail) return false;
     return (
       formData.appName.trim() !== ruleDetail.appName.trim() ||
+      formData.packageName.trim() !== (ruleDetail.packageName?.trim() || "") ||
       formData.icon !== (ruleDetail.icon || "") || // Icon field comparison
       formData.pointsPerMinute !== ruleDetail.pointsPerMinute ||
       formData.dailyHardCap !== ruleDetail.dailyHardCap ||
@@ -246,6 +258,7 @@ export default function AppRulesPage() {
       setEditingRule(rule);
       setFormData({
         appName: rule.appName,
+        packageName: rule.packageName || "",
         icon: rule.icon || "",
         pointsPerMinute: rule.pointsPerMinute,
         dailyHardCap: rule.dailyHardCap,
@@ -336,6 +349,9 @@ export default function AppRulesPage() {
     if (!formData.appName.trim()) {
       errors.appName = "App name is required";
     }
+    if (!formData.packageName.trim()) {
+      errors.packageName = "Package name is required";
+    }
     if (formData.pointsPerMinute < 0) {
       errors.pointsPerMinute = "Must be 0 or greater";
     }
@@ -371,6 +387,7 @@ export default function AppRulesPage() {
       
       // Add all form fields as strings
       formDataToSend.append('appName', formData.appName);
+      formDataToSend.append('packageName', formData.packageName);
       formDataToSend.append('pointsPerMinute', formData.pointsPerMinute.toString());
       formDataToSend.append('dailyHardCap', formData.dailyHardCap.toString());
       formDataToSend.append('dailySoftCap', formData.dailySoftCap.toString());
@@ -634,7 +651,7 @@ export default function AppRulesPage() {
           <DialogTitle>{editingRule ? 'Edit App Rule' : 'Create New App Rule'}</DialogTitle>
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Input
                   label="App Name"
                   name="appName"
@@ -649,7 +666,21 @@ export default function AppRulesPage() {
                   showCount
                 />
               </Grid>
-              
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Input
+                  label="Package Name"
+                  name="packageName"
+                  value={formData.packageName}
+                  onChange={handleInputChange}
+                  error={!!formErrors.packageName}
+                  helperText={formErrors.packageName}
+                  required
+                  fullWidth
+                  disabled={isCreating || isUpdating || isFetchingDetail}
+                  maxLength={100}
+                  showCount
+                />
+              </Grid>
               
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Input

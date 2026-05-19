@@ -4,6 +4,7 @@ import { baseQueryWithReauth } from './authApi';
 export interface AppRule {
   id: string;
   appName: string;
+  packageName: string;
   icon?: string; // New field - will store file path or URL
   iconUrl?: string; // API field for S3 URL - not shown in table
   pointsPerMinute: number;
@@ -31,6 +32,7 @@ export interface AppRuleResponse {
 
 export interface CreateAppRuleRequest {
   appName: string;
+  packageName: string;
   icon?: string; // New field - will store file path or URL
   pointsPerMinute: number;
   dailyHardCap: number;
