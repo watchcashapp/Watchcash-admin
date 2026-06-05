@@ -45,7 +45,11 @@ const getSocketBaseUrl = () => {
   if (!isBrowser()) {
     return '';
   }
-  return config.socketUrl;
+  const url = config.socketUrl;
+  if (!url) {
+    console.error('[Socket] NEXT_PUBLIC_SOCKET_URL is missing. Rebuild the app with the correct build-arg.');
+  }
+  return url;
 };
 
 const createDeviceId = () => {
