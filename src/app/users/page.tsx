@@ -11,7 +11,7 @@ export default function UsersPage() {
   return (
     <PermissionGuard permission="users:list">
       <UserManagementTable
-        title="User Management"
+        title="User Managements"
         defaultUserType="APP"
         hideUserTypeFilter={true}
         viewRoute="/users/view"

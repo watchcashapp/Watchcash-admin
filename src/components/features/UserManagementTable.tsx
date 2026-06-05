@@ -46,7 +46,7 @@ interface UserManagementTableProps {
 }
 
 export default function UserManagementTable({
-  title = "User Management",
+  title = "User Managements",
   showAddButton = false,
   addRoute = "/staff/users/add",
   editRoute = "/staff/users",

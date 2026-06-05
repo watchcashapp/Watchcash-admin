@@ -87,7 +87,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', permission: 'dashboard:view' },
   { text: 'Sessions', icon: <BarChart />, path: '/sessions', permission: 'sessions:view_live' },
-  { text: 'User Management', icon: <People />, path: '/users', permission: 'users:list' },
+  { text: 'User Managements', icon: <People />, path: '/users', permission: 'users:list' },
   { text: 'RBAC Rules', icon: <Gavel />, path: '/rbac-rules', permission: 'rbac:manage_roles' },
   {
     text: 'Staff Management',
