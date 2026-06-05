@@ -16,14 +16,6 @@ export const config = {
   appName: envVars.NEXT_PUBLIC_APP_NAME || 'WatchCash Admin',
 };
 
-let envLogged = true;
-
-function logEnvOnce() {
-  if (envLogged) return;
-  envLogged = true;
-
-  const runtime = typeof window === 'undefined' ? 'server' : 'client';
+export function logEnvConfig(runtime: 'server' | 'client' = typeof window === 'undefined' ? 'server' : 'client') {
   console.info(`[WatchCash env:${runtime}]`, { envVars, config });
 }
-
-logEnvOnce();
