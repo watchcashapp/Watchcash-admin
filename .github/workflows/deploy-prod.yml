@@ -28,7 +28,7 @@ jobs:
             --build-arg NEXT_PUBLIC_API_BASE_URL="https://api.watchncash.com" \
             --build-arg NEXT_PUBLIC_USE_PROXY=true \
             --build-arg NEXT_PUBLIC_APP_NAME="WatchCash Admin" \
-            --build-arg NEXT_PUBLIC_SOCKET_URL="https://api.watchncash.com" \
+            --build-arg NEXT_PUBLIC_SOCKET_URL="https://api.watchncash.com/socket" \
             --pull \
             -t ${{ secrets.DOCKER_USER }}/watchcashfront_repo:prodlatest .
 
