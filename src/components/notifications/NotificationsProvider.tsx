@@ -28,6 +28,7 @@ import { useDispatch } from 'react-redux';
 import { clearAuth, updatePermissionsAndRoles, Permission, Role } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/shared/Toaster';
+import { devLog } from '@/utils/devLog';
 import { rbacApi } from '@/store/api/rbacApi';
 import { usersApi } from '@/store/api/usersApi';
 import { dashboardApi } from '@/store/api/dashboardApi';
@@ -294,7 +295,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   }, [unreadOnly]);
 
   useEffect(() => {
-    console.log('[Socket Debug] Token available for connection:', !!resolvedToken);
+    devLog('[Socket Debug] Token available for connection:', !!resolvedToken);
     if (!resolvedToken) {
       disconnectNotificationsSocket();
       setSocketStatus('unauthorized');
@@ -336,7 +337,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
 
     const unsubscribePermissions = subscribeToPermissionEvents((payload: any) => {
-      console.log('Socket - permissions:updated received:', payload);
+      devLog('Socket - permissions:updated received:', payload);
       const newPermissions = payload.permissions as Permission[];
       const newRoles = payload.roles as Role[];
 
@@ -378,7 +379,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
 
     const unsubscribeBanExpired = subscribeToBanExpiredEvents((payload: any) => {
-      console.log('Socket - user:ban_expired received:', payload);
+      devLog('Socket - user:ban_expired received:', payload);
       // Refresh the users list and dashboard stats
       dispatch(usersApi.util.invalidateTags(['Users']));
       dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
@@ -388,7 +389,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
 
     const unsubscribeRankingUpdate = subscribeToRankingUpdateEvents((payload: any) => {
-      console.log('Socket - ranking:update_finished received:', payload);
+      devLog('Socket - ranking:update_finished received:', payload);
       // Refresh relevant data that might show rankings
       dispatch(usersApi.util.invalidateTags(['Users']));
       dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
@@ -397,15 +398,15 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     });
 
     const unsubscribeDashboardUpdate = subscribeToDashboardUpdateEvents((payload: any) => {
-      console.log('%cSocket - dashboard_update received:', 'background: #213350; color: #6AB344; padding: 2px 5px; border-radius: 3px; font-weight: bold;', payload);
+      devLog('%cSocket - dashboard_update received:', 'background: #213350; color: #6AB344; padding: 2px 5px; border-radius: 3px; font-weight: bold;', payload);
       // Invalidate dashboard tags to force refresh of stats and sessions
       dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
     });
 
-    // Debugging tool for manual testing
-    if (typeof window !== 'undefined') {
+    // Debugging tool for manual testing (development only)
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
       (window as any).refreshDashboardStats = () => {
-        console.log('Manual Dashboard Refresh Triggered');
+        devLog('Manual Dashboard Refresh Triggered');
         dispatch(dashboardApi.util.invalidateTags(['Dashboard']));
       };
     }

@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Edit, Delete, ToggleOn, ToggleOff, Visibility, RateReview, Block, CheckCircle, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { devLog } from '@/utils/devLog';
 
 export interface Column<T> {
   id: keyof T | string;
@@ -67,7 +68,7 @@ function DataTable<T extends Record<string, any>>({
   onSelectAll,
 }: DataTableProps<T>) {
 
-  console.log('DataTable rendered with onDelete:', !!onDelete, 'canDeleteRow:', !!canDeleteRow);
+  devLog('DataTable rendered with onDelete:', !!onDelete, 'canDeleteRow:', !!canDeleteRow);
 
   if (isLoading && (!data || data.length === 0)) {
     return (

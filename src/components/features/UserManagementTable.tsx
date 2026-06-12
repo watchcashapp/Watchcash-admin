@@ -17,6 +17,7 @@ import {
 import { Search, Add, NavigateBefore, NavigateNext, FileDownload } from "@mui/icons-material";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { config } from "@/config/env";
+import { devLog } from "@/utils/devLog";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import { ConfirmDialog, useToast, Button, Input, TablePagination } from "@/components/shared";
 import { useGetUsersQuery, useDeleteUserMutation, useUnbanUserMutation, User } from "@/store/api/usersApi";
@@ -663,11 +664,11 @@ export default function UserManagementTable({
           const currentUserRoleCode = currentUser?.roles?.[0]?.code;
           const rowUserRoleCode = row.roles?.[0]?.code;
           
-          console.log('Delete check - Current user role:', currentUserRoleCode, 'Row user role:', rowUserRoleCode);
+          devLog('Delete check - Current user role:', currentUserRoleCode, 'Row user role:', rowUserRoleCode);
           
           // Don't allow deleting admin users if current user is also admin
           if (currentUserRoleCode === 'ADMIN' && rowUserRoleCode === 'ADMIN') {
-            console.log('Delete blocked: Cannot delete admin user');
+            devLog('Delete blocked: Cannot delete admin user');
             return false; // Don't show delete button
           }
           

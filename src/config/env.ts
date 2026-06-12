@@ -1,3 +1,5 @@
+import { devInfo } from '@/utils/devLog';
+
 // Environment configuration
 export const envVars = {
   NODE_ENV: process.env.NODE_ENV,
@@ -17,5 +19,5 @@ export const config = {
 };
 
 export function logEnvConfig(runtime: 'server' | 'client' = typeof window === 'undefined' ? 'server' : 'client') {
-  console.info(`[WatchCash env:${runtime}]`, { envVars, config });
+  devInfo(`[WatchCash env:${runtime}]`, { envVars, config });
 }

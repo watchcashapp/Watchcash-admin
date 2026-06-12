@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './authApi';
+import { devLog } from '@/utils/devLog';
 
 export interface DashboardStats {
     status: string;
@@ -59,7 +60,7 @@ export const dashboardApi = createApi({
             query: () => '/admin/dashboard',
             providesTags: ['Dashboard'],
             transformResponse: (response: any) => {
-                console.log('[Dashboard API Debug] Raw response:', response);
+                devLog('[Dashboard API Debug] Raw response:', response);
                 const d = response.data || {};
                 return {
                     totalUsers: d.totalUsers ?? d.total_users ?? 0,

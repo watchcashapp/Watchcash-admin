@@ -19,6 +19,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Add, Edit, Delete, ToggleOn, ToggleOff } from "@mui/icons-material";
+import { devLog } from "@/utils/devLog";
 import { DataTable, ConfirmDialog, useToast, Input, PermissionGuard, TablePagination } from "@/components/shared";
 import { Tooltip, IconButton } from "@mui/material";
 import {
@@ -274,10 +275,10 @@ export default function StaffPage() {
           {hasPermission('staff:delete') && (() => {
                 const userRoleCode = user?.roles?.[0]?.code;
                 const staffRoleCode = row.role;
-                console.log('Delete button check - User role code:', userRoleCode, 'Staff role code:', staffRoleCode, 'Should hide:', userRoleCode === 'ADMIN' && staffRoleCode === 'ADMIN');
+                devLog('Delete button check - User role code:', userRoleCode, 'Staff role code:', staffRoleCode, 'Should hide:', userRoleCode === 'ADMIN' && staffRoleCode === 'ADMIN');
                 
                 // TEMPORARY: Always hide delete button for testing
-                console.log('TEMPORARY: Always hiding delete button for testing');
+                devLog('TEMPORARY: Always hiding delete button for testing');
                 return false; // Always return false to hide delete button
                 
                 // return !(userRoleCode === 'ADMIN' && staffRoleCode === 'ADMIN');

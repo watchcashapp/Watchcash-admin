@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { config } from '@/config/env';
+import { devLog } from '@/utils/devLog';
 
 export type NotificationsSocketStatus =
   | 'idle'
@@ -34,7 +35,7 @@ const notifyStatus = (status: NotificationsSocketStatus, message?: string) => {
   currentStatus = status;
   currentStatusMessage = message;
 
-  console.log(`[Socket Status] ${status}${message ? ': ' + message : ''}`);
+  devLog(`[Socket Status] ${status}${message ? ': ' + message : ''}`);
 
   for (const listener of statusListeners) {
     listener(status, message);
@@ -117,7 +118,7 @@ export const connectNotificationsSocket = (token: string) => {
   currentDeviceId = deviceId;
 
   notifyStatus('connecting');
-  console.log(`[Socket] Connecting to ${getSocketBaseUrl()} with deviceId: ${deviceId}`);
+  devLog(`[Socket] Connecting to ${getSocketBaseUrl()} with deviceId: ${deviceId}`);
   socket = io(getSocketBaseUrl(), {
     autoConnect: false,
     reconnection: true,
@@ -131,7 +132,7 @@ export const connectNotificationsSocket = (token: string) => {
       deviceId,
     },
   });
-  console.log('[Socket Debug] Socket object created:', !!socket);
+  devLog('[Socket Debug] Socket object created:', !!socket);
 
   socket.on('connect', () => {
     notifyStatus('connected');
@@ -175,49 +176,49 @@ export const connectNotificationsSocket = (token: string) => {
   });
 
   socket.on('notification:new', (payload) => {
-    console.log('[Socket] notification:new received:', payload);
+    devLog('[Socket] notification:new received:', payload);
     for (const listener of notificationListeners) {
       listener(payload);
     }
   });
 
   socket.on('permissions:updated', (payload) => {
-    console.log('[Socket] permissions:updated received:', payload);
+    devLog('[Socket] permissions:updated received:', payload);
     for (const listener of permissionListeners) {
       listener(payload);
     }
   });
   
   socket.on('user:ban_expired', (payload) => {
-    console.log('[Socket] user:ban_expired received:', payload);
+    devLog('[Socket] user:ban_expired received:', payload);
     for (const listener of banExpiredListeners) {
       listener(payload);
     }
   });
 
   socket.on('ranking:update_finished', (payload) => {
-    console.log('[Socket] ranking:update_finished received:', payload);
+    devLog('[Socket] ranking:update_finished received:', payload);
     for (const listener of rankingUpdateListeners) {
       listener(payload);
     }
   });
 
   socket.on('user_ban_expired', (payload) => {
-    console.log('[Socket] user_ban_expired received:', payload);
+    devLog('[Socket] user_ban_expired received:', payload);
     for (const listener of banExpiredListeners) {
       listener(payload);
     }
   });
 
   socket.on('ranking_update_finished', (payload) => {
-    console.log('[Socket] ranking_update_finished received:', payload);
+    devLog('[Socket] ranking_update_finished received:', payload);
     for (const listener of rankingUpdateListeners) {
       listener(payload);
     }
   });
 
   socket.on('message', (payload: any) => {
-    console.log('[Socket Debug] Received "message" event:', payload);
+    devLog('[Socket Debug] Received "message" event:', payload);
     if (!payload || typeof payload !== 'object') return;
     
     if (payload.eventName === 'user_ban_expired') {
@@ -251,7 +252,7 @@ export const connectNotificationsSocket = (token: string) => {
 
   dashboardEventNames.forEach(name => {
     socket?.on(name, (payload) => {
-      console.log(`%c[Socket] ${name} received:`, 'color: #6AB344; font-weight: bold; font-size: 12px;', payload);
+      devLog(`%c[Socket] ${name} received:`, 'color: #6AB344; font-weight: bold; font-size: 12px;', payload);
       for (const listener of dashboardUpdateListeners) {
         listener(payload);
       }
@@ -260,7 +261,7 @@ export const connectNotificationsSocket = (token: string) => {
 
   // Debug all socket events
   socket.onAny((eventName, ...args) => {
-    console.log(`[Socket ALL Events] Event: "${eventName}"`, {
+    devLog(`[Socket ALL Events] Event: "${eventName}"`, {
       payload: args[0],
       fullArgs: args,
       timestamp: new Date().toLocaleTimeString()
@@ -268,12 +269,12 @@ export const connectNotificationsSocket = (token: string) => {
   });
 
   socket.on('connect', () => {
-    console.log('[Socket] Connected! Sending test ping...');
+    devLog('[Socket] Connected! Sending test ping...');
     socket?.emit('ping');
   });
 
   socket.on('pong', () => {
-    console.log('[Socket] Received pong from server');
+    devLog('[Socket] Received pong from server');
   });
 
   socket.connect();

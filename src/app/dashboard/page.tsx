@@ -37,6 +37,7 @@ import { RootState } from '@/store';
 import { useGetDashboardStatsQuery, useGetSessionsSummaryQuery } from '@/store/api/dashboardApi';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/hooks/usePermissions';
+import { devLog } from '@/utils/devLog';
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -47,12 +48,12 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingStats || !isFullProfileLoaded || !isPermsInitialized;
   
-  console.log('[Dashboard Debug]', { 
-    hasData: !!data, 
-    isLoadingStats, 
-    isFullProfileLoaded, 
-    isPermsInitialized, 
-    isLoading 
+  devLog('[Dashboard Debug]', {
+    hasData: !!data,
+    isLoadingStats,
+    isFullProfileLoaded,
+    isPermsInitialized,
+    isLoading,
   });
 
 
