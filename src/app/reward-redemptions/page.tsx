@@ -205,10 +205,44 @@ export default function RewardRedemptionsPage() {
   const handleReviewSubmit = async () => {
     if (!selectedRedemption) return;
     setFormErrors({});
+
+    const isApprove = reviewForm.decision === 'approve';
+    if (!isApprove && !reviewForm.admin_reason_code) {
+      setFormErrors({ admin_reason_code: 'Reason code is required' });
+      return;
+    }
+
+    const catalogUtid =
+      selectedRedemption.requestMetadata?.catalog?.utid ||
+      selectedRedemption.rewardType ||
+      '';
+
+    if (isApprove && !catalogUtid) {
+      setFormErrors({ utid: 'UTID is missing from redemption details' });
+      showError('UTID is missing from redemption details');
+      return;
+    }
+
     try {
+      const payload: {
+        decision: 'approve' | 'reject' | 'hold';
+        admin_note?: string;
+        admin_reason_code?: string;
+        utid?: string;
+      } = {
+        decision: reviewForm.decision,
+        admin_note: reviewForm.admin_note || undefined,
+      };
+
+      if (isApprove) {
+        payload.utid = catalogUtid;
+      } else {
+        payload.admin_reason_code = reviewForm.admin_reason_code;
+      }
+
       await reviewRewardRedemption({
         id: selectedRedemption.id,
-        data: reviewForm,
+        data: payload,
       }).unwrap();
       showSuccess('Reward redemption reviewed successfully');
       setReviewDialogOpen(false);
@@ -567,7 +601,20 @@ export default function RewardRedemptionsPage() {
                   fullWidth 
                   label="Decision" 
                   value={reviewForm.decision} 
-                  onChange={(e) => setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' })} 
+                  onChange={(e) => {
+                    const decision = e.target.value as 'approve' | 'reject' | 'hold';
+                    setReviewForm({
+                      ...reviewForm,
+                      decision,
+                      admin_reason_code: decision === 'approve' ? '' : reviewForm.admin_reason_code,
+                    });
+                    setFormErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.decision;
+                      delete next.admin_reason_code;
+                      return next;
+                    });
+                  }} 
                   disabled={isReviewing} 
                   error={!!formErrors.decision}
                   helperText={formErrors.decision}
@@ -578,31 +625,52 @@ export default function RewardRedemptionsPage() {
                   <MenuItem value="hold">Hold</MenuItem>
                 </TextField>
               </Box>
-              <Box mb={3}>
-                <TextField 
-                  fullWidth 
-                  label="Reason Code" 
-                  value={reviewForm.admin_reason_code} 
-                  onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} 
-                  disabled={isReviewing} 
-                  error={!!formErrors.admin_reason_code}
-                  helperText={formErrors.admin_reason_code}
-                  placeholder="E.g. valid_activity" 
-                />
-                <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
-                  {PREDEFINED_REASONS.map((reason) => (
-                    <Chip
-                      key={reason.value}
-                      label={reason.label}
-                      variant={reviewForm.admin_reason_code === reason.value ? 'filled' : 'outlined'}
-                      color={reviewForm.admin_reason_code === reason.value ? 'primary' : 'default'}
-                      onClick={() => setReviewForm({ ...reviewForm, admin_reason_code: reason.value })}
-                      disabled={isReviewing}
-                      sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
-                    />
-                  ))}
+              {reviewForm.decision === 'approve' ? (
+                <Box mb={3}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+                    Catalog UTID
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 500 }}>
+                    {selectedRedemption?.requestMetadata?.catalog?.utid ||
+                      selectedRedemption?.rewardType ||
+                      '—'}
+                    {selectedRedemption?.requestMetadata?.catalog?.brandName
+                      ? ` — ${selectedRedemption.requestMetadata.catalog.brandName}`
+                      : ''}
+                  </Typography>
                 </Box>
-              </Box>
+              ) : (
+                <Box mb={3}>
+                  <TextField 
+                    select
+                    fullWidth 
+                    label="Reason Code" 
+                    value={reviewForm.admin_reason_code} 
+                    onChange={(e) => setReviewForm({ ...reviewForm, admin_reason_code: e.target.value })} 
+                    disabled={isReviewing} 
+                    error={!!formErrors.admin_reason_code}
+                    helperText={formErrors.admin_reason_code}
+                    slotProps={{ inputLabel: { shrink: true, required: true } }}
+                  >
+                    {PREDEFINED_REASONS.map((reason) => (
+                      <MenuItem key={reason.value} value={reason.value}>{reason.label}</MenuItem>
+                    ))}
+                  </TextField>
+                  <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
+                    {PREDEFINED_REASONS.map((reason) => (
+                      <Chip
+                        key={reason.value}
+                        label={reason.label}
+                        variant={reviewForm.admin_reason_code === reason.value ? 'filled' : 'outlined'}
+                        color={reviewForm.admin_reason_code === reason.value ? 'primary' : 'default'}
+                        onClick={() => setReviewForm({ ...reviewForm, admin_reason_code: reason.value })}
+                        disabled={isReviewing}
+                        sx={{ cursor: 'pointer', '&:hover': { backgroundColor: 'action.hover' } }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
               <Box mb={3}>
                 <Input
                   fullWidth
@@ -621,7 +689,16 @@ export default function RewardRedemptionsPage() {
               </Box>
             </Box>
             <Box p={2} borderTop="1px solid" borderColor="divider" bgcolor="background.paper">
-              <Button fullWidth variant="contained" onClick={handleReviewSubmit} disabled={isReviewing} sx={{ background: 'linear-gradient(45deg, #213350, #6AB344)' }}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleReviewSubmit}
+                disabled={
+                  isReviewing ||
+                  (reviewForm.decision !== 'approve' && !reviewForm.admin_reason_code)
+                }
+                sx={{ background: 'linear-gradient(45deg, #213350, #6AB344)' }}
+              >
                 {isReviewing ? <CircularProgress size={24} color="inherit" /> : 'Submit Review'}
               </Button>
             </Box>

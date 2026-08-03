@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import {
     Box,
     Paper,
@@ -13,7 +13,6 @@ import {
     Drawer,
     TextField,
     MenuItem,
-    IconButton,
     Skeleton,
 } from '@mui/material';
 import { ArrowBack, RateReview } from '@mui/icons-material';
@@ -22,9 +21,7 @@ import {
     useGetRewardRedemptionByIdQuery,
     useReviewRewardRedemptionMutation,
 } from '@/store/api/rewardRedemptionsApi';
-import { useGetRewardCatalogsQuery } from '@/store/api/rewardCatalogsApi';
 import { useToast } from '@/components/shared';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getFieldErrors } from '@/utils/form-errors';
 
@@ -64,25 +61,55 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
         decision: 'approve' | 'reject' | 'hold';
         admin_reason_code: string;
         admin_note: string;
-        utid: string;
     }>({
         decision: 'approve',
         admin_reason_code: '',
         admin_note: '',
-        utid: '',
     });
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+    const catalog = redemption?.requestMetadata?.catalog;
+    const redemptionUtid = catalog?.utid || redemption?.rewardType || '';
+    const catalogBrandName =
+        catalog?.brandName ||
+        redemption?.catalogBrandName ||
+        catalog?.rewardName ||
+        '';
+
     const handleReviewSubmit = async () => {
+        const isApprove = reviewForm.decision === 'approve';
+
+        if (!isApprove && !reviewForm.admin_reason_code) {
+            setFormErrors({ admin_reason_code: 'Reason code is required' });
+            return;
+        }
+
+        if (isApprove && !redemptionUtid) {
+            setFormErrors({ utid: 'UTID is missing from redemption details' });
+            showError('UTID is missing from redemption details');
+            return;
+        }
+
         try {
+            const payload: {
+                decision: 'approve' | 'reject' | 'hold';
+                admin_note?: string;
+                admin_reason_code?: string;
+                utid?: string;
+            } = {
+                decision: reviewForm.decision,
+                admin_note: reviewForm.admin_note || undefined,
+            };
+
+            if (isApprove) {
+                payload.utid = redemptionUtid;
+            } else {
+                payload.admin_reason_code = reviewForm.admin_reason_code;
+            }
+
             await reviewRewardRedemption({
                 id: resolvedParams.id,
-                data: {
-                    decision: reviewForm.decision,
-                    admin_note: reviewForm.admin_note,
-                    admin_reason_code: reviewForm.admin_reason_code,
-                    utid: reviewForm.utid
-                },
+                data: payload,
             }).unwrap();
             showSuccess('Reward redemption reviewed successfully');
             setReviewDialogOpen(false);
@@ -298,6 +325,15 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Reward Type & Value</Typography>
                                                 <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>{redemption.rewardType} - {redemption.rewardValue} {redemption.rewardCurrency}</Typography>
                                             </Box>
+                                            {(redemptionUtid || catalogBrandName) && (
+                                                <Box>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Catalog UTID</Typography>
+                                                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', color: 'text.primary' }}>
+                                                        {redemptionUtid}
+                                                        {catalogBrandName ? ` — ${catalogBrandName}` : ''}
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                             <Box>
                                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>Points Deducted</Typography>
                                                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>-{redemption.points}</Typography>
@@ -413,6 +449,8 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                         setFormErrors={setFormErrors}
                                         isReviewing={isReviewing}
                                         handleReviewSubmit={handleReviewSubmit}
+                                        redemptionUtid={redemptionUtid}
+                                        catalogBrandName={catalogBrandName}
                                     />
                                 )}
                             </Paper>
@@ -443,6 +481,8 @@ export default function RewardRedemptionDetailPage({ params }: { params: Promise
                                     isReviewing={isReviewing}
                                     handleReviewSubmit={handleReviewSubmit}
                                     setReviewDialogOpen={setReviewDialogOpen}
+                                    redemptionUtid={redemptionUtid}
+                                    catalogBrandName={catalogBrandName}
                                 />
                         )}
                     </Drawer>
@@ -457,7 +497,6 @@ interface ReviewFormProps {
         decision: 'approve' | 'reject' | 'hold';
         admin_reason_code: string;
         admin_note: string;
-        utid: string;
     };
     setReviewForm: (form: any) => void;
     formErrors: Record<string, string>;
@@ -465,6 +504,8 @@ interface ReviewFormProps {
     isReviewing: boolean;
     handleReviewSubmit: () => void;
     setReviewDialogOpen?: (open: boolean) => void;
+    redemptionUtid: string;
+    catalogBrandName: string;
 }
 
 function ReviewForm({
@@ -475,8 +516,15 @@ function ReviewForm({
     setFormErrors,
     isReviewing,
     handleReviewSubmit,
-    setReviewDialogOpen
+    setReviewDialogOpen,
+    redemptionUtid,
+    catalogBrandName,
 }: ReviewFormProps) {
+    const isApprove = reviewForm.decision === 'approve';
+    const canSubmit = isApprove
+        ? !!redemptionUtid
+        : !!reviewForm.admin_reason_code;
+
     return (
         <Box display="flex" flexDirection="column" flex={1} minHeight={0} sx={{ overflow: 'hidden' }}>
             <Box p={1.5} display="flex" alignItems="center" justifyContent="space-between" borderBottom="1px solid" borderColor="divider">
@@ -494,13 +542,19 @@ function ReviewForm({
                         label="Decision"
                         value={reviewForm.decision}
                         onChange={(e) => {
-                            setReviewForm({ ...reviewForm, decision: e.target.value as 'approve' | 'reject' | 'hold' });
-                            if (formErrors.decision) {
-                                setFormErrors(prev => {
-                                    const { decision, ...rest } = prev;
-                                    return rest;
-                                });
-                            }
+                            const decision = e.target.value as 'approve' | 'reject' | 'hold';
+                            setReviewForm({
+                                ...reviewForm,
+                                decision,
+                                admin_reason_code: decision === 'approve' ? '' : reviewForm.admin_reason_code,
+                            });
+                            setFormErrors((prev) => {
+                                const next = { ...prev };
+                                delete next.decision;
+                                delete next.admin_reason_code;
+                                delete next.utid;
+                                return next;
+                            });
                         }}
                         disabled={isReviewing}
                         error={!!formErrors.decision}
@@ -515,45 +569,57 @@ function ReviewForm({
                         <MenuItem value="hold" sx={{ fontSize: '0.75rem' }}>Hold</MenuItem>
                     </TextField>
                 </Box>
-                <Box mb={2}>
-                    <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        label="Reason Code"
-                        value={reviewForm.admin_reason_code}
-                        onChange={(e) => {
-                            setReviewForm({ ...reviewForm, admin_reason_code: e.target.value });
-                            if (formErrors.admin_reason_code) {
-                                setFormErrors(prev => {
-                                    const { admin_reason_code, ...rest } = prev;
-                                    return rest;
-                                });
-                            }
-                        }}
-                        disabled={isReviewing}
-                        placeholder="Select..."
-                        error={!!formErrors.admin_reason_code}
-                        helperText={formErrors.admin_reason_code}
-                        slotProps={{
-                            input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                            inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
-                        }}
-                    >
-                        {PREDEFINED_REASONS.map((reason) => (
-                            <MenuItem key={reason.value} value={reason.value} sx={{ fontSize: '0.75rem' }}>
-                                {reason.label}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Box>
-                <RewardCatalogField 
-                    reviewForm={reviewForm} 
-                    setReviewForm={setReviewForm} 
-                    formErrors={formErrors}
-                    setFormErrors={setFormErrors}
-                    isReviewing={isReviewing} 
-                />
+
+                {isApprove ? (
+                    <Box mb={2}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase' }}>
+                            Catalog UTID
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.75rem', mt: 0.5 }}>
+                            {redemptionUtid || '—'}
+                            {catalogBrandName ? ` — ${catalogBrandName}` : ''}
+                        </Typography>
+                        {formErrors.utid && (
+                            <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>
+                                {formErrors.utid}
+                            </Typography>
+                        )}
+                    </Box>
+                ) : (
+                    <Box mb={2}>
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Reason Code"
+                            value={reviewForm.admin_reason_code}
+                            onChange={(e) => {
+                                setReviewForm({ ...reviewForm, admin_reason_code: e.target.value });
+                                if (formErrors.admin_reason_code) {
+                                    setFormErrors(prev => {
+                                        const { admin_reason_code, ...rest } = prev;
+                                        return rest;
+                                    });
+                                }
+                            }}
+                            disabled={isReviewing}
+                            placeholder="Select..."
+                            error={!!formErrors.admin_reason_code}
+                            helperText={formErrors.admin_reason_code}
+                            slotProps={{
+                                input: { sx: { fontSize: '0.75rem', height: '32px' } },
+                                inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
+                            }}
+                        >
+                            {PREDEFINED_REASONS.map((reason) => (
+                                <MenuItem key={reason.value} value={reason.value} sx={{ fontSize: '0.75rem' }}>
+                                    {reason.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    </Box>
+                )}
+
                 <Box mb={2}>
                     <TextField
                         fullWidth
@@ -588,7 +654,7 @@ function ReviewForm({
                     variant="contained"
                     size="small"
                     onClick={handleReviewSubmit}
-                    disabled={isReviewing || !reviewForm.admin_reason_code || !reviewForm.utid}
+                    disabled={isReviewing || !canSubmit}
                     sx={{
                         background: 'linear-gradient(45deg, #213350, #6AB344)',
                         height: '32px',
@@ -598,58 +664,6 @@ function ReviewForm({
                     {isReviewing ? <CircularProgress size={18} color="inherit" /> : 'Submit Review'}
                 </Button>
             </Box>
-        </Box>
-    );
-}
-
-function RewardCatalogField({ 
-    reviewForm, 
-    setReviewForm, 
-    formErrors,
-    setFormErrors,
-    isReviewing 
-}: { 
-    reviewForm: any, 
-    setReviewForm: any, 
-    formErrors: Record<string, string>,
-    setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>,
-    isReviewing: boolean 
-}) {
-    const { data: catalogResponse, isLoading } = useGetRewardCatalogsQuery({ status: 'ACTIVE', limit: 100 });
-    const catalogs = catalogResponse?.items || [];
-
-    return (
-        <Box mb={2}>
-            <TextField
-                select
-                fullWidth
-                size="small"
-                label="Reward Catalog"
-                value={reviewForm.utid}
-                onChange={(e) => {
-                    setReviewForm({ ...reviewForm, utid: e.target.value });
-                    if (formErrors.utid) {
-                        setFormErrors(prev => {
-                            const { utid, ...rest } = prev;
-                            return rest;
-                        });
-                    }
-                }}
-                disabled={isReviewing || isLoading}
-                placeholder={isLoading ? "Loading..." : "Select catalog item..."}
-                error={!!formErrors.utid}
-                helperText={formErrors.utid}
-                slotProps={{
-                    input: { sx: { fontSize: '0.75rem', height: '32px' } },
-                    inputLabel: { sx: { fontSize: '0.75rem' }, shrink: true, required: true }
-                }}
-            >
-                {catalogs.map((item: any) => (
-                    <MenuItem key={item.id} value={item.utid} sx={{ fontSize: '0.75rem' }}>
-                        {item.brandName} - {item.rewardName} ({item.currencyCode || item.currency})
-                    </MenuItem>
-                ))}
-            </TextField>
         </Box>
     );
 }

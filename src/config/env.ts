@@ -13,7 +13,7 @@ export const config = {
   // Use Next.js API proxy to avoid CORS issues in development
   apiUrl: envVars.NEXT_PUBLIC_USE_PROXY === 'true'
     ? '/api/proxy'
-    : (envVars.NEXT_PUBLIC_API_BASE_URL || 'https://rx12p3w1-8080.inc1.devtunnels.ms/api'),
+    : (envVars.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:8080/api'),
   socketUrl: envVars.NEXT_PUBLIC_SOCKET_URL || '',
   appName: envVars.NEXT_PUBLIC_APP_NAME || 'WatchCash Admin',
 };

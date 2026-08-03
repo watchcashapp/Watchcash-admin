@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://rx12p3w1-8080.inc1.devtunnels.ms/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:8080/api';
 
 export async function GET(
   request: NextRequest,
