@@ -3,6 +3,7 @@ export const NO_AUTH_PUBLIC_PREFIXES = [
   '/pages/how-to-delete-account',
   '/billing/success',
   '/billing/cancel',
+  '/friends/accept',
 ] as const;
 
 /** Legal pages: guests see public layout; logged-in admins may use the dashboard shell to edit. */

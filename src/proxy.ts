@@ -38,6 +38,7 @@ export function proxy(req: NextRequest) {
     '/pages/how-to-delete-account',
     '/billing/success',
     '/billing/cancel',
+    '/friends/accept',
   ];
   
   const protectedPrefixes = [
@@ -73,7 +74,8 @@ export function proxy(req: NextRequest) {
       url.pathname = '/auth/login';
       // Only add returnTo if it's a known protected route and not just root
       if (pathname !== '/' && (isKnownProtected || !isPublicRoute)) {
-        url.search = `returnTo=${encodeURIComponent(pathname)}`;
+        const returnPath = `${pathname}${req.nextUrl.search || ''}`;
+        url.search = `returnTo=${encodeURIComponent(returnPath)}`;
       } else {
         url.search = '';
       }
