@@ -12,6 +12,8 @@ export interface Plan {
     priceUsd: number;
     earningPointsPerMin: number;
     dailyLimitMinutes: number;
+    minSessionDuration: number;
+    maxSessionDuration: number;
     isActive: boolean;
     features: string[];
     createdAt: string;
@@ -24,6 +26,8 @@ export interface PlanUpdate {
     price_usd: number;
     earning_points_per_min: number;
     daily_limit_minutes: number;
+    min_session_duration?: number;
+    max_session_duration?: number;
     is_active: boolean;
     features: string[];
 }

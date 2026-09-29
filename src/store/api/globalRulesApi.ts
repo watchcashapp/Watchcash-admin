@@ -6,8 +6,6 @@ export interface GlobalRules {
   dailyHardCap: number;
   dailySoftCap: number;
   softCapMultiplier: number;
-  maxSessionDuration: number;
-  minSessionDuration: number;
   maxDailySessions: number;
   mediumRiskReductionPercent: number;
   highRiskFirstReductionPercent: number;
