@@ -45,8 +45,6 @@ const initialFormData: AppRuleFormData = {
   dailyHardCap: 1,
   dailySoftCap: 1,
   softCapMultiplier: 1,
-  maxSessionDuration: 1,
-  minSessionDuration: 1,
   maxDailySessions: 1,
   enabled: true,
   permissions: [],
@@ -246,8 +244,6 @@ export default function AppRulesPage() {
       formData.dailyHardCap !== ruleDetail.dailyHardCap ||
       formData.dailySoftCap !== ruleDetail.dailySoftCap ||
       formData.softCapMultiplier !== ruleDetail.softCapMultiplier ||
-      formData.maxSessionDuration !== ruleDetail.maxSessionDuration ||
-      formData.minSessionDuration !== ruleDetail.minSessionDuration ||
       formData.maxDailySessions !== ruleDetail.maxDailySessions ||
       formData.enabled !== ruleDetail.enabled
     );
@@ -264,8 +260,6 @@ export default function AppRulesPage() {
         dailyHardCap: rule.dailyHardCap,
         dailySoftCap: rule.dailySoftCap,
         softCapMultiplier: rule.softCapMultiplier,
-        maxSessionDuration: rule.maxSessionDuration,
-        minSessionDuration: rule.minSessionDuration,
         maxDailySessions: rule.maxDailySessions,
         enabled: rule.enabled,
         permissions: rule.permissions || [],
@@ -364,12 +358,6 @@ export default function AppRulesPage() {
     if (formData.softCapMultiplier < 0) {
       errors.softCapMultiplier = "Must be greater than 0";
     }
-    if (formData.maxSessionDuration < 1) {
-      errors.maxSessionDuration = "Must be at least 1";
-    }
-    if (formData.minSessionDuration < 1) {
-      errors.minSessionDuration = "Must be at least 1";
-    }
     if (formData.maxDailySessions < 1) {
       errors.maxDailySessions = "Must be at least 1";
     }
@@ -392,8 +380,6 @@ export default function AppRulesPage() {
       formDataToSend.append('dailyHardCap', formData.dailyHardCap.toString());
       formDataToSend.append('dailySoftCap', formData.dailySoftCap.toString());
       formDataToSend.append('softCapMultiplier', formData.softCapMultiplier.toString());
-      formDataToSend.append('maxSessionDuration', formData.maxSessionDuration.toString());
-      formDataToSend.append('minSessionDuration', formData.minSessionDuration.toString());
       formDataToSend.append('maxDailySessions', formData.maxDailySessions.toString());
       formDataToSend.append('enabled', formData.enabled.toString());
       formDataToSend.append('permissions', JSON.stringify(formData.permissions || []));
@@ -691,7 +677,7 @@ export default function AppRulesPage() {
                   onChange={handleInputChange}
                   onFocus={handleNumberFocus}
                   error={!!formErrors.pointsPerMinute}
-                  helperText={formErrors.pointsPerMinute}
+                  helperText={formErrors.pointsPerMinute || "Session rewards use the plan's earning rate (Plan Settings), not this value"}
                   required
                   fullWidth
                   disabled={isCreating || isUpdating || isFetchingDetail}
@@ -743,36 +729,6 @@ export default function AppRulesPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Input
-                  label="Max Session Duration"
-                  name="maxSessionDuration"
-                  type="number"
-                  value={formData.maxSessionDuration}
-                  onChange={handleInputChange}
-                  onFocus={handleNumberFocus}
-                  error={!!formErrors.maxSessionDuration}
-                  helperText={formErrors.maxSessionDuration}
-                  required
-                  fullWidth
-                  disabled={isCreating || isUpdating || isFetchingDetail}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Input
-                  label="Min Session Duration"
-                  name="minSessionDuration"
-                  type="number"
-                  value={formData.minSessionDuration}
-                  onChange={handleInputChange}
-                  onFocus={handleNumberFocus}
-                  error={!!formErrors.minSessionDuration}
-                  helperText={formErrors.minSessionDuration}
-                  required
-                  fullWidth
-                  disabled={isCreating || isUpdating || isFetchingDetail}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
                 <Input
                   label="Max Daily Sessions"
                   name="maxDailySessions"
