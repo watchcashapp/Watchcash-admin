@@ -36,6 +36,42 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { WorkspacePremium } from "@mui/icons-material";
 import { getFieldErrors } from "@/utils/form-errors";
 
+const MAX_SESSION_DURATION_SECONDS = 86400;
+
+const isBlank = (value: any) => value === undefined || value === null || value === "";
+
+const formatDuration = (value: any): string => {
+  const seconds = Number(value);
+  if (isBlank(value) || !Number.isFinite(seconds) || seconds <= 0) return "";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return [h && `${h}h`, m && `${m}m`, s && `${s}s`].filter(Boolean).join(" ");
+};
+
+const validateSessionDuration = (value: any): string | undefined => {
+  if (isBlank(value)) return "Required";
+  const num = Number(value);
+  if (!Number.isInteger(num) || num < 1 || num > MAX_SESSION_DURATION_SECONDS) {
+    return `Must be a whole number from 1 to ${MAX_SESSION_DURATION_SECONDS} seconds`;
+  }
+  return undefined;
+};
+
+const validatePlanSessionDurations = (plans: any[]): Record<string, string> => {
+  const errors: Record<string, string> = {};
+  plans.forEach((plan, index) => {
+    const minError = validateSessionDuration(plan.minSessionDuration);
+    const maxError = validateSessionDuration(plan.maxSessionDuration);
+    if (minError) errors[`plans.${index}.min_session_duration`] = minError;
+    if (maxError) errors[`plans.${index}.max_session_duration`] = maxError;
+    if (!minError && !maxError && Number(plan.minSessionDuration) > Number(plan.maxSessionDuration)) {
+      errors[`plans.${index}.min_session_duration`] = "Must be less than or equal to max session duration";
+    }
+  });
+  return errors;
+};
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -131,6 +167,12 @@ export default function AppManagementPage() {
   const [updatePlanSettings, { isLoading: isUpdatingPlans }] = useUpdatePlanSettingsMutation();
   const [plansList, setPlansList] = useState<any[]>([]);
   const [planErrors, setPlanErrors] = useState<Record<string, string>>({});
+  const [planSubmitError, setPlanSubmitError] = useState<string>("");
+
+  const getPlanError = (index: number, key: string) => {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    return planErrors[`plans.${index}.${key}`] || planErrors[`plans.${index}.${snakeKey}`];
+  };
 
   useEffect(() => {
     if (planData?.plans) {
@@ -151,11 +193,17 @@ export default function AppManagementPage() {
     const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     const snakeErrorKey = `plans.${index}.${snakeKey}`;
 
-    if (planErrors[errorKey] || planErrors[snakeErrorKey]) {
+    const isDurationKey = key === "minSessionDuration" || key === "maxSessionDuration";
+
+    if (planErrors[errorKey] || planErrors[snakeErrorKey] || isDurationKey) {
       setPlanErrors(prev => {
         const next = { ...prev };
         delete next[errorKey];
         delete next[snakeErrorKey];
+        if (isDurationKey) {
+          delete next[`plans.${index}.min_session_duration`];
+          delete next[`plans.${index}.max_session_duration`];
+        }
         return next;
       });
     }
@@ -197,9 +245,18 @@ export default function AppManagementPage() {
 
   const handleSavePlanSettings = async () => {
     // Frontend validation check
+    setPlanSubmitError("");
     const invalidPlan = plansList.find(p => !p.name || p.priceUsd === "" || p.earningPointsPerMin === "" || p.dailyLimitMinutes === "");
     if (invalidPlan) {
       showError(`Please fill all required fields for plan: ${invalidPlan.code || invalidPlan.name || 'Unknown'}`);
+      return;
+    }
+
+    const durationErrors = validatePlanSessionDurations(plansList);
+    if (Object.keys(durationErrors).length > 0) {
+      setPlanErrors(durationErrors);
+      const firstIndex = Number(Object.keys(durationErrors)[0].split(".")[1]);
+      showError(`Please fix the session duration for plan: ${plansList[firstIndex]?.code || 'Unknown'}`);
       return;
     }
 
@@ -211,6 +268,8 @@ export default function AppManagementPage() {
         price_usd: Number(plan.priceUsd) || 0,
         earning_points_per_min: Number(plan.earningPointsPerMin) || 0,
         daily_limit_minutes: Number(plan.dailyLimitMinutes) || 0,
+        min_session_duration: Number(plan.minSessionDuration),
+        max_session_duration: Number(plan.maxSessionDuration),
         is_active: plan.isActive,
         features: plan.features || []
       }));
@@ -221,9 +280,19 @@ export default function AppManagementPage() {
       refetchPlans();
     } catch (err: any) {
       const fieldErrors = getFieldErrors(err);
+      const message: string = err?.data?.message || "";
+      // Backend messages look like "FREE: min_session_duration must be ..."
+      const match = message.match(/^([A-Za-z0-9_]+):\s*([a-z_]+)\s+(.+)$/);
+      if (match) {
+        const planIndex = plansList.findIndex(p => p.code === match[1]);
+        if (planIndex >= 0) {
+          fieldErrors[`plans.${planIndex}.${match[2]}`] = `${match[2]} ${match[3]}`;
+        }
+      }
       if (Object.keys(fieldErrors).length > 0) {
         setPlanErrors(fieldErrors);
       }
+      if (message) setPlanSubmitError(message);
       showError(err);
     }
   };
@@ -288,7 +357,16 @@ export default function AppManagementPage() {
                     </Box>
                   ) : (
                     <Box>
-                      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700, fontSize: '1.1rem' }}>Subscription Plan Configurations</Typography>
+                      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700, fontSize: '1.1rem' }}>Subscription Plan Configurations</Typography>
+                      <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
+                        Session reward points = session duration in minutes (capped at the plan&apos;s max session duration) × the plan&apos;s Earning Points / min.
+                        Sessions shorter than the plan&apos;s min session duration are rejected. App rule caps and risk reductions still apply afterwards.
+                      </Alert>
+                      {planSubmitError && (
+                        <Alert severity="error" onClose={() => setPlanSubmitError("")} sx={{ mb: 2, fontSize: '0.75rem' }}>
+                          {planSubmitError}
+                        </Alert>
+                      )}
                       <Grid container spacing={3}>
                         {plansList.map((plan, index) => (
                           <Grid size={{ xs: 12, lg: 4 }} key={plan.code}>
@@ -339,7 +417,7 @@ export default function AppManagementPage() {
                                     value={plan.priceUsd}
                                     onChange={(e) => handlePlanInputChange(index, "priceUsd", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
-                                    error={!!planErrors[`plans.${index}.priceUsd`] || !!planErrors[`plans.${index}.price_usd`] || !plan.priceUsd || Number(plan.priceUsd) < 0}
+                                    error={!!planErrors[`plans.${index}.priceUsd`] || !!planErrors[`plans.${index}.price_usd`] || isBlank(plan.priceUsd) || Number(plan.priceUsd) < 0}
                                     helperText={planErrors[`plans.${index}.priceUsd`] || planErrors[`plans.${index}.price_usd`]}
                                   />
                                   <Input
@@ -351,7 +429,7 @@ export default function AppManagementPage() {
                                     onChange={(e) => handlePlanInputChange(index, "earningPointsPerMin", e.target.value)}
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!!planErrors[`plans.${index}.earningPointsPerMin`] || !!planErrors[`plans.${index}.earning_points_per_min`] || !plan.earningPointsPerMin || Number(plan.earningPointsPerMin) < 0}
-                                    helperText={planErrors[`plans.${index}.earningPointsPerMin`] || planErrors[`plans.${index}.earning_points_per_min`]}
+                                    helperText={getPlanError(index, "earningPointsPerMin") || "Points per minute earned during a watch session on this plan"}
                                   />
                                   <Input
                                     fullWidth
@@ -363,6 +441,28 @@ export default function AppManagementPage() {
                                     disabled={!canUpsertPlanSettings || isUpdatingPlans}
                                     error={!!planErrors[`plans.${index}.dailyLimitMinutes`] || !!planErrors[`plans.${index}.daily_limit_minutes`] || !plan.dailyLimitMinutes || Number(plan.dailyLimitMinutes) < 0}
                                     helperText={planErrors[`plans.${index}.dailyLimitMinutes`] || planErrors[`plans.${index}.daily_limit_minutes`]}
+                                  />
+                                  <Input
+                                    fullWidth
+                                    label="Min Session Duration (seconds)"
+                                    type="number"
+                                    required
+                                    value={plan.minSessionDuration ?? ""}
+                                    onChange={(e) => handlePlanInputChange(index, "minSessionDuration", e.target.value)}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
+                                    error={!!getPlanError(index, "minSessionDuration")}
+                                    helperText={getPlanError(index, "minSessionDuration") || `Shorter sessions are rejected${formatDuration(plan.minSessionDuration) ? ` (${formatDuration(plan.minSessionDuration)})` : ""}`}
+                                  />
+                                  <Input
+                                    fullWidth
+                                    label="Max Session Duration (seconds)"
+                                    type="number"
+                                    required
+                                    value={plan.maxSessionDuration ?? ""}
+                                    onChange={(e) => handlePlanInputChange(index, "maxSessionDuration", e.target.value)}
+                                    disabled={!canUpsertPlanSettings || isUpdatingPlans}
+                                    error={!!getPlanError(index, "maxSessionDuration")}
+                                    helperText={getPlanError(index, "maxSessionDuration") || `Longer sessions are capped${formatDuration(plan.maxSessionDuration) ? ` (${formatDuration(plan.maxSessionDuration)})` : ""}`}
                                   />
                                   <Box sx={{ mt: 1 }}>
                                       <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 0.5 }}>Features</Typography>
@@ -452,7 +552,7 @@ export default function AppManagementPage() {
                             isUpdatingPlans || 
                             !canUpsertPlanSettings || 
                             !isPlansChanged || 
-                            plansList.some(p => !p.name || !p.priceUsd || !p.earningPointsPerMin || !p.dailyLimitMinutes)
+                            plansList.some(p => !p.name || isBlank(p.priceUsd) || isBlank(p.earningPointsPerMin) || isBlank(p.dailyLimitMinutes))
                           }
                           sx={{
                             height: '30px',

@@ -1,0 +1,39 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "backup/master-before-force-fa01320",
+    "dev_backup",
+    "development",
+    "feature/admin-Improvements",
+    "feature/admin-backUp",
+    "feature/admin-portal",
+    "feature/development-backUp",
+    "friendsmodule",
+    "main",
+    "master"
+  ],
+  "parent": {
+    "backup/master-before-force-fa01320": "main",
+    "dev_backup": "main",
+    "development": "main",
+    "feature/admin-Improvements": "main",
+    "feature/admin-backUp": "main",
+    "feature/admin-portal": "main",
+    "feature/development-backUp": "main",
+    "friendsmodule": "main",
+    "main": null,
+    "master": "main"
+  },
+  "order": [
+    "main",
+    "backup/master-before-force-fa01320",
+    "dev_backup",
+    "development",
+    "feature/admin-Improvements",
+    "feature/admin-backUp",
+    "feature/admin-portal",
+    "feature/development-backUp",
+    "friendsmodule",
+    "master"
+  ]
+}

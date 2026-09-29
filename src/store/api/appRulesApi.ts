@@ -11,8 +11,6 @@ export interface AppRule {
   dailyHardCap: number;
   dailySoftCap: number;
   softCapMultiplier: number;
-  maxSessionDuration: number;
-  minSessionDuration: number;
   maxDailySessions: number;
   enabled: boolean;
   permissions?: string[]; // Array of permission IDs
@@ -38,8 +36,6 @@ export interface CreateAppRuleRequest {
   dailyHardCap: number;
   dailySoftCap: number;
   softCapMultiplier: number;
-  maxSessionDuration: number;
-  minSessionDuration: number;
   maxDailySessions: number;
   enabled: boolean;
   permissions?: string[]; // Array of permission IDs

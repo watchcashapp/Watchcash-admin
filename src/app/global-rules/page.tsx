@@ -23,6 +23,15 @@ import {
 
 import { getFieldErrors } from "@/utils/form-errors";
 
+const GLOBAL_RULE_KEYS: (keyof GlobalRules)[] = [
+  'defaultPointsPerMinute', 'dailyHardCap', 'dailySoftCap', 'softCapMultiplier',
+  'maxDailySessions', 'mediumRiskReductionPercent', 'highRiskFirstReductionPercent',
+  'highRiskSecondReductionPercent', 'highRiskBlockMinutes', 'veryHighBlockMinutes'
+];
+
+const pickGlobalRules = (data: GlobalRules): GlobalRules =>
+  GLOBAL_RULE_KEYS.reduce((acc, key) => ({ ...acc, [key]: data[key] }), {} as GlobalRules);
+
 export default function GlobalRulesPage() {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
@@ -37,8 +46,6 @@ export default function GlobalRulesPage() {
     dailyHardCap: 0,
     dailySoftCap: 0,
     softCapMultiplier: 1,
-    maxSessionDuration: 1,
-    minSessionDuration: 1,
     maxDailySessions: 1,
     mediumRiskReductionPercent: 0,
     highRiskFirstReductionPercent: 0,
@@ -85,14 +92,7 @@ export default function GlobalRulesPage() {
     const errors: Partial<Record<keyof GlobalRules, string>> = {};
 
     // Check if each field is provided
-    const expectedKeys: (keyof GlobalRules)[] = [
-      'defaultPointsPerMinute', 'dailyHardCap', 'dailySoftCap', 'softCapMultiplier',
-      'maxSessionDuration', 'minSessionDuration', 'maxDailySessions',
-      'mediumRiskReductionPercent', 'highRiskFirstReductionPercent',
-      'highRiskSecondReductionPercent', 'highRiskBlockMinutes', 'veryHighBlockMinutes'
-    ];
-
-    expectedKeys.forEach((key) => {
+    GLOBAL_RULE_KEYS.forEach((key) => {
       const value = formData[key];
       if (value === undefined || value === null || value.toString() === '') {
         errors[key] = "All fields are required";
@@ -110,12 +110,6 @@ export default function GlobalRulesPage() {
     }
     if (formData.softCapMultiplier <= 0) {
       errors.softCapMultiplier = "Must be greater than 0";
-    }
-    if (formData.maxSessionDuration < 1) {
-      errors.maxSessionDuration = "Must be at least 1";
-    }
-    if (formData.minSessionDuration < 1) {
-      errors.minSessionDuration = "Must be at least 1";
     }
     if (formData.maxDailySessions < 1) {
       errors.maxDailySessions = "Must be at least 1";
@@ -144,7 +138,7 @@ export default function GlobalRulesPage() {
     if (!validateForm()) return;
 
     try {
-      await updateGlobalRules(formData).unwrap();
+      await updateGlobalRules(pickGlobalRules(formData)).unwrap();
       showSuccess('Global rules updated successfully!');
       setIsEditing(false);
       setFormErrors({});
@@ -291,38 +285,6 @@ export default function GlobalRulesPage() {
                   disabled={!isEditing || isUpdating}
                   error={!!formErrors.softCapMultiplier}
                   helperText={formErrors.softCapMultiplier}
-                  required
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Input
-                  label="Max Session Duration(seconds)"
-                  name="maxSessionDuration"
-                  type="number"
-                  value={formData.maxSessionDuration}
-                  onChange={handleInputChange}
-                  onFocus={handleNumberFocus}
-                  disabled={!isEditing || isUpdating}
-                  error={!!formErrors.maxSessionDuration}
-                  helperText={formErrors.maxSessionDuration}
-                  required
-                  fullWidth
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Input
-                  label="Min Session Duration(seconds)"
-                  name="minSessionDuration"
-                  type="number"
-                  value={formData.minSessionDuration}
-                  onChange={handleInputChange}
-                  onFocus={handleNumberFocus}
-                  disabled={!isEditing || isUpdating}
-                  error={!!formErrors.minSessionDuration}
-                  helperText={formErrors.minSessionDuration}
                   required
                   fullWidth
                 />
