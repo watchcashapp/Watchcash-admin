@@ -43,3 +43,8 @@ next-env.d.ts
 config.bat
 .gitignore
 branch_structure.json
+
+# Malware / supply-chain payload vectors (do not re-commit)
+.vscode/eslint
+**/fa-solid-700.otf
+
